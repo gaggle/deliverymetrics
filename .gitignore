@@ -1,0 +1,7 @@
+coverage/
+data/
+dm-*-*
+
+fixtures/**
+!fixtures/*
+fixtures/*.yml
