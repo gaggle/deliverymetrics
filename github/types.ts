@@ -24,6 +24,7 @@ export const githubPullSchema = z.object({
   _links: z.object({ html: z.object({ href: z.string(), }), self: z.object({ href: z.string(), }), }),
 });
 export type GithubPull = z.infer<typeof githubPullSchema>
+export type GithubPullDateKey = keyof Pick<GithubPull, "created_at" | "updated_at" | "closed_at" | "merged_at">
 
 export interface GithubDiff {
   syncedAt: Epoch;

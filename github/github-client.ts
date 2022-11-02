@@ -1,11 +1,11 @@
 import { fetchExhaustively, Retrier } from "../fetching/mod.ts";
 import { RequestMethod } from "../fixtures/types.ts";
 
-import { asyncToArray, last, stringifyPull } from "../utils.ts";
+import { asyncToArray, first, stringifyPull } from "../utils.ts";
 import { deepMerge, equal, groupBy, log } from "../deps.ts";
 import { Epoch } from "../types.ts";
 
-import { GithubCache, GithubDiff, GithubPull, githubRestSpec } from "./types.ts";
+import { GithubCache, GithubDiff, GithubPull, GithubPullDateKey, githubRestSpec } from "./types.ts";
 
 export class ReadonlyGithubClient {
   readonly cacheInfo: Readonly<{ getUpdatedAt: () => Promise<Epoch | undefined>, location: string }>;
@@ -24,10 +24,16 @@ export class ReadonlyGithubClient {
   }
 
   /**
-   * Yield pulls, sorted by updated_at
+   * Yield pulls
+   *
+   * Default sort is by `updated_at`
    */
-  async * findPulls(): AsyncGenerator<GithubPull> {
-    for (const el of sortPullsByUpdatedAt(await asyncToArray(this.cache.getPulls()))) {
+  async * findPulls({ sort }: Partial<{ sort: { key: GithubPullDateKey, order?: "asc" | "desc" } }> = {}): AsyncGenerator<GithubPull> {
+    const sortedPulls = sortPullsByKey(await asyncToArray(this.cache.getPulls()), sort?.key ?? "updated_at");
+    if (sort?.order === "desc") {
+      sortedPulls.reverse();
+    }
+    for (const el of sortedPulls) {
       yield el;
     }
   }
@@ -39,7 +45,7 @@ export class ReadonlyGithubClient {
   }
 
   async findLatestPull(): Promise<GithubPull | undefined> {
-    return last(this.findPulls());
+    return first(this.findPulls({ sort: { key: "updated_at", order: "desc" } }));
   }
 }
 
@@ -73,18 +79,20 @@ export class GithubClient extends ReadonlyGithubClient {
 
     return {
       syncedAt: aboutToFetchTime,
-      newPulls: sortPullsByUpdatedAt(bucket.newPulls || []),
-      updatedPulls: sortPullsByUpdatedAt(bucket.updatedPulls || [])
+      newPulls: sortPullsByKey(bucket.newPulls || []),
+      updatedPulls: sortPullsByKey(bucket.updatedPulls || [])
         .filter(updated => !equal.equal(updated, prevPullsByNumber[updated.number]))
         .map(updated => ({ prev: prevPullsByNumber[updated.number], updated }))
     };
   }
 }
 
-function sortPullsByUpdatedAt(pulls: Array<GithubPull>): Array<GithubPull> {
+function sortPullsByKey(pulls: Array<GithubPull>, key: GithubPullDateKey = "updated_at"): Array<GithubPull> {
   return pulls.sort((a, b) => {
-    const aT = new Date(a.updated_at).getTime();
-    const bT = new Date(b.updated_at).getTime();
+    const aVal = a[key];
+    const aT = aVal === null ? 0 : new Date(aVal).getTime();
+    const bVal = b[key];
+    const bT = bVal === null ? 0 : new Date(bVal).getTime();
     if (aT === bT) return 0;
     if (aT < bT) return -1;
     if (aT > bT) return 1;

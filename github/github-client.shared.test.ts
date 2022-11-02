@@ -59,10 +59,10 @@ for (const { provider, name } of providers) {
         }, { cache: new GithubMockCache({ pulls: [getFakePull()] }) });
       });
 
-      await t.step("should sort cached pulls", async () => {
-        const pull80s = getFakePull({ id: 1, number: 1, updated_at: "1980-01-01T00:00:00Z" });
-        const pull2ks = getFakePull({ id: 3, number: 3, updated_at: "2000-01-01T00:00:00Z" });
-        const pull90s = getFakePull({ id: 2, number: 2, updated_at: "1990-01-01T00:00:00Z" });
+      await t.step("should by default sort cached pulls by updated_at", async () => {
+        const pull80s = getFakePull({ number: 1, updated_at: "1980-01-01T00:00:00Z" });
+        const pull90s = getFakePull({ number: 2, updated_at: "1990-01-01T00:00:00Z" });
+        const pull2ks = getFakePull({ number: 3, updated_at: "2000-01-01T00:00:00Z" });
 
         await provider(async ({ client }) => {
           asserts.assertEquals(await asyncToArray(client.findPulls()), [
@@ -80,17 +80,74 @@ for (const { provider, name } of providers) {
           })
         });
       });
+
+      await t.step("should support custom sorting", async () => {
+        const createdRecent = getFakePull({
+          number: 1,
+          created_at: "1200-01-01T00:00:00Z",
+          updated_at: "2000-01-01T00:00:00Z"
+        });
+        const createdOld = getFakePull({
+          number: 2,
+          created_at: "1000-01-01T00:00:00Z",
+          updated_at: "2200-01-01T00:00:00Z"
+        });
+
+        await provider(async ({ client }) => {
+          asserts.assertEquals(await asyncToArray(client.findPulls({ sort: { key: "created_at" } })), [
+            createdOld,
+            createdRecent,
+          ]);
+        }, {
+          cache: new GithubMockCache({
+            pulls: [
+              createdRecent,
+              createdOld,
+            ]
+          })
+        });
+      });
+
+      await t.step("should allow sorting desc", async () => {
+        const createdRecent = getFakePull({
+          number: 1,
+          created_at: "1200-01-01T00:00:00Z",
+          updated_at: "2000-01-01T00:00:00Z"
+        });
+        const createdOld = getFakePull({
+          number: 2,
+          created_at: "1000-01-01T00:00:00Z",
+          updated_at: "2200-01-01T00:00:00Z"
+        });
+
+        await provider(async ({ client }) => {
+          asserts.assertEquals(await asyncToArray(client.findPulls({ sort: { key: "created_at", order: "desc" } })), [
+            createdRecent,
+            createdOld,
+          ]);
+        }, {
+          cache: new GithubMockCache({
+            pulls: [
+              createdOld,
+              createdRecent,
+            ]
+          })
+        });
+      });
     });
 
     await t.step("#findUnclosedPulls", async (t) => {
       await t.step("should find only the pull that's open", async () => {
         await provider(async ({ client }) => {
-          asserts.assertEquals(await asyncToArray(client.findUnclosedPulls()), [getFakePull({ id: 2, number: 2, state: "open" })]);
+          asserts.assertEquals(await asyncToArray(client.findUnclosedPulls()), [getFakePull({
+            number: 2,
+            state: "open"
+          })]);
         }, {
           cache: new GithubMockCache({
             pulls: [
-              getFakePull({ id: 1, number: 1, state: "closed" }),
-              getFakePull({ id: 2, number: 2, state: "open" }),
+              getFakePull({ number: 1, state: "closed" }),
+              getFakePull({ number: 2, state: "open" }),
             ]
           })
         });
@@ -98,7 +155,7 @@ for (const { provider, name } of providers) {
     });
 
     await t.step("#findLatestPull", async (t) => {
-      const mostRecentPull = getFakePull({ id: 2, number: 2, updated_at: "2000-01-01T00:00:00Z" });
+      const mostRecentPull = getFakePull({ number: 2, updated_at: "2000-01-01T00:00:00Z" });
 
       await t.step("should find the most recent cached pull", async () => {
         await provider(async ({ client }) => {
@@ -106,9 +163,9 @@ for (const { provider, name } of providers) {
         }, {
           cache: new GithubMockCache({
             pulls: [
-              getFakePull({ id: 3, number: 3, updated_at: "1980-01-01T00:00:00Z" }),
+              getFakePull({ number: 3, updated_at: "1980-01-01T00:00:00Z" }),
               mostRecentPull,
-              getFakePull({ id: 1, number: 1, updated_at: "1970-01-01T00:00:00Z" }),
+              getFakePull({ number: 1, updated_at: "1970-01-01T00:00:00Z" }),
             ]
           })
         });
