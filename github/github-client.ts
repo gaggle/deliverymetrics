@@ -23,6 +23,9 @@ export class ReadonlyGithubClient {
     this.repo = opts.repo;
   }
 
+  /**
+   * Yield pulls, sorted by updated_at
+   */
   async * findPulls(): AsyncGenerator<GithubPull> {
     for (const el of sortPullsByUpdatedAt(await asyncToArray(this.cache.getPulls()))) {
       yield el;
