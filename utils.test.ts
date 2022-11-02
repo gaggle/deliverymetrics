@@ -1,7 +1,7 @@
 import { asserts, typeChecks } from "./dev-deps.ts";
 import {
-  asyncToArray,
-  getEnv, limit,
+  asyncToArray, first,
+  getEnv, last, limit,
   pluralize,
   stringifyPull,
   stringifyUpdatedPull,
@@ -46,6 +46,28 @@ Deno.test("limit", async (t) => {
     }
 
     asserts.assertEquals(await asyncToArray(limit(yielder(), 2)), ["foo", "foo"]);
+  });
+});
+
+Deno.test("first", async (t) => {
+  await t.step("yields first element of an AsyncGenerator", async () => {
+    async function * yielder(): AsyncGenerator<string> {
+      yield "foo";
+      yield "bar";
+    }
+
+    asserts.assertEquals(await first(yielder()), "foo");
+  });
+});
+
+Deno.test("last", async (t) => {
+  await t.step("yields last element of an AsyncGenerator", async () => {
+    async function * yielder(): AsyncGenerator<string> {
+      yield "foo";
+      yield "bar";
+    }
+
+    asserts.assertEquals(await last(yielder()), "bar");
   });
 });
 

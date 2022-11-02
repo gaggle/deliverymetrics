@@ -22,6 +22,18 @@ export async function * limit<T>(iter: AsyncGenerator<T> | AsyncIterable<T>, max
   }
 }
 
+export async function first<T>(iter: AsyncGenerator<T>): Promise<T> {
+  return (await iter.next()).value;
+}
+
+export async function last<T>(iter: AsyncGenerator<T>): Promise<T> {
+  let lastEl: T | undefined = undefined;
+  for await (const el of iter) {
+    lastEl = el;
+  }
+  return lastEl as T;
+}
+
 export async function * arrayToAsyncGenerator<T>(array: Array<T>): AsyncGenerator<T> {
   for (const el of array) {
     yield el;

@@ -1,7 +1,7 @@
 import { fetchExhaustively, Retrier } from "../fetching/mod.ts";
 import { RequestMethod } from "../fixtures/types.ts";
 
-import { asyncToArray, stringifyPull } from "../utils.ts";
+import { asyncToArray, last, stringifyPull } from "../utils.ts";
 import { deepMerge, equal, groupBy, log } from "../deps.ts";
 import { Epoch } from "../types.ts";
 
@@ -36,11 +36,7 @@ export class ReadonlyGithubClient {
   }
 
   async findLatestPull(): Promise<GithubPull | undefined> {
-    let pull: GithubPull | undefined = undefined;
-    for await (const el of this.findPulls()) {
-      pull = el;
-    }
-    return pull;
+    return last(this.findPulls());
   }
 }
 
