@@ -6,22 +6,33 @@ import { asyncToArray } from "../utils.ts";
 import { csv, path } from "../deps.ts";
 import { ensureFiles, withFileOpen, withTempDir } from "../path-and-file-utils.ts";
 
-import { outputToCsv } from "./output-to-csv.ts";
+import { outputToCsv, Row } from "./output-to-csv.ts";
+import { DeepPartial } from "../types.ts";
 
 Deno.test("syncToCsv", async (t) => {
+    async function createFakeGithubCache(dir: string, gh?: DeepPartial<GithubPull>): Promise<void> {
+      await ensureFiles(dir, [
+        {
+          file: "data/github/owner/repo/info.json",
+          data: <GithubDiskCacheInfo>{ "updatedAt": 1666535574032 }
+        },
+        {
+          file: "data/github/owner/repo/pulls/1.json",
+          data: <GithubPull>getFakePull(gh)
+        },
+      ]);
+    }
+
+    async function withCsvContent(callback: (content: Array<{ [key: string]: string }>) => void, filepath: string) {
+      await withFileOpen(async (f) => {
+        const content = await asyncToArray(csv.readCSVObjects(f));
+        await callback(content);
+      }, filepath);
+    }
+
     await t.step("outputs pull data as csv", async () => {
       await withTempDir(async p => {
-        await ensureFiles(p, [
-          {
-            file: "data/github/owner/repo/info.json",
-            data: <GithubDiskCacheInfo>{ "updatedAt": 1666535574032 }
-          },
-          {
-            file: "data/github/owner/repo/pulls/1.json",
-            data: <GithubPull>getFakePull({ number: 1, created_at: "2021-10-25T20:35:29Z", })
-          },
-        ]);
-
+        await createFakeGithubCache(p, { number: 1, created_at: "2021-10-25T20:35:29Z", });
         const output = path.join(p, "output.csv");
 
         await outputToCsv({
@@ -30,14 +41,13 @@ Deno.test("syncToCsv", async (t) => {
           root: p,
         });
 
-        await withFileOpen(async (f) => {
-          const content = await asyncToArray(csv.readCSVObjects(f));
+        await withCsvContent(content => {
           asserts.assertEquals(content.length, 1);
           asserts.assertEquals(content[0], {
             number: "1",
             created_at: "2021-10-25T20:35:29Z",
-            merged_or_closed_at: "",
             updated_at: "2022-10-03T20:26:18Z",
+            was_cancelled: "false",
             url: "https://url",
             id: "1",
             node_id: "node_id",
@@ -58,30 +68,35 @@ Deno.test("syncToCsv", async (t) => {
 
     await t.step("outputs encoded body", async () => {
       // ↑ encoded to avoid outputting literal newlines that can confuse the csv format
-      await withTempDir(async p => {
-        await ensureFiles(p, [
-          {
-            file: "data/github/owner/repo/info.json",
-            data: <GithubDiskCacheInfo>{ "updatedAt": 1666535574032 }
-          },
-          {
-            file: "data/github/owner/repo/pulls/1.json",
-            data: <GithubPull>getFakePull({ number: 1, created_at: "2021-10-25T20:35:29Z", body: "multiline\nbody" })
-          },
-        ]);
-
-        const output = path.join(p, "output.csv");
+      await withTempDir(async root => {
+        await createFakeGithubCache(root, { number: 1, created_at: "2021-10-25T20:35:29Z", body: "multiline\nbody" });
+        const output = path.join(root, "output.csv");
 
         await outputToCsv({
           github: { owner: "owner", repo: "repo" },
           output,
-          root: p,
+          root,
         });
 
-        await withFileOpen(async (f) => {
-          const content = await asyncToArray(csv.readCSVObjects(f));
-          asserts.assertEquals(
-            content[0].body, JSON.stringify("multiline\nbody"));
+        await withCsvContent(content => {
+          asserts.assertEquals(content[0].body, JSON.stringify("multiline\nbody"));
+        }, output);
+      });
+    });
+
+    await t.step("sets was_cancelled as true when pull was closed but not merged", async () => {
+      await withTempDir(async root => {
+        await createFakeGithubCache(root, { number: 1, closed_at: "2021-10-25T20:35:29Z", merged_at: null });
+        const output = path.join(root, "output.csv");
+
+        await outputToCsv({
+          github: { owner: "owner", repo: "repo" },
+          output,
+          root,
+        });
+
+        await withCsvContent(content => {
+          asserts.assertEquals(content[0].was_cancelled, "true");
         }, output);
       });
     });
