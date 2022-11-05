@@ -10,7 +10,7 @@ import { outputToCsv } from "./output-to-csv.ts";
 import { DeepPartial } from "../types.ts";
 
 Deno.test("syncToCsv", async (t) => {
-    async function createFakeGithubCache(dir: string, gh?: DeepPartial<GithubPull>): Promise<void> {
+    async function createFakeGithubCache(dir: string, ghPull?: DeepPartial<GithubPull>): Promise<void> {
       await ensureFiles(dir, [
         {
           file: "data/github/owner/repo/info.json",
@@ -18,7 +18,7 @@ Deno.test("syncToCsv", async (t) => {
         },
         {
           file: "data/github/owner/repo/pulls/1.json",
-          data: <GithubPull>getFakePull(gh)
+          data: <GithubPull>getFakePull(ghPull)
         },
       ]);
     }
