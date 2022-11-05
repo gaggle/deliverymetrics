@@ -1,7 +1,8 @@
-import { z } from "./deps.ts";
 import { GithubPull } from "./github/mod.ts";
 
-export async function asyncToArray<T>(iter: AsyncGenerator<T> | AsyncIterable<T>): Promise<Array<T>> {
+import { z } from "./deps.ts";
+
+export async function asyncToArray<T>(iter: AsyncIterable<T>): Promise<Array<T>> {
   const arr = [];
   for await(const el of iter) {
     arr.push(el);
@@ -9,9 +10,7 @@ export async function asyncToArray<T>(iter: AsyncGenerator<T> | AsyncIterable<T>
   return arr;
 }
 
-export function limit<T>(iter: AsyncGenerator<T>, maxItems: number): AsyncGenerator<T>
-export function limit<T>(iter: AsyncIterable<T>, maxItems: number): AsyncIterable<T>
-export async function * limit<T>(iter: AsyncGenerator<T> | AsyncIterable<T>, maxItems: number): AsyncGenerator<T> | AsyncIterable<T> {
+export async function * limit<T>(iter: AsyncIterable<T>, maxItems: number): AsyncIterable<T> {
   let count = 0;
   for await(const el of iter) {
     yield el;
@@ -22,16 +21,19 @@ export async function * limit<T>(iter: AsyncGenerator<T> | AsyncIterable<T>, max
   }
 }
 
-export async function first<T>(iter: AsyncGenerator<T>): Promise<T> {
-  return (await iter.next()).value;
+export async function first<T>(iter: AsyncIterable<T>): Promise<T | undefined> {
+  // noinspection LoopStatementThatDoesntLoopJS
+  for await (const el of iter) {
+    return el;
+  }
 }
 
-export async function last<T>(iter: AsyncGenerator<T>): Promise<T> {
+export async function last<T>(iter: AsyncIterable<T>): Promise<T | undefined> {
   let lastEl: T | undefined = undefined;
   for await (const el of iter) {
     lastEl = el;
   }
-  return lastEl as T;
+  return lastEl;
 }
 
 export async function * arrayToAsyncGenerator<T>(array: Array<T>): AsyncGenerator<T> {

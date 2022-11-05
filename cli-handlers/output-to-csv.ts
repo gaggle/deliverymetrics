@@ -33,7 +33,7 @@ export async function outputToCsv(
   }, outputCsv, { write: true, create: true, truncate: true });
 }
 
-async function * githubPullsAsCsv(pulls: AsyncGenerator<GithubPull>): AsyncGenerator<Row> {
+async function * githubPullsAsCsv(pulls: AsyncIterableIterator<GithubPull>): AsyncIterableIterator<Row> {
   for await(const pull of pulls) {
     yield {
       _links: JSON.stringify(pull._links),
