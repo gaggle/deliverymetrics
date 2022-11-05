@@ -1,6 +1,7 @@
 coverage/
 data/
 dm-*-*
+output/
 
 fixtures/**
 !fixtures/*

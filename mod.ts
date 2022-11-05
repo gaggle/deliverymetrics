@@ -1,7 +1,7 @@
 import { githubSyncHandler, outputToCsv } from "./cli-handlers/mod.ts";
 import { parseGithubUrl } from "./github/mod.ts";
 
-import { log, yargs, YargsArguments, YargsInstance, } from "./deps.ts";
+import { fs, log, path, yargs, YargsArguments, YargsInstance, } from "./deps.ts";
 
 const logLevels = ["DEBUG", "INFO", "WARNING"] as const;
 type LogLevel = typeof logLevels[number]
@@ -46,17 +46,30 @@ yargs(Deno.args)
     })
   )
 
-  .command("output csv <output> <repo-id>", "Output synced data to csv",
+  .command("output <format> <output-dir> <repo-id>", "Output synced data, generating metrics and reports",
     (inst: YargsInstance) => {
-      inst.positional("output", { describe: "Output csv path, e.g.: ./output.csv", type: "string" });
+      inst.positional("format", { describe: `Output format, e.g.: csv`, type: "string", choices: ["csv"] });
+      inst.positional("output-dir", {
+        describe: "Output directory, e.g.: ./output", type: "string", normalize: true, coerce: async (arg: string) => {
+          const resolved = path.resolve(path.normalize(arg));
+          await fs.ensureDir(resolved);
+
+          // Test write access
+          const f = await Deno.makeTempFile({ dir: resolved });
+          await Deno.remove(f);
+
+          return resolved;
+        }
+      });
       inst.positional("repo-id", { describe: "Repository identifier, e.g: octokit/octokit.js", type: "string" });
     },
-    async (argv: YargsArguments & { output: string, repoId: string }) =>
+    async (argv: YargsArguments & { format: string, outputDir: string, repoId: string }) => {
       await outputToCsv({
         github: parseGithubUrl(argv.repoId),
-        output: argv.output,
+        outputDir: argv.outputDir,
         root: Deno.cwd(),
-      })
+      });
+    }
   )
 
   .strictCommands()

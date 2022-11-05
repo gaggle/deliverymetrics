@@ -1,6 +1,6 @@
 import { GithubDiskCache, GithubPull, githubPullSchema, ReadonlyGithubClient } from "../github/mod.ts";
 
-import { csv, path } from "../deps.ts";
+import { csv, fs, path } from "../deps.ts";
 import { ToTuple } from "../utils.ts";
 import { withFileOpen } from "../path-and-file-utils.ts";
 
@@ -16,7 +16,7 @@ const headers = [...primaryHeaders, ...remainingHeaders] as const;
 export type Row = Record<typeof headers[number], string>
 
 export async function outputToCsv(
-  { github, output, root, }: { github: { owner: string, repo: string, }, output: string, root: string }) {
+  { github, outputDir, root, }: { github: { owner: string, repo: string, }, outputDir: string, root: string }) {
   const gh = new ReadonlyGithubClient({
     cache: await GithubDiskCache.init(path.join(root, "data", "github", github.owner, github.repo)),
     owner: github.owner,
@@ -26,9 +26,11 @@ export async function outputToCsv(
 
   const pulls = gh.findPulls({ sort: { key: "created_at", order: "asc" } });
 
+  const outputCsv = path.join(outputDir, "output.csv");
+  await fs.ensureFile(outputCsv);
   await withFileOpen(async (f) => {
     await csv.writeCSVObjects(f, githubPullsAsCsv(pulls), { header: headers.slice() });
-  }, output, { write: true, create: true, truncate: true });
+  }, outputCsv, { write: true, create: true, truncate: true });
 }
 
 async function * githubPullsAsCsv(pulls: AsyncGenerator<GithubPull>): AsyncGenerator<Row> {

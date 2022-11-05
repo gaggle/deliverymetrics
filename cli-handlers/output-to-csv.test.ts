@@ -33,11 +33,11 @@ Deno.test("syncToCsv", async (t) => {
     await t.step("outputs pull data as csv", async () => {
       await withTempDir(async p => {
         await createFakeGithubCache(p, { number: 1, created_at: "2021-10-25T20:35:29Z", });
-        const output = path.join(p, "output.csv");
+        const outputDir = path.join(p, "out");
 
         await outputToCsv({
           github: { owner: "owner", repo: "repo" },
-          output,
+          outputDir,
           root: p,
         });
 
@@ -62,7 +62,7 @@ Deno.test("syncToCsv", async (t) => {
             base: `{"label":"Foo:main","ref":"main","sha":"f357074d2aa6b319ee5475a2bafb65bd1416074d"}`,
             _links: `{"html":{"href":"https://url"},"self":{"href":"https://url"}}`
           });
-        }, output);
+        }, path.join(outputDir, "output.csv"));
       });
     });
 
@@ -70,34 +70,34 @@ Deno.test("syncToCsv", async (t) => {
       // ↑ encoded to avoid outputting literal newlines that can confuse the csv format
       await withTempDir(async root => {
         await createFakeGithubCache(root, { number: 1, created_at: "2021-10-25T20:35:29Z", body: "multiline\nbody" });
-        const output = path.join(root, "output.csv");
+        const outputDir = path.join(root, "out");
 
         await outputToCsv({
           github: { owner: "owner", repo: "repo" },
-          output,
+          outputDir,
           root,
         });
 
         await withCsvContent(content => {
           asserts.assertEquals(content[0].body, JSON.stringify("multiline\nbody"));
-        }, output);
+        }, path.join(outputDir, "output.csv"));
       });
     });
 
     await t.step("sets was_cancelled as true when pull was closed but not merged", async () => {
       await withTempDir(async root => {
         await createFakeGithubCache(root, { number: 1, closed_at: "2021-10-25T20:35:29Z", merged_at: null });
-        const output = path.join(root, "output.csv");
+        const outputDir = path.join(root, "out");
 
         await outputToCsv({
           github: { owner: "owner", repo: "repo" },
-          output,
+          outputDir,
           root,
         });
 
         await withCsvContent(content => {
           asserts.assertEquals(content[0].was_cancelled, "true");
-        }, output);
+        }, path.join(outputDir, "output.csv"));
       });
     });
   }

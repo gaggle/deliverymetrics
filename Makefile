@@ -20,7 +20,7 @@ pull-github:
 	deno run $(ALLOW) ./mod.ts pull github ${GITHUB_REPO} ${GITHUB_TOKEN}
 
 output-csv:
-	deno run $(ALLOW) ./mod.ts output csv output.csv ${GITHUB_REPO}
+	deno run $(ALLOW) ./mod.ts output csv ./output/csv ${GITHUB_REPO}
 
 get-fixtures:
 	deno run $(ALLOW) ./fixtures/main.ts
