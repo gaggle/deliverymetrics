@@ -44,7 +44,7 @@ export class ReadonlyGithubClient {
     }
   }
 
-  async findLatestPull(): Promise<GithubPull | undefined> {
+  findLatestPull(): Promise<GithubPull | undefined> {
     return first(this.findPulls({ sort: { key: "updated_at", order: "desc" } }));
   }
 }

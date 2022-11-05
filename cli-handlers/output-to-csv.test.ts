@@ -6,7 +6,7 @@ import { asyncToArray } from "../utils.ts";
 import { csv, path } from "../deps.ts";
 import { ensureFiles, withFileOpen, withTempDir } from "../path-and-file-utils.ts";
 
-import { outputToCsv, Row } from "./output-to-csv.ts";
+import { outputToCsv } from "./output-to-csv.ts";
 import { DeepPartial } from "../types.ts";
 
 Deno.test("syncToCsv", async (t) => {
