@@ -2,13 +2,13 @@ import { arrayToAsyncGenerator, asyncToArray } from "../utils.ts";
 import { asserts, mock, time } from "../dev-deps.ts";
 import { withFakeTime, withStubs } from "../dev-utils.ts";
 
-import { _internals, GithubClient } from "./github-client.ts";
+import { _internals, SyncableGithubClient } from "./github-client.ts";
 import { getFakePull } from "./testing.ts";
 import { GithubMockCache } from "./github-cache.ts";
 
-Deno.test("githubClient#sync", async (t) => {
+Deno.test("SyncableGithubClient#sync", async (t) => {
   await t.step("should fetch pulls using the client's owner, repo, and token", async () => {
-    const client = new GithubClient({
+    const client = new SyncableGithubClient({
       cache: new GithubMockCache(),
       owner: "owner",
       repo: "repo",
@@ -24,7 +24,7 @@ Deno.test("githubClient#sync", async (t) => {
   });
 
   await t.step("should fetch pulls since the last time the cache was updated", async () => {
-    const client = new GithubClient({
+    const client = new SyncableGithubClient({
       cache: new GithubMockCache({ updatedAt: 10_000 }),
       owner: "owner",
       repo: "repo",
@@ -39,7 +39,7 @@ Deno.test("githubClient#sync", async (t) => {
   });
 
   await t.step("should add fetched pulls to cache", async () => {
-    const client = new GithubClient({
+    const client = new SyncableGithubClient({
       cache: new GithubMockCache(),
       owner: "owner",
       repo: "repo",
@@ -55,7 +55,7 @@ Deno.test("githubClient#sync", async (t) => {
   });
 
   await t.step("should update cache's updatedAt", async () => {
-    const client = new GithubClient({
+    const client = new SyncableGithubClient({
       cache: new GithubMockCache(),
       owner: "owner",
       repo: "repo",
@@ -73,7 +73,7 @@ Deno.test("githubClient#sync", async (t) => {
   });
 
   await t.step("should return syncedAt", async () => {
-    const client = new GithubClient({
+    const client = new SyncableGithubClient({
       cache: new GithubMockCache(),
       owner: "owner",
       repo: "repo",
@@ -93,7 +93,7 @@ Deno.test("githubClient#sync", async (t) => {
   await t.step("should return list of updated pulls", async () => {
     const pullOpen = getFakePull({ id: 1, number: 1, state: "open" });
     const pullClosed = getFakePull({ id: 1, number: 1, state: "closed" });
-    const client = new GithubClient({
+    const client = new SyncableGithubClient({
       cache: new GithubMockCache({ pulls: [pullOpen] }),
       owner: "owner",
       repo: "repo",
@@ -109,7 +109,7 @@ Deno.test("githubClient#sync", async (t) => {
 
   await t.step("should return list of new pulls", async () => {
     const newPull = getFakePull({ id: 1, number: 1, state: "closed" });
-    const client = new GithubClient({
+    const client = new SyncableGithubClient({
       cache: new GithubMockCache(),
       owner: "owner",
       repo: "repo",

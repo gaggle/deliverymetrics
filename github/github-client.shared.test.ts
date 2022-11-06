@@ -1,13 +1,13 @@
 import { asserts } from "../dev-deps.ts";
 
 import { GithubMockCache } from "./github-cache.ts";
-import { GithubClient, ReadonlyGithubClient } from "./github-client.ts";
+import { SyncableGithubClient, ReadonlyGithubClient } from "./github-client.ts";
 import { getFakePull } from "./testing.ts";
-import { GithubCache } from "./types.ts";
+import { GithubCache, GithubClient } from "./types.ts";
 import { asyncToArray } from "../utils.ts";
 
 const providers: Array<{
-  provider: (callable: (opts: { client: ReadonlyGithubClient }) => void | Promise<void>, opts?: Partial<{ cache: GithubCache }>) => Promise<void>,
+  provider: (callable: (opts: { client: GithubClient }) => void | Promise<void>, opts?: Partial<{ cache: GithubCache }>) => Promise<void>,
   name: string
 }> = [
   {
@@ -24,7 +24,7 @@ const providers: Array<{
   {
     provider: async (callable, { cache } = {}) => {
       await callable({
-        client: new GithubClient({
+        client: new SyncableGithubClient({
           cache: cache || new GithubMockCache(),
           owner: "owner",
           repo: "repo",
@@ -32,7 +32,7 @@ const providers: Array<{
         })
       });
     },
-    name: "GithubClient"
+    name: "SyncableGithubClient"
   },
 ];
 

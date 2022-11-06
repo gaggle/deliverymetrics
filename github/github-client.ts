@@ -5,9 +5,9 @@ import { asyncToArray, first, stringifyPull } from "../utils.ts";
 import { deepMerge, equal, groupBy, log } from "../deps.ts";
 import { Epoch } from "../types.ts";
 
-import { GithubCache, GithubDiff, GithubPull, GithubPullDateKey, githubRestSpec } from "./types.ts";
+import { GithubCache, GithubClient, GithubDiff, GithubPull, GithubPullDateKey, githubRestSpec } from "./types.ts";
 
-export class ReadonlyGithubClient {
+export class ReadonlyGithubClient implements GithubClient {
   readonly cacheInfo: Readonly<{ getUpdatedAt: () => Promise<Epoch | undefined>, location: string }>;
   readonly htmlUrl: string;
 
@@ -49,7 +49,7 @@ export class ReadonlyGithubClient {
   }
 }
 
-export class GithubClient extends ReadonlyGithubClient {
+export class SyncableGithubClient extends ReadonlyGithubClient implements GithubClient {
   private readonly token: string;
 
   constructor(opts: { cache: GithubCache; owner: string; repo: string; token: string }) {
