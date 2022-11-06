@@ -1,3 +1,5 @@
+import { getFakePull } from "./github/testing.ts";
+
 import { asserts, typeChecks } from "./dev-deps.ts";
 import {
   asyncToArray, first,
@@ -7,7 +9,6 @@ import {
   stringifyUpdatedPull,
   ToTuple,
 } from "./utils.ts";
-import { getFakePull } from "./github/testing.ts";
 
 Deno.test("asyncToArray", async (t) => {
   await t.step("converts AsyncGenerator", async () => {
