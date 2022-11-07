@@ -85,7 +85,7 @@ Deno.test("syncToCsv", async (t) => {
           closed_at: "",
           merged_at: "",
           draft: "false",
-          base: `{"label":"Foo:main","ref":"main","sha":"f357074d2aa6b319ee5475a2bafb65bd1416074d"}`,
+          base: `{"label":"Foo:main","ref":"main","sha":"f357074d2aa6b319ee5475a2abcD65bd1416074d"}`,
           _links: `{"html":{"href":"https://url"},"self":{"href":"https://url"}}`
         });
       }, expectedFiles["output.csv"]);

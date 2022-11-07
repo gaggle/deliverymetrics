@@ -1,7 +1,8 @@
+import { getEnv } from "../utils.ts";
+import { path, yaml, } from "../deps.ts";
+
 import { fetchGithubFixtures, fetchJiraFixtures } from "./get-fixtures.ts";
 import { fetchSpecSchema, FetchSpec } from "./types.ts";
-import { path, yaml, } from "../deps.ts";
-import { getEnv } from "../utils.ts";
 
 const moduleDir = path.dirname(path.fromFileUrl(import.meta.url));
 type FetchFunction = (args: FetchSpec) => Promise<void>;

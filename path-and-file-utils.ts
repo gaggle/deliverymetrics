@@ -112,6 +112,7 @@ export function ensureFiles(root: string, files: Array<{ file: string, data: str
     return fp;
   }));
 }
+
 export async function withFileOpen(callable: (f: Deno.FsFile) => void, ...opts: Parameters<typeof Deno.open>) {
   const f = await Deno.open(...opts);
   try {
