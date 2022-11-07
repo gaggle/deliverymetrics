@@ -16,7 +16,7 @@ Deno.test("yieldDailyPullRequestLeadTime", async (t) => {
     });
 
     asserts.assertEquals(await asyncToArray(yieldDailyPullRequestLeadTime(github)), [
-      { day: "2022-01-05T00:00:00.000Z", leadTimeInDays: 5, numOfPRsMerged: 1 },
+      { day: "2022-01-05T00:00:00.000Z", leadTimeInDays: 5.0, mergedPRs: [1] },
     ]);
   });
 
@@ -35,8 +35,8 @@ Deno.test("yieldDailyPullRequestLeadTime", async (t) => {
     });
 
     asserts.assertEquals(await asyncToArray(yieldDailyPullRequestLeadTime(github)), [
-      { day: "2022-01-05T00:00:00.000Z", leadTimeInDays: 5, numOfPRsMerged: 2 },
-      { day: "2022-02-05T00:00:00.000Z", leadTimeInDays: 5, numOfPRsMerged: 3 },
+      { day: "2022-01-05T00:00:00.000Z", leadTimeInDays: 5.0, mergedPRs: [1, 2] },
+      { day: "2022-02-05T00:00:00.000Z", leadTimeInDays: 5.0, mergedPRs: [3, 4, 5] },
     ]);
   });
 
@@ -52,7 +52,7 @@ Deno.test("yieldDailyPullRequestLeadTime", async (t) => {
     });
 
     asserts.assertEquals(await asyncToArray(yieldDailyPullRequestLeadTime(github)), [
-      { day: "2022-01-20T00:00:00.000Z", leadTimeInDays: 11, numOfPRsMerged: 3 },
+      { day: "2022-01-20T00:00:00.000Z", leadTimeInDays: 11.0, mergedPRs: [1, 2, 3] },
     ]);
   });
 });

@@ -38,7 +38,19 @@ export async function safeReadTextFile(...args: Parameters<typeof Deno.readTextF
 }
 
 export async function readJsonFile<Schema extends z.ZodTypeAny>(p: string, schema: Schema): Promise<z.infer<Schema>> {
-  return schema.parse(JSON.parse(await Deno.readTextFile(p)));
+  const data = await Deno.readTextFile(p);
+
+  let parsed;
+  try {
+    parsed = JSON.parse(data);
+  } catch (err) {
+    if (err instanceof SyntaxError) {
+      throw new SyntaxError(`Error parsing '${p}': ${err.message}`);
+    }
+    throw err;
+  }
+
+  return schema.parse(parsed);
 }
 
 export async function ensureJson<Schema extends z.ZodTypeAny>(

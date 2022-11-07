@@ -1,17 +1,17 @@
-import { GithubClient } from "../github/mod.ts";
+import { GithubClient, GithubPull } from "../github/mod.ts";
 
-type DailyPullRequestLeadTime = { day: string, leadTimeInDays: number, numOfPRsMerged: number }
+type DailyPullRequestLeadTime = { day: string, leadTimeInDays: number, mergedPRs: Array<number> }
 
 export async function * yieldDailyPullRequestLeadTime(gh: GithubClient): AsyncGenerator<DailyPullRequestLeadTime> {
-  let leadTimes: Array<number> = [];
+  let leadTimes: Array<{ leadTime: number, number: GithubPull["number"] }> = [];
   let prevDay: Date | undefined;
 
   function getYieldValue() {
-    const leadTimeSum = leadTimes.reduce((prev, val) => prev + val, 0);
+    const leadTimeSum = leadTimes.reduce((prev, val) => prev + val.leadTime, 0);
     return {
       day: prevDay!.toISOString(),
       leadTimeInDays: toDays(leadTimeSum) / leadTimes.length,
-      numOfPRsMerged: leadTimes.length
+      mergedPRs: leadTimes.map(el => el.number)
     };
   }
 
@@ -28,7 +28,10 @@ export async function * yieldDailyPullRequestLeadTime(gh: GithubClient): AsyncGe
     }
     prevDay = currentDay;
 
-    leadTimes.push(ceilDate(pull.merged_at).getTime() - flooredDate(pull.created_at).getTime());
+    leadTimes.push({
+      leadTime: ceilDate(pull.merged_at).getTime() - flooredDate(pull.created_at).getTime(),
+      number: pull.number,
+    });
   }
 
   if (prevDay) {
