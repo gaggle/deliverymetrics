@@ -36,11 +36,10 @@ Deno.test("syncToCsv", async (t) => {
   }
 
   await withTempDir(async p => {
-    type FakePullName = "simple" | "multiline" | "cancelled"
-    const fakePulls: Record<FakePullName, DeepPartial<GithubPull>> = {
-      simple: { number: 1, created_at: "2021-10-25T20:35:29Z" },
-      multiline: { number: 2, created_at: "2021-10-25T20:35:29Z", body: "multiline\nbody" },
-      cancelled: { number: 3, closed_at: "2021-10-25T20:35:29Z", merged_at: null },
+    const fakePulls: Record<string, DeepPartial<GithubPull>> = {
+      simple: { number: 1, created_at: "0001-01-01T00:00:00Z" },
+      multiline: { number: 2, created_at: "0002-01-01T00:00:00Z", body: "multiline\nbody" },
+      cancelled: { number: 3, created_at: "0003-01-01T00:00:00Z", closed_at: "0003-01-02T00:00:00Z", merged_at: null },
     };
 
     await createFakeGithubCache(p, {
@@ -69,43 +68,53 @@ Deno.test("syncToCsv", async (t) => {
       });
     }
 
-    await t.step("formats output.csv as expected", async () => {
-      await withCsvContent(content => {
-        asserts.assertEquals(content.length, Object.keys(fakePulls).length);
-        asserts.assertEquals(content[Object.keys(fakePulls).indexOf("simple")], {
-          number: "1",
-          created_at: "2021-10-25T20:35:29Z",
-          updated_at: "2022-10-03T20:26:18Z",
-          was_cancelled: "false",
-          url: "https://url",
-          id: "1",
-          node_id: "node_id",
-          html_url: "https://url",
-          state: "open",
-          locked: "false",
-          title: JSON.stringify("title"),
-          body: "",
-          closed_at: "",
-          merged_at: "",
-          draft: "false",
-          base: `{"label":"Foo:main","ref":"main","sha":"f357074d2aa6b319ee5475a2abcD65bd1416074d"}`,
-          _links: `{"html":{"href":"https://url"},"self":{"href":"https://url"}}`
-        });
-      }, expectedFiles["output.csv"]);
-    });
+    await t.step("output.csv", async (t) => {
+      const expectedFile = expectedFiles["output.csv"];
 
-    await t.step("encodes output.csv's body column", async () => {
-      // ↑ encoded to avoid outputting literal newlines that can confuse the csv format
-      await withCsvContent(content => {
-        asserts.assertEquals(content[Object.keys(fakePulls).indexOf("multiline")].body, JSON.stringify("multiline\nbody"));
-      }, expectedFiles["output.csv"]);
-    });
+      await t.step("has expected format", async () => {
+        await withCsvContent(content => {
+          asserts.assertEquals(content.length, Object.keys(fakePulls).length);
+          const contentEl = content[Object.keys(fakePulls).indexOf("simple")];
+          asserts.assertEquals(contentEl, {
+            number: "1",
+            created_at: "0001-01-01T00:00:00Z",
+            updated_at: "0001-01-01T00:00:00Z",
+            was_cancelled: "false",
+            url: "https://url",
+            id: "1",
+            node_id: "node_id",
+            html_url: "https://url",
+            state: "open",
+            locked: "false",
+            title: JSON.stringify("title"),
+            body: "",
+            closed_at: "",
+            merged_at: "",
+            draft: "false",
+            base: `{"label":"Foo:main","ref":"main","sha":"f357074d2aa6b319ee5475a2abcD65bd1416074d"}`,
+            _links: `{"html":{"href":"https://url"},"self":{"href":"https://url"}}`
+          });
+        }, expectedFile);
+      });
 
-    await t.step("sets was_cancelled as true when pull was closed but not merged", async () => {
-      await withCsvContent(content => {
-        asserts.assertEquals(content[Object.keys(fakePulls).indexOf("simple")].was_cancelled, "false");
-        asserts.assertEquals(content[Object.keys(fakePulls).indexOf("cancelled")].was_cancelled, "true");
-      }, expectedFiles["output.csv"]);
+      await t.step("encodes body column", async () => {
+        // ↑ encoded to avoid outputting literal newlines that can confuse the csv format
+        await withCsvContent(content => {
+          const contentEl = content[Object.keys(fakePulls).indexOf("multiline")];
+          asserts.assertEquals(contentEl.body, JSON.stringify("multiline\nbody"));
+        }, expectedFile);
+      });
+
+      await t.step("sets was_cancelled as true when pull was closed but not merged", async () => {
+        await withCsvContent(content => {
+          const simpleEL = content[Object.keys(fakePulls).indexOf("simple")];
+          asserts.assertEquals(simpleEL.was_cancelled, "false",
+            `should not be cancelled: ${JSON.stringify(simpleEL, null, 2)}`);
+          const cancelledEl = content[Object.keys(fakePulls).indexOf("cancelled")];
+          asserts.assertEquals(cancelledEl.was_cancelled, "true",
+            `should be cancelled: ${JSON.stringify(cancelledEl, null, 2)}`);
+        }, expectedFile);
+      });
     });
   });
 });
