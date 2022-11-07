@@ -62,7 +62,10 @@ Deno.test("syncToCsv", async (t) => {
 
     for (const [key, val] of Object.entries(expectedFiles)) {
       await t.step(`outputs expected file ${key}`, async () => {
-        asserts.assertEquals(await pathExists(val), true);
+        asserts.assertEquals(
+          await pathExists(val), true,
+          `Could not find '${path.relative(outputDir, val)}', got: ${(await asyncToArray(await Deno.readDir(outputDir))).map(el => el.name).join(", ")}`
+        );
       });
     }
 
