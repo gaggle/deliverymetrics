@@ -63,6 +63,10 @@ export async function outputToCsv(
   ]);
 }
 
+function toDays(duration: number): number {
+  return Math.ceil(duration / (1000 /*ms*/ * 60 /*s*/ * 60 /*m*/ * 24 /*hr*/));
+}
+
 async function * githubPullsAsCsv(pulls: AsyncIterableIterator<GithubPull>): AsyncIterableIterator<PrRow> {
   for await(const pull of pulls) {
     yield {
@@ -91,7 +95,7 @@ async function * prLeadTimeAsCsv(iter: ReturnType<typeof yieldPullRequestLeadTim
     yield {
       "Period Start": el.start.toISOString(),
       "Period End": el.end.toISOString(),
-      "Lead Time (in days)": el.leadTimeInDays.toPrecision(2),
+      "Lead Time (in days)": toDays(el.leadTime).toPrecision(2),
       "# of PRs Merged": el.mergedPRs.length.toString(),
       "Merged PRs": el.mergedPRs.toString(),
     };

@@ -2,7 +2,7 @@ import { GithubClient, GithubPull } from "../github/mod.ts";
 
 import { assertUnreachable } from "../utils.ts";
 
-type PullRequestLeadTime = { start: Date, end: Date, leadTimeInDays: number, mergedPRs: Array<number> }
+type PullRequestLeadTime = { start: Date, end: Date, leadTime: number, mergedPRs: Array<number> }
 
 export async function * yieldPullRequestLeadTime(gh: GithubClient, { mode }: { mode: "daily" | "weekly" | "monthly" }): AsyncGenerator<PullRequestLeadTime> {
   let leadTimes: Array<{ leadTime: number, number: GithubPull["number"] }> = [];
@@ -40,7 +40,7 @@ export async function * yieldPullRequestLeadTime(gh: GithubClient, { mode }: { m
     return {
       start: prevPeriod!,
       end: periodConf.ceil(prevPeriod!),
-      leadTimeInDays: toDays(leadTimeSum) / leadTimes.length,
+      leadTime: leadTimeSum / leadTimes.length,
       mergedPRs: leadTimes.map(el => el.number)
     };
   }
@@ -67,10 +67,6 @@ export async function * yieldPullRequestLeadTime(gh: GithubClient, { mode }: { m
   if (prevPeriod) {
     yield getYieldValue();
   }
-}
-
-function toDays(duration: number): number {
-  return Math.ceil(duration / (1000 /*ms*/ * 60 /*s*/ * 60 /*m*/ * 24 /*hr*/));
 }
 
 function dayStart(...args: ConstructorParameters<typeof Date>): Date {

@@ -21,7 +21,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         {
           start: new Date("2022-01-05T00:00:00.000Z"),
           end: new Date("2022-01-05T23:59:59.999Z"),
-          leadTimeInDays: 5.0,
+          leadTime: 432_000_000,
           mergedPRs: [1]
         },
       ]);
@@ -45,13 +45,13 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         {
           start: new Date("2022-01-05T00:00:00.000Z"),
           end: new Date("2022-01-05T23:59:59.999Z"),
-          leadTimeInDays: 5.0,
+          leadTime: 432_000_000,
           mergedPRs: [1, 2]
         },
         {
           start: new Date("2022-02-05T00:00:00.000Z"),
           end: new Date("2022-02-05T23:59:59.999Z"),
-          leadTimeInDays: 5.0,
+          leadTime: 432_000_000,
           mergedPRs: [3, 4, 5]
         },
       ]);
@@ -72,7 +72,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         {
           start: new Date("2022-01-20T00:00:00.000Z"),
           end: new Date("2022-01-20T23:59:59.999Z"),
-          leadTimeInDays: 11.0,
+          leadTime: 950_400_000,
           mergedPRs: [1, 2, 3]
         },
       ]);
@@ -95,13 +95,13 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         {
           start: new Date("2022-01-03T00:00:00.000Z"),
           end: new Date("2022-01-09T23:59:59.999Z"),
-          leadTimeInDays: 5.0,
+          leadTime: 432_000_000,
           mergedPRs: [1]
         },
         {
           start: new Date("2022-01-10T00:00:00.000Z"),
           end: new Date("2022-01-16T23:59:59.999Z"),
-          leadTimeInDays: 10.0,
+          leadTime: 864_000_000,
           mergedPRs: [2]
         },
       ]);
@@ -123,13 +123,13 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         {
           start: new Date("2022-01-01T00:00:00.000Z"),
           end: new Date("2022-01-31T23:59:59.999Z"),
-          leadTimeInDays: 5.0,
+          leadTime: 432_000_000,
           mergedPRs: [1]
         },
         {
           start: new Date("2022-02-01T00:00:00.000Z"),
           end: new Date("2022-02-28T23:59:59.999Z"),
-          leadTimeInDays: 10.0,
+          leadTime: 864_000_000,
           mergedPRs: [2]
         },
       ]);
