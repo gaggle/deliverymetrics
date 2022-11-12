@@ -66,6 +66,7 @@ yargs(Deno.args)
     async (argv: YargsArguments & { format: string, outputDir: string, repoId: string }) => {
       await outputToCsv({
         github: parseGithubUrl(argv.repoId),
+        now: new Date(),
         outputDir: argv.outputDir,
         root: Deno.cwd(),
       });

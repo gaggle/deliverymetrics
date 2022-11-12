@@ -32,7 +32,17 @@ const leadTimeHeaders = ["Period Start", "Period End", "Lead Time (in days)", "#
 type LeadTimeRow = Record<typeof leadTimeHeaders[number], string>;
 
 export async function outputToCsv(
-  { github, outputDir, root, }: { github: { owner: string, repo: string, }, outputDir: string, root: string }) {
+  {
+    github,
+    now,
+    outputDir,
+    root,
+  }: {
+    github: { owner: string, repo: string, },
+    now: Date,
+    outputDir: string,
+    root: string,
+  }) {
   const gh = new ReadonlyGithubClient({
     cache: await GithubDiskCache.init(path.join(root, "data", "github", github.owner, github.repo)),
     owner: github.owner,
@@ -50,21 +60,48 @@ export async function outputToCsv(
   await Promise.all([
     writeCSVToFile(
       path.join(outputDir, "all-pull-request-data.csv"),
-      inspectIter(dot, githubPullsAsCsv(pulls)), { header: prHeaders.slice() }),
+      inspectIter(
+        dot,
+        githubPullsAsCsv(pulls)), { header: prHeaders.slice() }
+    ),
     writeCSVToFile(
       path.join(outputDir, "pull-request-lead-times-daily.csv"),
-      inspectIter(dot, prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "daily" }))), { header: leadTimeHeaders.slice() }),
+      inspectIter(
+        dot,
+        prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "daily" }))), { header: leadTimeHeaders.slice() }
+    ),
     writeCSVToFile(
       path.join(outputDir, "pull-request-lead-times-weekly.csv"),
-      inspectIter(dot, prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "weekly" }))), { header: leadTimeHeaders.slice() }),
+      inspectIter(
+        dot,
+        prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "weekly" }))), { header: leadTimeHeaders.slice() }
+    ),
     writeCSVToFile(
       path.join(outputDir, "pull-request-lead-times-monthly.csv"),
-      inspectIter(dot, prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "monthly" }))), { header: leadTimeHeaders.slice() }),
+      inspectIter(
+        dot,
+        prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "monthly" }))), { header: leadTimeHeaders.slice() }
+    ),
+    writeCSVToFile(
+      path.join(outputDir, "pull-request-lead-times-30d.csv"),
+      inspectIter(
+        dot,
+        prLeadTimeAsCsv(
+          filterIter(el => daysBetween(el.start, now) < 30, yieldPullRequestLeadTime(gh, { mode: "daily" }))
+        )
+      ), { header: leadTimeHeaders.slice() }
+    ),
   ]);
 }
 
 function toDays(duration: number): number {
   return Math.ceil(duration / (1000 /*ms*/ * 60 /*s*/ * 60 /*m*/ * 24 /*hr*/));
+}
+
+function daysBetween(then: Date, now: Date): number {
+  const msBetweenDates = Math.abs(then.getTime() - now.getTime());
+  return msBetweenDates / (24 * 60 * 60 * 1000);
+  //                       hour min  sec  ms
 }
 
 async function * githubPullsAsCsv(pulls: AsyncIterableIterator<GithubPull>): AsyncIterableIterator<PrRow> {
@@ -102,10 +139,20 @@ async function * prLeadTimeAsCsv(iter: ReturnType<typeof yieldPullRequestLeadTim
   }
 }
 
-async function * inspectIter<T = unknown>(callback: (el: T, idx: number) => void, iter: AsyncIterableIterator<T>): AsyncIterableIterator<T> {
+async function * inspectIter<T>(callback: (el: T, index: number) => void, iter: AsyncIterableIterator<T>): AsyncIterableIterator<T> {
   let idx = 0;
   for await (const el of iter) {
     callback(el, idx++);
+    yield el;
+  }
+}
+
+async function * filterIter<T>(predicate: (value: T, index: number) => boolean, iter: AsyncGenerator<T>): AsyncGenerator<T> {
+  let idx = 0;
+  for await (const el of iter) {
+    if (!predicate(el, idx++)) {
+      continue;
+    }
     yield el;
   }
 }
