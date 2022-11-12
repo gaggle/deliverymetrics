@@ -120,3 +120,5 @@ export type ToTuple<Union> = ToTupleRec<Union, []>;
 export function assertUnreachable(_: never): never {
   throw new Error("Unreachable");
 }
+
+export type Tail<T extends unknown[]> = T extends [infer Head, ...infer Tail] ? Tail : never;

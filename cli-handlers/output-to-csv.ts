@@ -1,14 +1,14 @@
 import { GithubDiskCache, GithubPull, githubPullSchema, ReadonlyGithubClient } from "../github/mod.ts";
 import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
-import { csv, fs, path } from "../deps.ts";
-import { ToTuple } from "../utils.ts";
+import { conversion, csv, fs, path } from "../deps.ts";
+import { Tail, ToTuple } from "../utils.ts";
 import { withFileOpen } from "../path-and-file-utils.ts";
 
 import { formatGithubClientStatus } from "./formatting.ts";
 
-const primaryHeaders = ["number", "created_at", "merged_at", "updated_at", "was_cancelled",] as const;
-const ignoreHeaders = [
+const prPrimaryHeaders = ["number", "created_at", "merged_at", "updated_at", "was_cancelled",] as const;
+const prIgnoreHeaders = [
   "comments_url",
   "commits_url",
   "head",
@@ -20,13 +20,16 @@ const ignoreHeaders = [
   "url",
 ] as const;
 
-const remainingHeaders = Object.keys(githubPullSchema.shape)
-  .filter(n => !(primaryHeaders.slice() as string[]).includes(n))
-  .filter(n => !(ignoreHeaders.slice() as string[]).includes(n)) as unknown as RemainingHeaders;
-type RemainingHeaders = Readonly<ToTuple<keyof Omit<GithubPull, typeof primaryHeaders[number] | typeof ignoreHeaders[number]>>>
+const prRemainingHeaders = Object.keys(githubPullSchema.shape)
+  .filter(n => !(prPrimaryHeaders.slice() as string[]).includes(n))
+  .filter(n => !(prIgnoreHeaders.slice() as string[]).includes(n)) as unknown as PrRemainingHeaders;
+type PrRemainingHeaders = Readonly<ToTuple<keyof Omit<GithubPull, typeof prPrimaryHeaders[number] | typeof prIgnoreHeaders[number]>>>
 
-const headers = [...primaryHeaders, ...remainingHeaders] as const;
-export type Row = Record<typeof headers[number], string>
+const prHeaders = [...prPrimaryHeaders, ...prRemainingHeaders] as const;
+export type PrRow = Record<typeof prHeaders[number], string>
+
+const leadTimeHeaders = ["Period Start", "Period End", "Lead Time (in days)", "# of PRs Merged", "Merged PRs"];
+type LeadTimeRow = Record<typeof leadTimeHeaders[number], string>;
 
 export async function outputToCsv(
   { github, outputDir, root, }: { github: { owner: string, repo: string, }, outputDir: string, root: string }) {
@@ -39,32 +42,28 @@ export async function outputToCsv(
 
   const pulls = gh.findPulls({ sort: { key: "created_at", order: "asc" } });
 
-  const outputCsv = path.join(outputDir, "all-pull-request-data.csv");
-  await fs.ensureFile(outputCsv);
-  await withFileOpen(async (f) => {
-    await csv.writeCSVObjects(f, githubPullsAsCsv(pulls), { header: headers.slice() });
-  }, outputCsv, { write: true, create: true, truncate: true });
+  function dot() {
+    const text = new TextEncoder().encode(".");
+    conversion.writeAll(Deno.stdout, text);
+  }
 
-  const dailyPRLeadTimesCsv = path.join(outputDir, "pull-request-lead-times-daily.csv");
-  await fs.ensureFile(dailyPRLeadTimesCsv);
-  await withFileOpen(async (f) => {
-    await csv.writeCSVObjects(f, prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "daily" })), { header: PRLeadTimeHeaders.slice() });
-  }, dailyPRLeadTimesCsv, { write: true, create: true, truncate: true });
-
-  const weeklyPRLeadTimesCsv = path.join(outputDir, "pull-request-lead-times-weekly.csv");
-  await fs.ensureFile(weeklyPRLeadTimesCsv);
-  await withFileOpen(async (f) => {
-    await csv.writeCSVObjects(f, prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "weekly" })), { header: PRLeadTimeHeaders.slice() });
-  }, weeklyPRLeadTimesCsv, { write: true, create: true, truncate: true });
-
-  const monthlyPRLeadTimesCsv = path.join(outputDir, "pull-request-lead-times-monthly.csv");
-  await fs.ensureFile(monthlyPRLeadTimesCsv);
-  await withFileOpen(async (f) => {
-    await csv.writeCSVObjects(f, prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "monthly" })), { header: PRLeadTimeHeaders.slice() });
-  }, monthlyPRLeadTimesCsv, { write: true, create: true, truncate: true });
+  await Promise.all([
+    writeCSVToFile(
+      path.join(outputDir, "all-pull-request-data.csv"),
+      inspectIter(dot, githubPullsAsCsv(pulls)), { header: prHeaders.slice() }),
+    writeCSVToFile(
+      path.join(outputDir, "pull-request-lead-times-daily.csv"),
+      inspectIter(dot, prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "daily" }))), { header: leadTimeHeaders.slice() }),
+    writeCSVToFile(
+      path.join(outputDir, "pull-request-lead-times-weekly.csv"),
+      inspectIter(dot, prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "weekly" }))), { header: leadTimeHeaders.slice() }),
+    writeCSVToFile(
+      path.join(outputDir, "pull-request-lead-times-monthly.csv"),
+      inspectIter(dot, prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "monthly" }))), { header: leadTimeHeaders.slice() }),
+  ]);
 }
 
-async function * githubPullsAsCsv(pulls: AsyncIterableIterator<GithubPull>): AsyncIterableIterator<Row> {
+async function * githubPullsAsCsv(pulls: AsyncIterableIterator<GithubPull>): AsyncIterableIterator<PrRow> {
   for await(const pull of pulls) {
     yield {
       _links: JSON.stringify(pull._links),
@@ -87,9 +86,7 @@ async function * githubPullsAsCsv(pulls: AsyncIterableIterator<GithubPull>): Asy
   }
 }
 
-const PRLeadTimeHeaders = ["Period Start", "Period End", "Lead Time (in days)", "# of PRs Merged", "Merged PRs"];
-type PRLeadTimeRow = Record<typeof PRLeadTimeHeaders[number], string>;
-async function * prLeadTimeAsCsv(iter: ReturnType<typeof yieldPullRequestLeadTime>): AsyncIterableIterator<PRLeadTimeRow> {
+async function * prLeadTimeAsCsv(iter: ReturnType<typeof yieldPullRequestLeadTime>): AsyncIterableIterator<LeadTimeRow> {
   for await(const el of iter) {
     yield {
       "Period Start": el.start.toISOString(),
@@ -100,3 +97,20 @@ async function * prLeadTimeAsCsv(iter: ReturnType<typeof yieldPullRequestLeadTim
     };
   }
 }
+
+async function * inspectIter<T = unknown>(callback: (el: T, idx: number) => void, iter: AsyncIterableIterator<T>): AsyncIterableIterator<T> {
+  let idx = 0;
+  for await (const el of iter) {
+    callback(el, idx++);
+    yield el;
+  }
+}
+
+async function writeCSVToFile(fp: string, ...args: Tail<Parameters<typeof csv.writeCSVObjects>>) {
+  const f = fp;
+  await fs.ensureFile(f);
+  await withFileOpen(async (f) => {
+    await csv.writeCSVObjects(f, ...args);
+  }, f, { write: true, create: true, truncate: true });
+}
+
