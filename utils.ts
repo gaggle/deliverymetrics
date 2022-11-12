@@ -101,3 +101,22 @@ type ToTupleRec<Union, Rslt extends unknown[]> = SpliceOne<Union> extends never
  * ```
  */
 export type ToTuple<Union> = ToTupleRec<Union, []>;
+
+/**
+ * Use in the default case (or equivalently outside the switch):
+ *
+ * ```ts
+ * function getColorName(c: Color): string {
+ *     switch(c) {
+ *         case Color.Red:
+ *             return 'red';
+ *         case Color.Green:
+ *             return 'green';
+ *     }
+ *     return assertUnreachable(c);
+ * }
+ * ```
+ */
+export function assertUnreachable(_: never): never {
+  throw new Error("Unreachable");
+}
