@@ -95,7 +95,8 @@ export async function outputToCsv(
 }
 
 function toDays(duration: number): number {
-  return Math.ceil(duration / (1000 /*ms*/ * 60 /*s*/ * 60 /*m*/ * 24 /*hr*/));
+  return Math.ceil(duration / (24 * 60 * 60 * 1000));
+  //                           hour min  sec  ms;
 }
 
 function daysBetween(then: Date, now: Date): number {

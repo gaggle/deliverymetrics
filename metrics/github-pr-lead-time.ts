@@ -1,3 +1,17 @@
+/**
+ * Pull Request Lead Time
+ *
+ * The lead-time metric gives you an idea of how many times (usually in days)
+ * pull requests take to be merged or closed.
+ *
+ * To find this number, you need to track every pull request.
+ * Save the date and time for each pull request when opened,
+ * and then, when it’s merged, save it too.
+ *
+ * This metric is especially useful for raising questions and start investigations before it’s too late.
+ * A good practice is to measure this number over time so that you can spot trends and behaviors more pragmatically.
+ * https://sourcelevel.io/blog/5-metrics-engineering-managers-can-extract-from-pull-requests
+ */
 import { GithubClient, GithubPull } from "../github/mod.ts";
 
 import { assertUnreachable } from "../utils.ts";
