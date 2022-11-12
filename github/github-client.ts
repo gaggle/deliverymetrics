@@ -126,7 +126,7 @@ function createGithubRequest(
 }
 
 type FetchPullsOpts = { from: Epoch | undefined, retrier: Retrier }
-export async function * fetchPulls(owner: string, repo: string, token: string, opts: Partial<FetchPullsOpts>): AsyncGenerator<GithubPull> {
+export async function * fetchPulls(owner: string, repo: string, token: string, opts: Partial<FetchPullsOpts> = {}): AsyncGenerator<GithubPull> {
   const { from, retrier }: FetchPullsOpts = deepMerge({
     from: undefined,
     retrier: new Retrier()
