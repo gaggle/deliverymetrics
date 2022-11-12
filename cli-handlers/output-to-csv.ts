@@ -1,5 +1,5 @@
 import { GithubDiskCache, GithubPull, githubPullSchema, ReadonlyGithubClient } from "../github/mod.ts";
-import { yieldDailyPullRequestLeadTime } from "../metrics/mod.ts";
+import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
 import { csv, fs, path } from "../deps.ts";
 import { ToTuple } from "../utils.ts";
@@ -45,11 +45,23 @@ export async function outputToCsv(
     await csv.writeCSVObjects(f, githubPullsAsCsv(pulls), { header: headers.slice() });
   }, outputCsv, { write: true, create: true, truncate: true });
 
-  const dailyPRLeadTimesCsv = path.join(outputDir, "daily-pull-request-lead-times.csv");
+  const dailyPRLeadTimesCsv = path.join(outputDir, "pull-request-lead-times-daily.csv");
   await fs.ensureFile(dailyPRLeadTimesCsv);
   await withFileOpen(async (f) => {
-    await csv.writeCSVObjects(f, dailyPRAsCsv(yieldDailyPullRequestLeadTime(gh)), { header: dailyPRCSVHeaders.slice() });
+    await csv.writeCSVObjects(f, prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "daily" })), { header: PRLeadTimeHeaders.slice() });
   }, dailyPRLeadTimesCsv, { write: true, create: true, truncate: true });
+
+  const weeklyPRLeadTimesCsv = path.join(outputDir, "pull-request-lead-times-weekly.csv");
+  await fs.ensureFile(weeklyPRLeadTimesCsv);
+  await withFileOpen(async (f) => {
+    await csv.writeCSVObjects(f, prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "weekly" })), { header: PRLeadTimeHeaders.slice() });
+  }, weeklyPRLeadTimesCsv, { write: true, create: true, truncate: true });
+
+  const monthlyPRLeadTimesCsv = path.join(outputDir, "pull-request-lead-times-monthly.csv");
+  await fs.ensureFile(monthlyPRLeadTimesCsv);
+  await withFileOpen(async (f) => {
+    await csv.writeCSVObjects(f, prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "monthly" })), { header: PRLeadTimeHeaders.slice() });
+  }, monthlyPRLeadTimesCsv, { write: true, create: true, truncate: true });
 }
 
 async function * githubPullsAsCsv(pulls: AsyncIterableIterator<GithubPull>): AsyncIterableIterator<Row> {
@@ -75,13 +87,13 @@ async function * githubPullsAsCsv(pulls: AsyncIterableIterator<GithubPull>): Asy
   }
 }
 
-const dailyPRCSVHeaders = ["Day", "Lead Time (in days)", "# of PRs Merged", "Merged PRs"];
-type DailyPRCSVRow = Record<typeof dailyPRCSVHeaders[number], string>;
-async function * dailyPRAsCsv(iter: ReturnType<typeof yieldDailyPullRequestLeadTime>): AsyncIterableIterator<DailyPRCSVRow> {
+const PRLeadTimeHeaders = ["Period Start", "Period End", "Lead Time (in days)", "# of PRs Merged", "Merged PRs"];
+type PRLeadTimeRow = Record<typeof PRLeadTimeHeaders[number], string>;
+async function * prLeadTimeAsCsv(iter: ReturnType<typeof yieldPullRequestLeadTime>): AsyncIterableIterator<PRLeadTimeRow> {
   for await(const el of iter) {
-
     yield {
-      "Day": el.day,
+      "Period Start": el.start.toISOString(),
+      "Period End": el.end.toISOString(),
       "Lead Time (in days)": el.leadTimeInDays.toPrecision(2),
       "# of PRs Merged": el.mergedPRs.length.toString(),
       "Merged PRs": el.mergedPRs.toString(),

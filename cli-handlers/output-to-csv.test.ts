@@ -37,10 +37,10 @@ Deno.test("syncToCsv", async (t) => {
 
   await withTempDir(async p => {
     const fakePulls: Record<string, DeepPartial<GithubPull>> = {
-      simple: { number: 1, created_at: "0001-01-01T00:00:00Z" },
-      multiline: { number: 2, created_at: "0002-01-01T00:00:00Z", body: "multiline\nbody" },
-      cancelled: { number: 3, created_at: "0003-01-01T00:00:00Z", closed_at: "0003-01-02T00:00:00Z", merged_at: null },
-      merged: { number: 4, created_at: "0004-01-01T00:00:00Z", merged_at: "0004-01-05T00:00:00Z" },
+      simple: { number: 1, created_at: "1981-01-01T00:00:00Z" },
+      multiline: { number: 2, created_at: "1982-01-01T00:00:00Z", body: "multiline\nbody" },
+      cancelled: { number: 3, created_at: "1983-01-01T00:00:00Z", closed_at: "1983-01-02T00:00:00Z", merged_at: null },
+      merged: { number: 4, created_at: "1984-01-01T00:00:00Z", merged_at: "1984-01-05T00:00:00Z" },
     };
 
     await createFakeGithubCache(p, {
@@ -58,7 +58,9 @@ Deno.test("syncToCsv", async (t) => {
 
     const expectedFiles = {
       "all-pr-data.csv": path.join(outputDir, "all-pull-request-data.csv"),
-      "daily-pr-lead-times.csv": path.join(outputDir, "daily-pull-request-lead-times.csv"),
+      "pr-lead-times-daily.csv": path.join(outputDir, "pull-request-lead-times-daily.csv"),
+      "pr-lead-times-weekly.csv": path.join(outputDir, "pull-request-lead-times-weekly.csv"),
+      "pr-lead-times-monthly.csv": path.join(outputDir, "pull-request-lead-times-monthly.csv"),
     } as const;
 
     for (const [key, val] of Object.entries(expectedFiles)) {
@@ -87,7 +89,7 @@ Deno.test("syncToCsv", async (t) => {
             base: `{"label":"Foo:main","ref":"main","sha":"de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3"}`,
             body: "",
             closed_at: "",
-            created_at: "0001-01-01T00:00:00Z",
+            created_at: "1981-01-01T00:00:00Z",
             draft: "false",
             html_url: "https://url",
             labels: "Ham",
@@ -97,7 +99,7 @@ Deno.test("syncToCsv", async (t) => {
             number: "1",
             state: "open",
             title: JSON.stringify("title"),
-            updated_at: "0001-01-01T00:00:00Z",
+            updated_at: "1981-01-01T00:00:00Z",
             was_cancelled: "false",
           });
         }, expectedFile);
@@ -123,14 +125,49 @@ Deno.test("syncToCsv", async (t) => {
       });
     });
 
-    await t.step("daily-pr-lead-times.csv", async (t) => {
-      const expectedFile = expectedFiles["daily-pr-lead-times.csv"];
+    await t.step("pr-lead-times-daily.csv", async (t) => {
+      const expectedFile = expectedFiles["pr-lead-times-daily.csv"];
 
       await t.step("has expected format", async () => {
         await withCsvContent(content => {
           const contentEl = content[0];
           asserts.assertEquals(contentEl, {
-            "Day": "0004-01-05T00:00:00.000Z",
+            "Period Start": "1984-01-05T00:00:00.000Z",
+            "Period End": "1984-01-05T23:59:59.999Z",
+            "# of PRs Merged": "1",
+            "Merged PRs": "4",
+            "Lead Time (in days)": "5.0",
+          });
+        }, expectedFile);
+      });
+    });
+
+    await t.step("pr-lead-times-weekly.csv", async (t) => {
+      const expectedFile = expectedFiles["pr-lead-times-weekly.csv"];
+
+      await t.step("has expected format", async () => {
+        await withCsvContent(content => {
+          const contentEl = content[0];
+          asserts.assertEquals(contentEl, {
+            "Period Start": "1984-01-02T00:00:00.000Z",
+            "Period End": "1984-01-08T23:59:59.999Z",
+            "# of PRs Merged": "1",
+            "Merged PRs": "4",
+            "Lead Time (in days)": "5.0",
+          });
+        }, expectedFile);
+      });
+    });
+
+    await t.step("pr-lead-times-monthly.csv", async (t) => {
+      const expectedFile = expectedFiles["pr-lead-times-monthly.csv"];
+
+      await t.step("has expected format", async () => {
+        await withCsvContent(content => {
+          const contentEl = content[0];
+          asserts.assertEquals(contentEl, {
+            "Period Start": "1984-01-01T00:00:00.000Z",
+            "Period End": "1984-01-31T23:59:59.999Z",
             "# of PRs Merged": "1",
             "Merged PRs": "4",
             "Lead Time (in days)": "5.0",

@@ -1,1 +1,1 @@
-export { yieldDailyPullRequestLeadTime } from "./github-pr-lead-time.ts";
+export { yieldPullRequestLeadTime } from "./github-pr-lead-time.ts";
