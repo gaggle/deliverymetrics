@@ -16,6 +16,8 @@ import { GithubClient, GithubPull } from "../github/mod.ts";
 
 import { assertUnreachable } from "../utils.ts";
 
+import { dateEnd, dayStart, monthEnd, monthStart, nextDate, weekEnd, weekStart } from "./date-utils.ts";
+
 type PullRequestLeadTime = { start: Date, end: Date, leadTime: number, mergedPRs: Array<number> }
 
 export async function * yieldPullRequestLeadTime(gh: GithubClient, { mode }: { mode: "daily" | "weekly" | "monthly" }): AsyncGenerator<PullRequestLeadTime> {
@@ -83,43 +85,3 @@ export async function * yieldPullRequestLeadTime(gh: GithubClient, { mode }: { m
   }
 }
 
-function dayStart(...args: ConstructorParameters<typeof Date>): Date {
-  const d = new Date(...args);
-  d.setUTCHours(0, 0, 0, 0);
-  return d;
-}
-
-function dateEnd(...args: ConstructorParameters<typeof Date>): Date {
-  const d = new Date(...args);
-  d.setUTCHours(23, 59, 59, 999);
-  return d;
-}
-
-function nextDate(...args: ConstructorParameters<typeof Date>): Date {
-  const d = dayStart(...args);
-  d.setUTCDate(d.getUTCDate() + 1);
-  return d;
-}
-
-function weekStart(...args: ConstructorParameters<typeof Date>): Date {
-  const d = dayStart(...args);
-  d.setUTCDate(d.getUTCDate() - (d.getUTCDay() - 1));
-  return d;
-}
-
-function weekEnd(...args: ConstructorParameters<typeof Date>): Date {
-  const d = weekStart(...args);
-  d.setUTCDate(d.getUTCDate() + 6);
-  return dateEnd(d);
-}
-
-function monthStart(...args: ConstructorParameters<typeof Date>): Date {
-  const d = dayStart(...args);
-  d.setUTCDate(1);
-  return d;
-}
-
-function monthEnd(...args: ConstructorParameters<typeof Date>): Date {
-  const d = new Date(...args);
-  return dateEnd(new Date(d.getUTCFullYear(), d.getUTCMonth() + 1, 1));
-}
