@@ -117,4 +117,3 @@ async function writeCSVToFile(fp: string, ...args: Tail<Parameters<typeof csv.wr
     await csv.writeCSVObjects(f, ...args);
   }, f, { write: true, create: true, truncate: true });
 }
-
