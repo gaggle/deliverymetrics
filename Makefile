@@ -23,7 +23,7 @@ output-csv:
 	deno run $(ALLOW) ./mod.ts output csv ./output/csv ${GITHUB_REPO}
 
 get-fixtures:
-	deno run $(ALLOW) ./fixtures/main.ts
+	deno run $(ALLOW) ./fixtures/mod.ts
 
 compile:
 	deno compile --output dm-x86-gnu --target=x86_64-unknown-linux-gnu $(ALLOW) ./mod.ts
