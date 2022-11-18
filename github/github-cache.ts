@@ -1,10 +1,7 @@
-import { Epoch } from "../types.ts";
+import { Dirpath, Epoch, Filepath } from "../types.ts";
 import { fs, path } from "../deps.ts";
 import { GithubCache, githubDiskCacheInfoSchema, GithubPull, githubPullSchema } from "./types.ts";
 import { ensureJson, readJsonFile } from "../path-and-file-utils.ts";
-
-type Filepath = string;
-type Dirpath = string;
 
 export class GithubDiskCache implements GithubCache {
   readonly location: string;
