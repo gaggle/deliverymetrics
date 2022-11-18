@@ -7,11 +7,11 @@ lint-watch:
 	deno lint --watch
 
 test:
-	rm -rf coverage
-	deno test --check --coverage=coverage --parallel --cached-only $(ALLOW)
+	rm -rf .coverage
+	deno test --check --coverage=.coverage --parallel --cached-only $(ALLOW)
 
 lint:
-	deno check mod.ts fixtures/mod.ts && deno lint && deno coverage coverage && rm -rf coverage/html && mkdir -p coverage/html && deno coverage coverage --lcov > coverage/html/coverage.lcov && genhtml -o coverage/html coverage/html/coverage.lcov
+	deno check mod.ts dev-fixtures/mod.ts && deno lint && deno coverage .coverage && rm -rf .coverage/html && mkdir -p .coverage/html && deno coverage .coverage --lcov > .coverage/html/coverage.lcov && genhtml -o .coverage/html .coverage/html/coverage.lcov
 
 help:
 	deno run $(ALLOW) ./mod.ts --help
@@ -20,10 +20,10 @@ pull-github:
 	deno run $(ALLOW) ./mod.ts pull github ${GITHUB_REPO} ${GITHUB_TOKEN}
 
 output-csv:
-	deno run $(ALLOW) ./mod.ts output csv ./output/csv ${GITHUB_REPO}
+	deno run $(ALLOW) ./mod.ts output csv .output/csv ${GITHUB_REPO}
 
 get-fixtures:
-	deno run $(ALLOW) ./fixtures/mod.ts
+	deno run $(ALLOW) ./dev-fixtures/mod.ts
 
 compile:
 	deno compile --output dm-x86-gnu --target=x86_64-unknown-linux-gnu $(ALLOW) ./mod.ts

@@ -1,5 +1,5 @@
 import { fetchExhaustively, Retrier } from "../fetching/mod.ts";
-import { RequestMethod } from "../fixtures/types.ts";
+import { RequestMethod } from "../dev-fixtures/types.ts";
 
 import { asyncToArray, first, stringifyPull } from "../utils.ts";
 import { deepMerge, equal, groupBy, log } from "../deps.ts";

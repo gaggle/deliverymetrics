@@ -1,8 +1,8 @@
-coverage/
-data/
+.coverage/
+.data/
 dm-*-*
-output/
+.output/
 
-fixtures/**
-!fixtures/*
-fixtures/*.yml
+dev-fixtures/**
+!dev-fixtures/*
+dev-fixtures/*.yml
