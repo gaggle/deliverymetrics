@@ -2,8 +2,11 @@ import { getFakePull } from "./github/testing.ts";
 
 import { asserts, typeChecks } from "./dev-deps.ts";
 import {
-  asyncToArray, first,
-  getEnv, last, limit,
+  asyncToArray,
+  first,
+  getEnv,
+  last,
+  limit,
   pluralize,
   stringifyPull,
   stringifyUpdatedPull,

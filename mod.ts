@@ -39,11 +39,13 @@ yargs(Deno.args)
         type: "string"
       });
     },
-    async (argv: YargsArguments & { repoId: string, token: string }) => await githubSyncHandler({
-      ...(parseGithubUrl(argv.repoId)),
-      token: argv.token,
-      root: Deno.cwd()
-    })
+    async (argv: YargsArguments & { repoId: string, token: string }) => {
+      await githubSyncHandler({
+        ...(parseGithubUrl(argv.repoId)),
+        token: argv.token,
+        root: Deno.cwd()
+      });
+    }
   )
 
   .command("output <format> <output-dir> <repo-id>", "Output synced data, generating metrics and reports",
