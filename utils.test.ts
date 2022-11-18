@@ -1,6 +1,6 @@
 import { getFakePull } from "./github/testing.ts";
 
-import { asserts, typeChecks } from "./dev-deps.ts";
+import { asserts } from "./dev-deps.ts";
 import {
   asyncToArray,
   first,
@@ -10,7 +10,7 @@ import {
   pluralize,
   stringifyPull,
   stringifyUpdatedPull,
-  ToTuple,
+
 } from "./utils.ts";
 
 Deno.test("asyncToArray", async (t) => {
@@ -183,15 +183,4 @@ Deno.test("stringifyUpdatedPull", async (t) => {
       state: "open",
     })
   }), "#1 (open -> draft) https://url");
-});
-
-Deno.test("ToTuple", async (t) => {
-  await t.step("extracts an object's keys into a constant array type", () => {
-    type Keys = ToTuple<keyof { foo: string, bar: number }>;
-
-    typeChecks.assert<typeChecks.IsExact<Keys, ["foo", "bar"]>>(true);
-    typeChecks.assert<typeChecks.IsExact<Keys, ["foo"]>>(false);
-    typeChecks.assert<typeChecks.IsExact<Keys, ["foo", "baz"]>>(false);
-    typeChecks.assert<typeChecks.IsExact<Keys, ["foo", "bar", "baz"]>>(false);
-  });
 });

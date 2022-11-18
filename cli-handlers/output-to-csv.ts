@@ -2,7 +2,7 @@ import { GithubDiskCache, GithubPull, githubPullSchema, ReadonlyGithubClient } f
 import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
 import { conversion, csv, fs, path } from "../deps.ts";
-import { Tail, ToTuple } from "../utils.ts";
+import { Tail, ToTuple } from "../types.ts";
 import { withFileOpen } from "../path-and-file-utils.ts";
 
 import { formatGithubClientStatus } from "./formatting.ts";

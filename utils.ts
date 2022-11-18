@@ -80,28 +80,6 @@ export function stringifyUpdatedPull({ prev, updated }: { prev: GithubPull, upda
   return `#${updated.number} (${prev.draft ? "draft" : prev.state} -> ${updated.draft ? "draft" : updated.state}) ${updated._links.html.href}`;
 }
 
-type UnionToParm<U> = U extends unknown ? (k: U) => void : never;
-type UnionToSect<U> = UnionToParm<U> extends (k: infer I) => void ? I : never;
-type ExtractParm<F> = F extends { (a: infer A): void } ? A : never;
-
-type SpliceOne<Union> = Exclude<Union, ExtractOne<Union>>;
-type ExtractOne<Union> = ExtractParm<UnionToSect<UnionToParm<Union>>>;
-
-type ToTupleRec<Union, Rslt extends unknown[]> = SpliceOne<Union> extends never
-  ? [ExtractOne<Union>, ...Rslt]
-  : ToTupleRec<SpliceOne<Union>, [ExtractOne<Union>, ...Rslt]>;
-/**
- * Create constant array type from object type.
- *
- * e.g.:
- * ```ts
- * type Obj = { foo: string, bar: number }
- * type Keys:["foo", "bar"] = ToTuple<keyof Obj>
- *
- * ```
- */
-export type ToTuple<Union> = ToTupleRec<Union, []>;
-
 /**
  * Use in the default case (or equivalently outside the switch):
  *
@@ -121,4 +99,3 @@ export function assertUnreachable(_: never): never {
   throw new Error("Unreachable");
 }
 
-export type Tail<T extends unknown[]> = T extends [infer Head, ...infer Tail] ? Tail : never;
