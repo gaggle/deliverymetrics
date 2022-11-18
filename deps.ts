@@ -10,6 +10,7 @@ export { deepMerge } from "https://deno.land/std@0.159.0/collections/deep_merge.
 export { groupBy } from "https://deno.land/std@0.159.0/collections/group_by.ts";
 
 // 3rd party
+export * as aloe from "https://deno.land/x/aloedb@0.9.0/mod.ts";
 export * as compose from "https://deno.land/x/compose@1.0.0/index.js";
 export * as csv from "https://deno.land/x/csv@v0.7.5/mod.ts";
 export * as equal from "https://deno.land/x/equal@v1.5.0/mod.ts";
