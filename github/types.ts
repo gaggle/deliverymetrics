@@ -192,7 +192,7 @@ export const githubDiskCacheInfoSchema = z.object({
 export type GithubDiskCacheInfo = z.infer<typeof githubDiskCacheInfoSchema>
 
 export interface ReadonlyGithubClient {
-  cacheInfo: Readonly<{ getUpdatedAt: () => Promise<Epoch | undefined>, location: string }>;
+  cacheInfo: Readonly<{ location: string }>;
   repoHtmlUrl: string;
 
   findPulls(opts?: Sortable): AsyncGenerator<GithubPull>;
@@ -200,6 +200,8 @@ export interface ReadonlyGithubClient {
   findUnclosedPulls(): AsyncGenerator<GithubPull>;
 
   findLatestPull(): Promise<GithubPull | undefined>;
+
+  findLatestSync(): Promise<{ createdAt: Epoch, updatedAt: Epoch, diff?: GithubDiff }>;
 }
 
 export interface GithubClient extends ReadonlyGithubClient {

@@ -16,7 +16,7 @@ import {
 } from "./types.ts";
 
 export class ReadonlyDiskGithubClient implements ReadonlyGithubClient {
-  readonly cacheInfo: Readonly<{ getUpdatedAt: () => Promise<Epoch | undefined>, location: string }>;
+  readonly cacheInfo: Readonly<{ location: string }>;
   readonly repoHtmlUrl: string;
 
   protected readonly cache: GithubCache;
@@ -25,7 +25,7 @@ export class ReadonlyDiskGithubClient implements ReadonlyGithubClient {
 
   constructor(opts: { cache: GithubCache; owner: string; repo: string }) {
     this.cache = opts.cache;
-    this.cacheInfo = { getUpdatedAt: opts.cache.getUpdatedAt.bind(opts.cache), location: opts.cache.location };
+    this.cacheInfo = { location: opts.cache.location };
     this.repoHtmlUrl = `https://github.com/${opts.owner}/${opts.repo}`;
     this.owner = opts.owner;
     this.repo = opts.repo;
@@ -54,6 +54,11 @@ export class ReadonlyDiskGithubClient implements ReadonlyGithubClient {
 
   findLatestPull(): Promise<GithubPull | undefined> {
     return first(this.findPulls({ sort: { key: "updated_at", order: "desc" } }));
+  }
+
+  async findLatestSync(): Promise<{ createdAt: Epoch; updatedAt: Epoch; diff?: GithubDiff }> {
+    const updatedAt = await this.cache.getUpdatedAt() || 0;
+    return Promise.resolve({ createdAt: updatedAt, updatedAt: updatedAt, diff: undefined });
   }
 }
 
