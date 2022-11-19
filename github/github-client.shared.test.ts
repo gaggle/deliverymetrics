@@ -175,7 +175,7 @@ for (const { provider, name } of providers) {
     await t.step("#htmlUrl", async (t) => {
       await t.step("should return the full GitHub repo URL", async () => {
         await provider(({ client }) => {
-          asserts.assertEquals(client.htmlUrl, "https://github.com/owner/repo");
+          asserts.assertEquals(client.repoHtmlUrl, "https://github.com/owner/repo");
         });
       });
     });

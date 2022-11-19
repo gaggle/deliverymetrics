@@ -17,7 +17,7 @@ import {
 
 export class ReadonlyDiskGithubClient implements ReadonlyGithubClient {
   readonly cacheInfo: Readonly<{ getUpdatedAt: () => Promise<Epoch | undefined>, location: string }>;
-  readonly htmlUrl: string;
+  readonly repoHtmlUrl: string;
 
   protected readonly cache: GithubCache;
   protected readonly owner: string;
@@ -26,7 +26,7 @@ export class ReadonlyDiskGithubClient implements ReadonlyGithubClient {
   constructor(opts: { cache: GithubCache; owner: string; repo: string }) {
     this.cache = opts.cache;
     this.cacheInfo = { getUpdatedAt: opts.cache.getUpdatedAt.bind(opts.cache), location: opts.cache.location };
-    this.htmlUrl = `https://github.com/${opts.owner}/${opts.repo}`;
+    this.repoHtmlUrl = `https://github.com/${opts.owner}/${opts.repo}`;
     this.owner = opts.owner;
     this.repo = opts.repo;
   }

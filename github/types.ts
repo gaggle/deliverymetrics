@@ -193,7 +193,7 @@ export type GithubDiskCacheInfo = z.infer<typeof githubDiskCacheInfoSchema>
 
 export interface ReadonlyGithubClient {
   cacheInfo: Readonly<{ getUpdatedAt: () => Promise<Epoch | undefined>, location: string }>;
-  htmlUrl: string;
+  repoHtmlUrl: string;
 
   findPulls(opts?: Sortable): AsyncGenerator<GithubPull>;
 
