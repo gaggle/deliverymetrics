@@ -4,9 +4,9 @@ import { path } from "../deps.ts";
 import { formatGithubClientStatus, formatGithubSyncResult } from "./formatting.ts";
 
 export async function githubSyncHandler(
-  { owner, repo, token, root }: { owner: string, repo: string, token: string, root: string }) {
+  { owner, repo, token, persistenceRoot }: { owner: string, repo: string, token: string, persistenceRoot: string }) {
   const github = new SyncableGithubClient({
-    cache: await GithubDiskCache.init(path.join(root, ".deliverymetrics-data", "github", owner, repo)),
+    cache: await GithubDiskCache.init(path.join(persistenceRoot, "github", owner, repo)),
     owner,
     repo,
     token

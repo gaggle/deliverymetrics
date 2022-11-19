@@ -4,10 +4,10 @@ import { GithubDiskCacheInfo, GithubPull } from "../github/types.ts";
 import { asserts } from "../dev-deps.ts";
 import { asyncToArray } from "../utils.ts";
 import { csv, path } from "../deps.ts";
+import { DeepPartial } from "../types.ts";
 import { ensureFiles, pathExists, withFileOpen, withTempDir } from "../path-and-file-utils.ts";
 
 import { outputToCsv } from "./output-to-csv.ts";
-import { DeepPartial } from "../types.ts";
 
 Deno.test("syncToCsv", async (t) => {
   async function createFakeGithubCache(dir: string, { ghPulls }: Partial<{
@@ -15,13 +15,13 @@ Deno.test("syncToCsv", async (t) => {
   }> = {}): Promise<void> {
     await ensureFiles(dir, [
       {
-        file: "data/github/owner/repo/info.json",
+        file: "github/owner/repo/info.json",
         data: <GithubDiskCacheInfo>{ "updatedAt": 1666535574032 }
       },
       ...(ghPulls || []).map((pull, i) => {
         const pullNumber = pull.number ?? i + 1;
         return {
-          file: `data/github/owner/repo/pulls/${pullNumber}.json`,
+          file: `github/owner/repo/pulls/${pullNumber}.json`,
           data: <GithubPull>getFakePull({ ...pull, number: pullNumber })
         };
       })
@@ -53,7 +53,7 @@ Deno.test("syncToCsv", async (t) => {
         github: { owner: "owner", repo: "repo" },
         now: new Date("1984-01-30T00:00:00Z"),
         outputDir,
-        root: p,
+        persistenceRoot: p,
       });
     });
 
@@ -73,12 +73,12 @@ Deno.test("syncToCsv", async (t) => {
       });
     }
 
-    await t.step("output.csv", async (t) => {
+    await t.step("all-pr-data.csv", async (t) => {
       const expectedFile = expectedFiles["all-pr-data.csv"];
 
       await t.step("has expected format", async () => {
         await withCsvContent(content => {
-          asserts.assertEquals(content.length, Object.keys(fakePulls).length);
+          asserts.assertEquals(content.length, Object.keys(fakePulls).length, `Expected ${Object.keys(fakePulls).length} content elements but got ${content.length}: ${JSON.stringify(content, null, 2)}`);
           const contentEl = content[Object.keys(fakePulls).indexOf("simple")];
           asserts.assertEquals(contentEl, {
             _links: JSON.stringify({

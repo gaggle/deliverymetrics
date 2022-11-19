@@ -21,6 +21,9 @@ function setupLogging(level: LogLevel) {
   });
 }
 
+/** Where to pull to/read from cached data? */
+const persistenceRoot = path.join(Deno.cwd(), ".deliverymetrics-data");
+
 yargs(Deno.args)
   .scriptName("dm")
 
@@ -43,7 +46,7 @@ yargs(Deno.args)
       await githubSyncHandler({
         ...(parseGithubUrl(argv.repoId)),
         token: argv.token,
-        root: Deno.cwd()
+        persistenceRoot
       });
     }
   )
@@ -70,7 +73,7 @@ yargs(Deno.args)
         github: parseGithubUrl(argv.repoId),
         now: new Date(),
         outputDir: argv.outputDir,
-        root: Deno.cwd(),
+        persistenceRoot,
       });
     }
   )

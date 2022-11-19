@@ -36,15 +36,15 @@ export async function outputToCsv(
     github,
     now,
     outputDir,
-    root,
+    persistenceRoot,
   }: {
     github: { owner: string, repo: string, },
     now: Date,
     outputDir: string,
-    root: string,
+    persistenceRoot: string,
   }) {
   const gh = new ReadonlyGithubClient({
-    cache: await GithubDiskCache.init(path.join(root, ".deliverymetrics-data", "github", github.owner, github.repo)),
+    cache: await GithubDiskCache.init(path.join(persistenceRoot, "github", github.owner, github.repo)),
     owner: github.owner,
     repo: github.repo
   });
