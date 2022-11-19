@@ -6,7 +6,7 @@ import { formatGithubClientStatus, formatGithubSyncResult } from "./formatting.t
 export async function githubSyncHandler(
   { owner, repo, token, root }: { owner: string, repo: string, token: string, root: string }) {
   const github = new SyncableGithubClient({
-    cache: await GithubDiskCache.init(path.join(root, "data", "github", owner, repo)),
+    cache: await GithubDiskCache.init(path.join(root, ".deliverymetrics-data", "github", owner, repo)),
     owner,
     repo,
     token

@@ -1,7 +1,7 @@
 .coverage/
-.data/
-dm-*-*
+.deliverymetrics-data/
 .output/
+dm-*-*
 
 dev-fixtures/**
 !dev-fixtures/*
