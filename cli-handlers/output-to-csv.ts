@@ -1,4 +1,4 @@
-import { GithubDiskCache, GithubPull, githubPullSchema, ReadonlyGithubClient } from "../github/mod.ts";
+import { GithubDiskCache, GithubPull, githubPullSchema, ReadonlyDiskGithubClient } from "../github/mod.ts";
 import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
 import { conversion, csv, fs, path } from "../deps.ts";
@@ -43,7 +43,7 @@ export async function outputToCsv(
     outputDir: string,
     persistenceRoot: string,
   }) {
-  const gh = new ReadonlyGithubClient({
+  const gh = new ReadonlyDiskGithubClient({
     cache: await GithubDiskCache.init(path.join(persistenceRoot, "github", github.owner, github.repo)),
     owner: github.owner,
     repo: github.repo

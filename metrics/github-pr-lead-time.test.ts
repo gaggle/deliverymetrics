@@ -1,7 +1,7 @@
 import { asserts } from "../dev-deps.ts";
 
 import { yieldPullRequestLeadTime } from "./github-pr-lead-time.ts";
-import { GithubMockCache, ReadonlyGithubClient } from "../github/mod.ts";
+import { GithubMockCache, ReadonlyDiskGithubClient } from "../github/mod.ts";
 import { getFakePull } from "../github/testing.ts";
 import { asyncToArray } from "../utils.ts";
 
@@ -9,7 +9,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
 
   await t.step("for daily lead times", async (t) => {
     await t.step("calculates a trivial case of a single merged PR", async () => {
-      const github = new ReadonlyGithubClient({
+      const github = new ReadonlyDiskGithubClient({
         cache: new GithubMockCache({
           pulls: [
             getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T00:00:00Z" }),
@@ -28,7 +28,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
     });
 
     await t.step("calculates multiple sets of multiple merged PRs", async () => {
-      const github = new ReadonlyGithubClient({
+      const github = new ReadonlyDiskGithubClient({
         cache: new GithubMockCache({
           pulls: [
             getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T00:00:00Z" }),
@@ -58,7 +58,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
     });
 
     await t.step("calculates an average lead time", async () => {
-      const github = new ReadonlyGithubClient({
+      const github = new ReadonlyDiskGithubClient({
         cache: new GithubMockCache({
           pulls: [
             getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-20T00:10:00Z" }),
@@ -82,7 +82,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
 
   await t.step("for weekly lead times", async (t) => {
     await t.step("creates weekly buckets", async () => {
-      const github = new ReadonlyGithubClient({
+      const github = new ReadonlyDiskGithubClient({
         cache: new GithubMockCache({
           pulls: [
             getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T00:00:00Z" }),
@@ -110,7 +110,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
 
   await t.step("for monthly lead times", async (t) => {
     await t.step("creates monthly buckets", async () => {
-      const github = new ReadonlyGithubClient({
+      const github = new ReadonlyDiskGithubClient({
         cache: new GithubMockCache({
           pulls: [
             getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T00:00:00Z" }),

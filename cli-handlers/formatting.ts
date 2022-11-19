@@ -1,9 +1,9 @@
-import { GithubClient, GithubPull, SyncableGithubClient } from "../github/mod.ts";
+import { ReadonlyGithubClient, GithubPull, DiskGithubClient } from "../github/mod.ts";
 
 import { asyncToArray, pluralize, stringifyPull, stringifyUpdatedPull } from "../utils.ts";
 import { path } from "../deps.ts";
 
-export async function formatGithubClientStatus(github: GithubClient,
+export async function formatGithubClientStatus(github: ReadonlyGithubClient,
                                                opts: Partial<{ mostRecent: boolean, unclosed: boolean }> = {}): Promise<string> {
   let msg = `Github client cache report from: ./${path.relative(Deno.cwd(), github.cacheInfo.location)}`;
 
@@ -29,7 +29,7 @@ export async function formatGithubClientStatus(github: GithubClient,
   return msg;
 }
 
-export function formatGithubSyncResult(diff: Awaited<ReturnType<SyncableGithubClient["sync"]>>): string {
+export function formatGithubSyncResult(diff: Awaited<ReturnType<DiskGithubClient["sync"]>>): string {
   let msg = `Github client sync report from: ${new Date(diff.syncedAt).toLocaleString()}`;
 
   msg += pluralize(

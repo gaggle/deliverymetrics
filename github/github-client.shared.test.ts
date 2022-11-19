@@ -1,18 +1,18 @@
 import { asserts } from "../dev-deps.ts";
 
 import { GithubMockCache } from "./github-cache.ts";
-import { SyncableGithubClient, ReadonlyGithubClient } from "./github-client.ts";
+import { DiskGithubClient, ReadonlyDiskGithubClient } from "./github-client.ts";
 import { getFakePull } from "./testing.ts";
-import { GithubCache, GithubClient } from "./types.ts";
+import { GithubCache, ReadonlyGithubClient } from "./types.ts";
 import { asyncToArray } from "../utils.ts";
 
 const providers: Array<{
-  provider: (callable: (opts: { client: GithubClient }) => void | Promise<void>, opts?: Partial<{ cache: GithubCache }>) => Promise<void>,
+  provider: (callable: (opts: { client: ReadonlyGithubClient }) => void | Promise<void>, opts?: Partial<{ cache: GithubCache }>) => Promise<void>,
   name: string
 }> = [
   {
     provider: async (callable, { cache } = {}) => {
-      const client = new ReadonlyGithubClient({
+      const client = new ReadonlyDiskGithubClient({
         cache: cache || new GithubMockCache(),
         owner: "owner",
         repo: "repo",
@@ -24,7 +24,7 @@ const providers: Array<{
   {
     provider: async (callable, { cache } = {}) => {
       await callable({
-        client: new SyncableGithubClient({
+        client: new DiskGithubClient({
           cache: cache || new GithubMockCache(),
           owner: "owner",
           repo: "repo",

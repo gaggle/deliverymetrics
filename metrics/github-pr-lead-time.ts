@@ -12,7 +12,7 @@
  * A good practice is to measure this number over time so that you can spot trends and behaviors more pragmatically.
  * https://sourcelevel.io/blog/5-metrics-engineering-managers-can-extract-from-pull-requests
  */
-import { GithubClient, GithubPull } from "../github/mod.ts";
+import { ReadonlyGithubClient, GithubPull } from "../github/mod.ts";
 
 import { assertUnreachable } from "../utils.ts";
 
@@ -20,7 +20,7 @@ import { dateEnd, dayStart, monthEnd, monthStart, nextDate, weekEnd, weekStart }
 
 type PullRequestLeadTime = { start: Date, end: Date, leadTime: number, mergedPRs: Array<number> }
 
-export async function * yieldPullRequestLeadTime(gh: GithubClient, { mode }: { mode: "daily" | "weekly" | "monthly" }): AsyncGenerator<PullRequestLeadTime> {
+export async function * yieldPullRequestLeadTime(gh: ReadonlyGithubClient, { mode }: { mode: "daily" | "weekly" | "monthly" }): AsyncGenerator<PullRequestLeadTime> {
   let leadTimes: Array<{ leadTime: number, number: GithubPull["number"] }> = [];
   let prevPeriod: Date | undefined;
 
