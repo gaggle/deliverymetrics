@@ -64,7 +64,7 @@ Deno.test("SyncableGithubClient#sync", async (t) => {
     await withFakeTime(async () => {
         await withStubs(async () => {
             await client.sync();
-            asserts.assertEquals(await client.cacheInfo.getUpdatedAt(), 10_000);
+            asserts.assertEquals(await (await client.findLatestSync()).updatedAt, 10_000);
           },
           mock.stub(_internals, "fetchPulls", mock.returnsNext([arrayToAsyncGenerator([])])),
         );

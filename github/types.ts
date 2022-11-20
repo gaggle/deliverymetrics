@@ -173,8 +173,6 @@ export const githubRestSpec = {
 };
 
 export interface GithubCache {
-  readonly location: string;
-
   getUpdatedAt(): Promise<Epoch | undefined>;
 
   putUpdatedAt(time: Epoch): Promise<void>;
@@ -192,7 +190,6 @@ export const githubDiskCacheInfoSchema = z.object({
 export type GithubDiskCacheInfo = z.infer<typeof githubDiskCacheInfoSchema>
 
 export interface ReadonlyGithubClient {
-  cacheInfo: Readonly<{ location: string }>;
   repoHtmlUrl: string;
 
   findPulls(opts?: Sortable): AsyncGenerator<GithubPull>;

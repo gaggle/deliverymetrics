@@ -16,7 +16,6 @@ import {
 } from "./types.ts";
 
 export class ReadonlyDiskGithubClient implements ReadonlyGithubClient {
-  readonly cacheInfo: Readonly<{ location: string }>;
   readonly repoHtmlUrl: string;
 
   protected readonly cache: GithubCache;
@@ -25,7 +24,6 @@ export class ReadonlyDiskGithubClient implements ReadonlyGithubClient {
 
   constructor(opts: { cache: GithubCache; owner: string; repo: string }) {
     this.cache = opts.cache;
-    this.cacheInfo = { location: opts.cache.location };
     this.repoHtmlUrl = `https://github.com/${opts.owner}/${opts.repo}`;
     this.owner = opts.owner;
     this.repo = opts.repo;

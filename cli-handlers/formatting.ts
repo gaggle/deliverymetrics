@@ -1,11 +1,10 @@
 import { ReadonlyGithubClient, GithubPull, DiskGithubClient } from "../github/mod.ts";
 
 import { asyncToArray, pluralize, stringifyPull, stringifyUpdatedPull } from "../utils.ts";
-import { path } from "../deps.ts";
 
 export async function formatGithubClientStatus(github: ReadonlyGithubClient,
                                                opts: Partial<{ mostRecent: boolean, unclosed: boolean }> = {}): Promise<string> {
-  let msg = `Github client cache report from: ./${path.relative(Deno.cwd(), github.cacheInfo.location)}`;
+  let msg = `Github client cache report:`;
 
   const lastSynced = (await github.findLatestSync()).updatedAt;
   msg += `\n  Last synced: ${lastSynced ? new Date(lastSynced).toLocaleString() : "never"}`;

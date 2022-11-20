@@ -4,7 +4,6 @@ import { GithubCache, githubDiskCacheInfoSchema, GithubPull, githubPullSchema } 
 import { ensureJson, readJsonFile } from "../path-and-file-utils.ts";
 
 export class GithubDiskCache implements GithubCache {
-  readonly location: string;
   readonly paths: Readonly<{
     info: Filepath
     pulls: Dirpath
@@ -16,7 +15,6 @@ export class GithubDiskCache implements GithubCache {
     pulls: Dirpath
     root: Dirpath
   }) {
-    this.location = paths.root;
     this.paths = paths;
   }
 
@@ -78,7 +76,6 @@ export class GithubDiskCache implements GithubCache {
 }
 
 export class GithubMemoryCache implements GithubCache {
-  readonly location = "memory";
   protected readonly data: {
     pulls: Record<number, GithubPull>;
     updatedAt?: number;

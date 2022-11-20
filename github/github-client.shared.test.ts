@@ -38,17 +38,11 @@ const providers: Array<{
 
 for (const { provider, name } of providers) {
   Deno.test(name, async (t) => {
-    await t.step("#cacheInfo", async (t) => {
+    await t.step("#findLatestSync", async (t) => {
       await t.step("should say when it was last updated at", async () => {
         await provider(async ({ client }) => {
-          asserts.assertEquals(await client.cacheInfo.getUpdatedAt(), 10_000);
+          asserts.assertEquals(await (await client.findLatestSync()).updatedAt, 10_000);
         }, { cache: new GithubMockCache({ updatedAt: 10_000 }) });
-      });
-
-      await t.step("should return location of cache", async () => {
-        await provider(({ client }) => {
-          asserts.assertEquals(client.cacheInfo.location, "memory");
-        });
       });
     });
 
