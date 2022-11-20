@@ -14,7 +14,7 @@ coverage:
 	deno coverage .coverage && rm -rf coverage/html && mkdir -p .coverage/html && deno coverage .coverage --lcov > .coverage/html/coverage.lcov && genhtml -o .coverage/html .coverage/html/coverage.lcov
 
 lint:
-	deno check mod.ts dev-fixtures/mod.ts && deno lint
+	deno fmt --check && deno check mod.ts dev-fixtures/mod.ts && deno lint
 
 compile:
 	deno compile --output dm-x86-gnu --target=x86_64-unknown-linux-gnu $(ALLOW) ./mod.ts
