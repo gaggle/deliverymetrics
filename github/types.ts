@@ -172,18 +172,6 @@ export const githubRestSpec = {
   }
 };
 
-export interface GithubCache {
-  getUpdatedAt(): Promise<Epoch | undefined>;
-
-  putUpdatedAt(time: Epoch): Promise<void>;
-
-  getPulls(): AsyncGenerator<GithubPull>;
-
-  putPulls(pulls: Array<GithubPull>, opts?: { syncTime?: Epoch }): Promise<void>;
-
-  putPull(pull: GithubPull, opts?: { syncTime?: Epoch }): Promise<void>;
-}
-
 export const githubDiskCacheInfoSchema = z.object({
   updatedAt: z.union([z.number(), z.undefined()])
 });

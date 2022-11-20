@@ -1,13 +1,13 @@
 import { asserts } from "../dev-deps.ts";
-
-import { GithubMockCache } from "./github-cache.ts";
-import { DiskGithubClient, ReadonlyDiskGithubClient } from "./github-client.ts";
-import { getFakePull } from "./testing.ts";
-import { GithubCache, ReadonlyGithubClient } from "./types.ts";
 import { asyncToArray } from "../utils.ts";
 
+import { DiskGithubClient, ReadonlyDiskGithubClient } from "./github-client.ts";
+import { getFakePull } from "./testing.ts";
+import { GithubMockCache } from "./github-cache.ts";
+import { ReadonlyGithubClient } from "./types.ts";
+
 const providers: Array<{
-  provider: (callable: (opts: { client: ReadonlyGithubClient }) => void | Promise<void>, opts?: Partial<{ cache: GithubCache }>) => Promise<void>,
+  provider: (callable: (opts: { client: ReadonlyGithubClient }) => void | Promise<void>, opts?: Partial<{ cache: GithubMockCache }>) => Promise<void>,
   name: string
 }> = [
   {

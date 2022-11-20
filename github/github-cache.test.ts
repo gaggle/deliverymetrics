@@ -1,11 +1,10 @@
 import { asserts, } from "../dev-deps.ts";
 import { GithubDiskCache, GithubMemoryCache, GithubMockCache } from "./github-cache.ts";
 import { asyncToArray, sleep } from "../utils.ts";
-import { GithubCache } from "./types.ts";
 import { getFakePull } from "./testing.ts";
 
 const githubCacheProviders: Array<{
-  cacheProvider: (callable: (opts: { cache: GithubCache }) => Promise<void>) => Promise<void>,
+  cacheProvider: (callable: (opts: { cache: GithubDiskCache | GithubMemoryCache }) => Promise<void>) => Promise<void>,
   name: string
 }> = [
   {

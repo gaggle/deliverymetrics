@@ -1,9 +1,9 @@
 import { Dirpath, Epoch, Filepath } from "../types.ts";
 import { fs, path } from "../deps.ts";
-import { GithubCache, githubDiskCacheInfoSchema, GithubPull, githubPullSchema } from "./types.ts";
+import { githubDiskCacheInfoSchema, GithubPull, githubPullSchema } from "./types.ts";
 import { ensureJson, readJsonFile } from "../path-and-file-utils.ts";
 
-export class GithubDiskCache implements GithubCache {
+export class GithubDiskCache {
   readonly paths: Readonly<{
     info: Filepath
     pulls: Dirpath
@@ -75,7 +75,7 @@ export class GithubDiskCache implements GithubCache {
   }
 }
 
-export class GithubMemoryCache implements GithubCache {
+export class GithubMemoryCache {
   protected readonly data: {
     pulls: Record<number, GithubPull>;
     updatedAt?: number;

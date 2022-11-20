@@ -6,7 +6,6 @@ import { deepMerge, equal, groupBy, log } from "../deps.ts";
 import { Epoch } from "../types.ts";
 
 import {
-  GithubCache,
   ReadonlyGithubClient,
   GithubDiff,
   GithubPull,
@@ -14,15 +13,16 @@ import {
   githubRestSpec,
   GithubClient
 } from "./types.ts";
+import { GithubDiskCache, GithubMemoryCache } from "./github-cache.ts";
 
 export class ReadonlyDiskGithubClient implements ReadonlyGithubClient {
   readonly repoHtmlUrl: string;
 
-  protected readonly cache: GithubCache;
+  protected readonly cache: GithubDiskCache | GithubMemoryCache;
   protected readonly owner: string;
   protected readonly repo: string;
 
-  constructor(opts: { cache: GithubCache; owner: string; repo: string }) {
+  constructor(opts: { cache: GithubDiskCache | GithubMemoryCache; owner: string; repo: string }) {
     this.cache = opts.cache;
     this.repoHtmlUrl = `https://github.com/${opts.owner}/${opts.repo}`;
     this.owner = opts.owner;
@@ -63,7 +63,7 @@ export class ReadonlyDiskGithubClient implements ReadonlyGithubClient {
 export class DiskGithubClient extends ReadonlyDiskGithubClient implements GithubClient {
   private readonly token: string;
 
-  constructor(opts: { cache: GithubCache; owner: string; repo: string; token: string }) {
+  constructor(opts: { cache: GithubDiskCache | GithubMemoryCache; owner: string; repo: string; token: string }) {
     super(opts);
     this.token = opts.token;
   }
