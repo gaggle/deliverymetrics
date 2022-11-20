@@ -1,11 +1,11 @@
-import { Retrier } from "../fetching/retrier.ts";
+import { Retrier } from "../fetching/mod.ts";
 
 import { asserts, mock } from "../dev-deps.ts";
 import { asyncToArray } from "../utils.ts";
 import { withStubs } from "../dev-utils.ts";
 
-import { fetchPulls } from "./github-client.ts";
 import { getFakePull } from "./testing.ts";
+import { fetchPulls } from "./fetch-pulls.ts";
 
 Deno.test("fetchPulls", async (t) => {
   await t.step("should call fetch to get pulls from GitHub API", async () => {

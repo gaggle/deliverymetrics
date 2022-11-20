@@ -1,8 +1,8 @@
 import { fs, path } from "../deps.ts";
 import { getEnv } from "../utils.ts";
-import { JSONValue } from "../types.ts";
+import { JSONValue, RequestMethod } from "../types.ts";
 
-import { FetchSpec, RequestMethod } from "./types.ts";
+import { FetchSpec } from "./types.ts";
 
 const dirname = path.dirname(path.fromFileUrl(import.meta.url));
 

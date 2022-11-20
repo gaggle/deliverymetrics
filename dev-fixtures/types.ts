@@ -1,7 +1,5 @@
 import { z } from "../deps.ts";
 
-export type RequestMethod = "GET" | "POST";
-
 export const fetchSpecSchema = z.union([
   z.string(),
   z.object({

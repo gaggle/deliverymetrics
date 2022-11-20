@@ -37,3 +37,5 @@ type ToTupleRec<Union, Rslt extends unknown[]> = SpliceOne<Union> extends never
 export type ToTuple<Union> = ToTupleRec<Union, []>;
 
 export type Tail<T extends unknown[]> = T extends [infer Head, ...infer Tail] ? Tail : never;
+
+export type RequestMethod = "GET" | "POST";
