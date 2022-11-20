@@ -1,16 +1,21 @@
+import { MockAloeDatabase } from "../db/mod.ts";
+
 import { asserts } from "../dev-deps.ts";
 import { asyncToArray } from "../utils.ts";
 
 import { DiskGithubClient, ReadonlyDiskGithubClient } from "./github-client.ts";
 import { getFakePull } from "./testing.ts";
-import { GithubDiskCache } from "./mod.ts";
+import { GithubDiskCache } from "./github-cache.ts";
 import { GithubMemoryCache, GithubMockCache } from "./github-cache.ts";
-import { ReadonlyGithubClient } from "./types.ts";
+import { githubPullSchema, SyncInfo, syncInfoSchema } from "./mod.ts";
+import { ReadonlyAloeGithubClient } from "./aloe-github-client.ts";
+import { ReadonlyGithubClient, GithubPull } from "./types.ts";
 
 async function * yieldGithubClient(
   opts?: {
     ReadonlyDiskGithubClient?: { cache?: GithubDiskCache | GithubMemoryCache };
     DiskGithubClient?: { cache?: GithubDiskCache | GithubMemoryCache };
+    ReadonlyAloeGithubClient?: { pulls?: Array<GithubPull>; syncs?: Array<SyncInfo> };
   },
 ): AsyncGenerator<ReadonlyGithubClient> {
   yield new ReadonlyDiskGithubClient({
@@ -25,6 +30,14 @@ async function * yieldGithubClient(
     repo: "repo",
     token: "token",
   });
+
+  yield new ReadonlyAloeGithubClient({
+    owner: "owner", repo: "repo",
+    db: {
+      pulls: await MockAloeDatabase.new({ schema: githubPullSchema, documents: opts?.ReadonlyAloeGithubClient?.pulls }),
+      syncs: await MockAloeDatabase.new({ schema: syncInfoSchema, documents: opts?.ReadonlyAloeGithubClient?.syncs })
+    }
+  });
 }
 
 Deno.test("Github Client shared tests", async (t) => {
@@ -38,6 +51,7 @@ Deno.test("Github Client shared tests", async (t) => {
         DiskGithubClient: {
           cache: new GithubMockCache({ updatedAt: 10_000 }),
         },
+        ReadonlyAloeGithubClient: { syncs: [{ createdAt: 0, updatedAt: 10_000 }] }
       })
         ) {
         await t.step(`for ${client.constructor.name}`, async () => {
@@ -60,6 +74,9 @@ Deno.test("Github Client shared tests", async (t) => {
         DiskGithubClient: {
           cache: new GithubMockCache({ pulls: [getFakePull()] }),
         },
+        ReadonlyAloeGithubClient: {
+          pulls: [getFakePull()]
+        }
       })
         ) {
         asserts.assertEquals(await asyncToArray(client.findPulls()), [
@@ -96,6 +113,7 @@ Deno.test("Github Client shared tests", async (t) => {
               pulls: [pull90s, pull2ks, pull80s],
             }),
           },
+          ReadonlyAloeGithubClient: { pulls: [pull90s, pull2ks, pull80s] }
         })
           ) {
           asserts.assertEquals(await asyncToArray(client.findPulls()), [
@@ -128,6 +146,7 @@ Deno.test("Github Client shared tests", async (t) => {
       DiskGithubClient: {
         cache: new GithubMockCache({ pulls: [createdRecent, createdOld] }),
       },
+      ReadonlyAloeGithubClient: { pulls: [createdRecent, createdOld] }
     })
       ) {
       asserts.assertEquals(
@@ -160,6 +179,7 @@ Deno.test("Github Client shared tests", async (t) => {
       DiskGithubClient: {
         cache: new GithubMockCache({ pulls: [createdOld, createdRecent] }),
       },
+      ReadonlyAloeGithubClient: { pulls: [createdOld, createdRecent] }
     })
       ) {
       asserts.assertEquals(
@@ -190,6 +210,15 @@ Deno.test("Github Client shared tests", async (t) => {
         const client of yieldGithubClient({
         ReadonlyDiskGithubClient: { cache },
         DiskGithubClient: { cache },
+        ReadonlyAloeGithubClient: {
+          pulls: [
+            getFakePull({
+              number: 1,
+              state: "closed",
+            }),
+            getFakePull({ number: 2, state: "open" }),
+          ]
+        }
       })
         ) {
         asserts.assertEquals(await asyncToArray(client.findUnclosedPulls()), [
@@ -224,6 +253,16 @@ Deno.test("Github Client shared tests", async (t) => {
         const client of yieldGithubClient({
         ReadonlyDiskGithubClient: { cache },
         DiskGithubClient: { cache },
+        ReadonlyAloeGithubClient: {
+          pulls: [
+            getFakePull({
+              number: 3,
+              updated_at: "1980-01-01T00:00:00Z",
+            }),
+            mostRecentPull,
+            getFakePull({ number: 1, updated_at: "1970-01-01T00:00:00Z" }),
+          ]
+        }
       })
         ) {
         asserts.assertEquals(await client.findLatestPull(), mostRecentPull);
