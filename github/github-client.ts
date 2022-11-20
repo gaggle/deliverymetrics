@@ -2,9 +2,10 @@ import { asyncToArray, first } from "../utils.ts";
 import { equal, groupBy } from "../deps.ts";
 import { Epoch } from "../types.ts";
 
+import { fetchPulls } from "./fetch-pulls.ts";
 import { GithubClient, GithubDiff, GithubPull, GithubPullDateKey, ReadonlyGithubClient } from "./types.ts";
 import { GithubDiskCache, GithubMemoryCache } from "./github-cache.ts";
-import { fetchPulls } from "./fetch-pulls.ts";
+import { sortPullsByKey } from "./sorting.ts";
 
 export class ReadonlyDiskGithubClient implements ReadonlyGithubClient {
   readonly repoHtmlUrl: string;
@@ -87,19 +88,6 @@ export class DiskGithubClient extends ReadonlyDiskGithubClient implements Github
         .map(updated => ({ prev: prevPullsByNumber[updated.number], updated }))
     };
   }
-}
-
-function sortPullsByKey(pulls: Array<GithubPull>, key: GithubPullDateKey = "updated_at"): Array<GithubPull> {
-  return pulls.sort((a, b) => {
-    const aVal = a[key];
-    const aT = aVal === null ? 0 : new Date(aVal).getTime();
-    const bVal = b[key];
-    const bT = bVal === null ? 0 : new Date(bVal).getTime();
-    if (aT === bT) return 0;
-    if (aT < bT) return -1;
-    if (aT > bT) return 1;
-    throw new Error(`Error sorting pulls ${a.number} (${aT}) and ${b.number} (${bT})`);
-  });
 }
 
 export const _internals = {
