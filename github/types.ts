@@ -186,7 +186,7 @@ export interface ReadonlyGithubClient {
 
   findLatestPull(): Promise<GithubPull | undefined>;
 
-  findLatestSync(): Promise<{ createdAt: Epoch, updatedAt: Epoch, diff?: GithubDiff }>;
+  findLatestSync(): Promise<{ createdAt: Epoch, updatedAt: Epoch, diff?: GithubDiff } | undefined>;
 }
 
 export interface GithubClient extends ReadonlyGithubClient {

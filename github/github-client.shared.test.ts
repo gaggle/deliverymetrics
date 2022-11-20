@@ -41,7 +41,7 @@ for (const { provider, name } of providers) {
     await t.step("#findLatestSync", async (t) => {
       await t.step("should say when it was last updated at", async () => {
         await provider(async ({ client }) => {
-          asserts.assertEquals(await (await client.findLatestSync()).updatedAt, 10_000);
+          asserts.assertEquals((await client.findLatestSync() || {}).updatedAt, 10_000);
         }, { cache: new GithubMockCache({ updatedAt: 10_000 }) });
       });
     });
