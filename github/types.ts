@@ -194,3 +194,10 @@ export interface GithubClient extends ReadonlyGithubClient {
 }
 
 export type Sortable = Partial<{ sort: { key: GithubPullDateKey; order?: "asc" | "desc" } }>;
+
+export const syncInfoSchema = z.object({
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+
+export type SyncInfo = z.infer<typeof syncInfoSchema>
