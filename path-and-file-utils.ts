@@ -108,7 +108,7 @@ export async function withTempDir(callable: (p: string) => Promise<void>, { suff
   }
 }
 
-export function ensureFiles(root: string, files: Array<{ file: string, data: string | Record<string, unknown> }>): Promise<Array<string>> {
+export function ensureFiles(root: string, files: Array<{ file: string, data: string | Record<string, unknown> | Array<Record<string, unknown>> }>): Promise<Array<string>> {
   return Promise.all(files.map(async ({ file, data }) => {
     data = typeof data !== "string" ? JSON.stringify(data, null, 2) : data;
     const fp = path.join(root, file);

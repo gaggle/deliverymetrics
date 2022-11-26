@@ -143,6 +143,13 @@ Deno.test("ensureFiles", async (t) => {
     });
   });
 
+  await t.step("creates json content from an array", async () => {
+    await withTempDir(async (p) => {
+      await ensureFiles(p, [{ file: "foo.txt", data: [{ foo: "bar" }] }]);
+      asserts.assertEquals(await Deno.readTextFile(path.join(p, "foo.txt")), JSON.stringify([{ foo: "bar" }], null, 2));
+    });
+  });
+
   await t.step("blocks files being made outside root", async () => {
     await withTempDir(async (p) => {
       await asserts.assertRejects(
