@@ -1,8 +1,12 @@
-import { AloeDatabase } from "../db/aloe-database.ts";
-import { GithubPull, GithubPullDateKey, ReadonlyGithubClient } from "./types.ts";
-import { Epoch } from "../types.ts";
-import { sortPullsByKey } from "./sorting.ts";
+import { AloeDatabase } from "../db/mod.ts";
+
 import { asyncToArray, first } from "../utils.ts";
+import { Epoch } from "../types.ts";
+import { equal, groupBy } from "../deps.ts";
+
+import { _internals } from "./github-client.ts";
+import { GithubClient, GithubDiff, GithubPull, GithubPullDateKey, ReadonlyGithubClient, SyncInfo } from "./types.ts";
+import { sortPullsByKey } from "./sorting.ts";
 
 interface AloeGithubClientDb {
   pulls: AloeDatabase<GithubPull>;
@@ -47,5 +51,48 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
   async findLatestSync(): Promise<{ createdAt: Epoch; updatedAt: Epoch; } | undefined> {
     const syncs = await this.db.syncs.findMany();
     return syncs[0];
+  }
+}
+
+export class AloeGithubClient extends ReadonlyAloeGithubClient implements GithubClient {
+  private readonly owner: string;
+  private readonly repo: string;
+  private readonly token: string;
+
+  constructor(opts: { db: AloeGithubClientDb; owner: string; repo: string, token: string }) {
+    super(opts);
+    this.owner = opts.owner;
+    this.repo = opts.repo;
+    this.token = opts.token;
+  }
+
+  async sync(): Promise<GithubDiff> {
+    const lastSync = await this.findLatestSync();
+
+    const prevPullsByNumber = (await asyncToArray(this.findPulls()))
+      .reduce(function (acc, curr) {
+        acc[curr.number] = curr;
+        return acc;
+      }, {} as Record<number, GithubPull>);
+
+    let sync: SyncInfo = await this.db.syncs.insertOne({ createdAt: Date.now(), updatedAt: Date.now() });
+
+    const fetchedPulls: Array<GithubPull> = [];
+    for await(const pull of _internals.fetchPulls(this.owner, this.repo, this.token, { from: lastSync?.updatedAt })) {
+      fetchedPulls.push(pull);
+      await this.db.pulls.insertOne(pull);
+    }
+
+    sync = await this.db.syncs.updateOne(sync, { ...sync, updatedAt: Date.now() }) as SyncInfo;
+
+    const bucket = groupBy(fetchedPulls, (pull) => pull.number in prevPullsByNumber ? "updatedPulls" : "newPulls");
+
+    return {
+      syncedAt: sync.createdAt,
+      newPulls: sortPullsByKey(bucket.newPulls || []),
+      updatedPulls: sortPullsByKey(bucket.updatedPulls || [])
+      .filter(updated => !equal.equal(updated, prevPullsByNumber[updated.number]))
+      .map(updated => ({ prev: prevPullsByNumber[updated.number], updated }))
+    };
   }
 }

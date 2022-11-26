@@ -1,22 +1,32 @@
+import { MockAloeDatabase } from "../db/mod.ts";
+
 import { arrayToAsyncGenerator, asyncToArray } from "../utils.ts";
 import { asserts, mock, time } from "../dev-deps.ts";
 import { withFakeTime, withStubs } from "../dev-utils.ts";
 
 import { _internals, DiskGithubClient } from "./github-client.ts";
+import { AloeGithubClient } from "./aloe-github-client.ts";
 import { getFakePull } from "./testing.ts";
-import { GithubClient } from "./types.ts";
+import { GithubClient, GithubPull, githubPullSchema, SyncInfo, syncInfoSchema } from "./types.ts";
 import { GithubDiskCache, GithubMemoryCache, GithubMockCache } from "./github-cache.ts";
 
 async function * yieldGithubClient(
   opts?: {
     DiskGithubClient?: { cache?: GithubDiskCache | GithubMemoryCache };
+    AloeGithubClient?: { pulls?: Array<GithubPull>, syncs?: Array<SyncInfo> };
   },
 ): AsyncGenerator<GithubClient> {
   yield new DiskGithubClient({
     cache: opts?.DiskGithubClient?.cache || new GithubMockCache(),
-    owner: "owner",
-    repo: "repo",
-    token: "token",
+    owner: "owner", repo: "repo", token: "token",
+  });
+
+  yield new AloeGithubClient({
+    db: {
+      pulls: await MockAloeDatabase.new({ schema: githubPullSchema, documents: opts?.AloeGithubClient?.pulls }),
+      syncs: await MockAloeDatabase.new({ schema: syncInfoSchema, documents: opts?.AloeGithubClient?.syncs }),
+    },
+    owner: "owner", repo: "repo", token: "token",
   });
 }
 
@@ -37,7 +47,8 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
 
   await t.step("should fetch pulls since the last time the cache was updated", async (t) => {
     for await (const client of yieldGithubClient({
-      DiskGithubClient: { cache: new GithubMockCache({ updatedAt: 10_000 }) }
+      DiskGithubClient: { cache: new GithubMockCache({ updatedAt: 10_000 }) },
+      AloeGithubClient: { syncs: [{ createdAt: 9_000, updatedAt: 10_000 }] },
     })) {
       await t.step(`for ${client.constructor.name}`, async () => {
         await withStubs(async (stub) => {
@@ -101,7 +112,8 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
     const pullOpen = getFakePull({ id: 1, number: 1, state: "open" });
     const pullClosed = getFakePull({ id: 1, number: 1, state: "closed" });
     for await (const client of yieldGithubClient({
-      DiskGithubClient: { cache: new GithubMockCache({ pulls: [pullOpen] }) }
+      DiskGithubClient: { cache: new GithubMockCache({ pulls: [pullOpen] }) },
+      AloeGithubClient: { pulls: [pullOpen] },
     })) {
       await t.step(`for ${client.constructor.name}`, async () => {
         await withStubs(async () => {
