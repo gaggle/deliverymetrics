@@ -1,4 +1,10 @@
-import { GithubDiskCache, GithubPull, githubPullSchema, ReadonlyDiskGithubClient } from "../github/mod.ts";
+import {
+  GithubDiskCache,
+  GithubPull,
+  githubPullSchema,
+  ReadonlyAloeGithubClient,
+  ReadonlyDiskGithubClient, syncInfoSchema
+} from "../github/mod.ts";
 import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
 import { conversion, csv, fs, path } from "../deps.ts";
@@ -6,6 +12,7 @@ import { Tail, ToTuple } from "../types.ts";
 import { withFileOpen } from "../path-and-file-utils.ts";
 
 import { formatGithubClientStatus } from "./formatting.ts";
+import { AloeDatabase } from "../db/aloe-database.ts";
 
 const prPrimaryHeaders = ["number", "created_at", "merged_at", "updated_at", "was_cancelled",] as const;
 const prIgnoreHeaders = [
@@ -43,8 +50,17 @@ export async function outputToCsv(
     outputDir: string,
     persistenceRoot: string,
   }) {
-  const gh = new ReadonlyDiskGithubClient({
-    cache: await GithubDiskCache.init(path.join(persistenceRoot, "github", github.owner, github.repo)),
+  const gh = new ReadonlyAloeGithubClient({
+    db: {
+      syncs: await AloeDatabase.new({
+        path: path.join(persistenceRoot, "github", github.owner, github.repo, "syncs.json"),
+        schema: syncInfoSchema,
+      }),
+      pulls: await AloeDatabase.new({
+        path: path.join(persistenceRoot, "github", github.owner, github.repo, "pulls.json"),
+        schema: githubPullSchema,
+      }),
+    },
     owner: github.owner,
     repo: github.repo
   });

@@ -1,5 +1,5 @@
 import { getFakePull } from "../github/testing.ts";
-import { GithubDiskCacheInfo, GithubPull } from "../github/types.ts";
+import { GithubPull, SyncInfo } from "../github/types.ts";
 
 import { asserts } from "../dev-deps.ts";
 import { asyncToArray } from "../utils.ts";
@@ -10,21 +10,27 @@ import { ensureFiles, pathExists, withFileOpen, withTempDir } from "../path-and-
 import { outputToCsv } from "./output-to-csv.ts";
 
 Deno.test("syncToCsv", async (t) => {
-  async function createFakeGithubCache(dir: string, { ghPulls }: Partial<{
-    ghPulls: Array<DeepPartial<GithubPull>>
+  async function createStoredGithubFiles(dir: string, { pulls, syncs }: Partial<{
+    pulls: Array<DeepPartial<GithubPull>>
+    syncs: Array<DeepPartial<SyncInfo>>
   }> = {}): Promise<void> {
+    syncs = syncs || [{ createdAt: 283996800000, updatedAt: 283996800001 }];
+    //                             ↑ 1979-01-01T00:00:00Z
+
+    pulls = (pulls || []).map((pull, idx) => {
+      const pullNumber = pull.number ?? idx + 1;
+      return <GithubPull>getFakePull({ ...pull, number: pullNumber });
+    });
+
     await ensureFiles(dir, [
       {
-        file: "github/owner/repo/info.json",
-        data: <GithubDiskCacheInfo>{ "updatedAt": 1666535574032 }
+        file: "github/owner/repo/pulls.json",
+        data: pulls
       },
-      ...(ghPulls || []).map((pull, i) => {
-        const pullNumber = pull.number ?? i + 1;
-        return {
-          file: `github/owner/repo/pulls/${pullNumber}.json`,
-          data: <GithubPull>getFakePull({ ...pull, number: pullNumber })
-        };
-      })
+      {
+        file: "github/owner/repo/syncs.json",
+        data: syncs
+      },
     ]);
   }
 
@@ -43,8 +49,12 @@ Deno.test("syncToCsv", async (t) => {
       merged: { number: 4, created_at: "1984-01-01T00:00:00Z", merged_at: "1984-01-05T00:00:00Z" },
     };
 
-    await createFakeGithubCache(p, {
-      ghPulls: Object.values(fakePulls)
+    await createStoredGithubFiles(p, {
+      syncs: [{
+        createdAt: new Date("1981-01-01T00:00:00Z").getTime(),
+        updatedAt: new Date("1984-01-05T00:00:00Z").getTime(),
+      }],
+      pulls: Object.values(fakePulls),
     });
     const outputDir = path.join(p, "out");
 
