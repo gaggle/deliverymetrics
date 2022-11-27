@@ -4,7 +4,7 @@ import { asyncToArray, first } from "../utils.ts";
 import { Epoch } from "../types.ts";
 import { equal, groupBy } from "../deps.ts";
 
-import { _internals } from "./github-client.ts";
+import { fetchPulls } from "./fetch-pulls.ts";
 import { GithubClient, GithubDiff, GithubPull, GithubPullDateKey, ReadonlyGithubClient, SyncInfo } from "./types.ts";
 import { sortPullsByKey } from "./sorting.ts";
 
@@ -96,3 +96,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     };
   }
 }
+
+export const _internals = {
+  fetchPulls
+};

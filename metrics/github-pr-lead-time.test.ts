@@ -1,20 +1,29 @@
+import { getFakePull } from "../github/testing.ts";
+import { githubPullSchema, ReadonlyAloeGithubClient, syncInfoSchema } from "../github/mod.ts";
+import { MockAloeDatabase } from "../db/mod.ts";
+
 import { asserts } from "../dev-deps.ts";
+import { asyncToArray } from "../utils.ts";
 
 import { yieldPullRequestLeadTime } from "./github-pr-lead-time.ts";
-import { GithubMockCache, ReadonlyDiskGithubClient } from "../github/mod.ts";
-import { getFakePull } from "../github/testing.ts";
-import { asyncToArray } from "../utils.ts";
 
 Deno.test("yieldPullRequestLeadTime", async (t) => {
 
   await t.step("for daily lead times", async (t) => {
     await t.step("calculates a trivial case of a single merged PR", async () => {
-      const github = new ReadonlyDiskGithubClient({
-        cache: new GithubMockCache({
-          pulls: [
-            getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T00:00:00Z" }),
-          ]
-        }), owner: "owner", repo: "repo"
+      const github = new ReadonlyAloeGithubClient({
+        owner: "owner", repo: "repo",
+        db: {
+          pulls: await MockAloeDatabase.new({
+            schema: githubPullSchema,
+            documents: [getFakePull({
+              number: 1,
+              created_at: "2022-01-01T00:00:00Z",
+              merged_at: "2022-01-05T00:00:00Z"
+            })]
+          }),
+          syncs: await MockAloeDatabase.new({ schema: syncInfoSchema }),
+        }
       });
 
       asserts.assertEquals(await asyncToArray(yieldPullRequestLeadTime(github, { mode: "daily" })), [
@@ -28,17 +37,22 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
     });
 
     await t.step("calculates multiple sets of multiple merged PRs", async () => {
-      const github = new ReadonlyDiskGithubClient({
-        cache: new GithubMockCache({
-          pulls: [
-            getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T00:00:00Z" }),
-            getFakePull({ number: 2, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T23:59:59Z" }),
+      const github = new ReadonlyAloeGithubClient({
+        owner: "owner", repo: "repo",
+        db: {
+          pulls: await MockAloeDatabase.new({
+            schema: githubPullSchema,
+            documents: [
+              getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T00:00:00Z" }),
+              getFakePull({ number: 2, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T23:59:59Z" }),
 
-            getFakePull({ number: 3, created_at: "2022-02-01T00:00:00Z", merged_at: "2022-02-05T00:00:00Z" }),
-            getFakePull({ number: 4, created_at: "2022-02-01T00:00:00Z", merged_at: "2022-02-05T12:00:00Z" }),
-            getFakePull({ number: 5, created_at: "2022-02-01T23:59:59Z", merged_at: "2022-02-05T23:59:59Z" }),
-          ]
-        }), owner: "owner", repo: "repo"
+              getFakePull({ number: 3, created_at: "2022-02-01T00:00:00Z", merged_at: "2022-02-05T00:00:00Z" }),
+              getFakePull({ number: 4, created_at: "2022-02-01T00:00:00Z", merged_at: "2022-02-05T12:00:00Z" }),
+              getFakePull({ number: 5, created_at: "2022-02-01T23:59:59Z", merged_at: "2022-02-05T23:59:59Z" }),
+            ]
+          }),
+          syncs: await MockAloeDatabase.new({ schema: syncInfoSchema }),
+        }
       });
 
       asserts.assertEquals(await asyncToArray(yieldPullRequestLeadTime(github, { mode: "daily" })), [
@@ -58,14 +72,19 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
     });
 
     await t.step("calculates an average lead time", async () => {
-      const github = new ReadonlyDiskGithubClient({
-        cache: new GithubMockCache({
-          pulls: [
-            getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-20T00:10:00Z" }),
-            getFakePull({ number: 2, created_at: "2022-01-09T00:00:00Z", merged_at: "2022-01-20T12:00:00Z" }),
-            getFakePull({ number: 3, created_at: "2022-01-20T00:00:00Z", merged_at: "2022-01-20T23:59:59.999Z" }),
-          ]
-        }), owner: "owner", repo: "repo"
+      const github = new ReadonlyAloeGithubClient({
+        owner: "owner", repo: "repo",
+        db: {
+          pulls: await MockAloeDatabase.new({
+            schema: githubPullSchema,
+            documents: [
+              getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-20T00:10:00Z" }),
+              getFakePull({ number: 2, created_at: "2022-01-09T00:00:00Z", merged_at: "2022-01-20T12:00:00Z" }),
+              getFakePull({ number: 3, created_at: "2022-01-20T00:00:00Z", merged_at: "2022-01-20T23:59:59.999Z" }),
+            ]
+          }),
+          syncs: await MockAloeDatabase.new({ schema: syncInfoSchema }),
+        }
       });
 
       asserts.assertEquals(await asyncToArray(yieldPullRequestLeadTime(github, { mode: "daily" })), [
@@ -82,13 +101,18 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
 
   await t.step("for weekly lead times", async (t) => {
     await t.step("creates weekly buckets", async () => {
-      const github = new ReadonlyDiskGithubClient({
-        cache: new GithubMockCache({
-          pulls: [
-            getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T00:00:00Z" }),
-            getFakePull({ number: 2, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-10T00:00:00Z" }),
-          ]
-        }), owner: "owner", repo: "repo"
+      const github = new ReadonlyAloeGithubClient({
+        owner: "owner", repo: "repo",
+        db: {
+          pulls: await MockAloeDatabase.new({
+            schema: githubPullSchema,
+            documents: [
+              getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T00:00:00Z" }),
+              getFakePull({ number: 2, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-10T00:00:00Z" }),
+            ]
+          }),
+          syncs: await MockAloeDatabase.new({ schema: syncInfoSchema }),
+        }
       });
 
       asserts.assertEquals(await asyncToArray(yieldPullRequestLeadTime(github, { mode: "weekly" })), [
@@ -110,13 +134,18 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
 
   await t.step("for monthly lead times", async (t) => {
     await t.step("creates monthly buckets", async () => {
-      const github = new ReadonlyDiskGithubClient({
-        cache: new GithubMockCache({
-          pulls: [
-            getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T00:00:00Z" }),
-            getFakePull({ number: 2, created_at: "2022-01-23T00:00:00Z", merged_at: "2022-02-01T00:00:00Z" }),
-          ]
-        }), owner: "owner", repo: "repo"
+      const github = new ReadonlyAloeGithubClient({
+        owner: "owner", repo: "repo",
+        db: {
+          pulls: await MockAloeDatabase.new({
+            schema: githubPullSchema,
+            documents: [
+              getFakePull({ number: 1, created_at: "2022-01-01T00:00:00Z", merged_at: "2022-01-05T00:00:00Z" }),
+              getFakePull({ number: 2, created_at: "2022-01-23T00:00:00Z", merged_at: "2022-02-01T00:00:00Z" }),
+            ]
+          }),
+          syncs: await MockAloeDatabase.new({ schema: syncInfoSchema }),
+        }
       });
 
       asserts.assertEquals(await asyncToArray(yieldPullRequestLeadTime(github, { mode: "monthly" })), [
