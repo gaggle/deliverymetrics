@@ -1,7 +1,15 @@
 import { deepMerge } from "../deps.ts";
 import { DeepPartial } from "../types.ts";
 
-import { GithubPull } from "./types.ts";
+import {
+  GithubPull,
+  githubPullSchema,
+  ReadonlyGithubClient,
+  SyncInfo,
+  syncInfoSchema,
+} from "./types.ts";
+import { ReadonlyAloeGithubClient } from "./aloe-github-client.ts";
+import { MockAloeDatabase } from "../db/aloe-database.ts";
 
 export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
   const repo: GithubPull["base"]["repo"] = {
@@ -184,4 +192,38 @@ export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
     },
   };
   return deepMerge(base, partial as GithubPull);
+}
+
+export function getFakeSyncInfo(partial: DeepPartial<SyncInfo> = {}): SyncInfo {
+  const base: SyncInfo = {
+    createdAt: partial.updatedAt
+      ? partial.updatedAt - 1
+      : new Date("2000-01-01T00:00:00Z").getTime(),
+    updatedAt: partial.createdAt
+      ? partial.createdAt + 1
+      : new Date("2000-01-01T00:01:00Z").getTime(),
+  };
+  return deepMerge(base, partial as SyncInfo);
+}
+
+export async function createFakeGithubClient(
+  { pulls, syncs }: Partial<{
+    pulls: Array<DeepPartial<GithubPull>>;
+    syncs: Array<DeepPartial<SyncInfo>>;
+  }> = {},
+): Promise<ReadonlyGithubClient> {
+  return new ReadonlyAloeGithubClient({
+    owner: "owner",
+    repo: "repo",
+    db: {
+      pulls: await MockAloeDatabase.new({
+        schema: githubPullSchema,
+        documents: pulls?.map(getFakePull),
+      }),
+      syncs: await MockAloeDatabase.new({
+        schema: syncInfoSchema,
+        documents: syncs?.map(getFakeSyncInfo),
+      }),
+    },
+  });
 }

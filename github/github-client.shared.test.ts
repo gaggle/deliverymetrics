@@ -3,15 +3,18 @@ import { MockAloeDatabase } from "../db/mod.ts";
 import { asserts } from "../dev-deps.ts";
 import { asyncToArray } from "../utils.ts";
 
+import { getFakePull } from "./testing.ts";
 import {
   AloeGithubClient,
+  ReadonlyAloeGithubClient,
+} from "./aloe-github-client.ts";
+import {
+  GithubPull,
   githubPullSchema,
+  ReadonlyGithubClient,
   SyncInfo,
   syncInfoSchema,
-} from "./mod.ts";
-import { getFakePull } from "./testing.ts";
-import { ReadonlyAloeGithubClient } from "./aloe-github-client.ts";
-import { GithubPull, ReadonlyGithubClient } from "./types.ts";
+} from "./types.ts";
 
 async function* yieldGithubClient(
   opts?: {
@@ -22,35 +25,27 @@ async function* yieldGithubClient(
     AloeGithubClient?: { pulls?: Array<GithubPull>; syncs?: Array<SyncInfo> };
   },
 ): AsyncGenerator<ReadonlyGithubClient> {
+  const db = {
+    pulls: await MockAloeDatabase.new({
+      schema: githubPullSchema,
+      documents: opts?.ReadonlyAloeGithubClient?.pulls,
+    }),
+    syncs: await MockAloeDatabase.new({
+      schema: syncInfoSchema,
+      documents: opts?.ReadonlyAloeGithubClient?.syncs,
+    }),
+  };
   yield new ReadonlyAloeGithubClient({
     owner: "owner",
     repo: "repo",
-    db: {
-      pulls: await MockAloeDatabase.new({
-        schema: githubPullSchema,
-        documents: opts?.ReadonlyAloeGithubClient?.pulls,
-      }),
-      syncs: await MockAloeDatabase.new({
-        schema: syncInfoSchema,
-        documents: opts?.ReadonlyAloeGithubClient?.syncs,
-      }),
-    },
+    db,
   });
 
   yield new AloeGithubClient({
     owner: "owner",
     repo: "repo",
     token: "token",
-    db: {
-      pulls: await MockAloeDatabase.new({
-        schema: githubPullSchema,
-        documents: opts?.ReadonlyAloeGithubClient?.pulls,
-      }),
-      syncs: await MockAloeDatabase.new({
-        schema: syncInfoSchema,
-        documents: opts?.ReadonlyAloeGithubClient?.syncs,
-      }),
-    },
+    db,
   });
 }
 
