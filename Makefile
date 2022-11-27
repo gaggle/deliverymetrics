@@ -1,13 +1,14 @@
 .PHONY : test-watch test coverage lint compile help pull-github output-csv get-fixtures
-ALLOW = --allow-read --allow-write --allow-net --allow-env --no-prompt
+ALLOW = --allow-read --allow-write=.deliverymetrics-data --allow-net --allow-env
+ALLOW_TEST = --allow-read --allow-write --allow-env
 
 ### Dev
 test-watch:
-	deno test --watch --cached-only $(ALLOW) .
+	deno test --watch --cached-only $(ALLOW_TEST) .
 
 test:
 	rm -rf .coverage
-	deno test --check --coverage=.coverage --parallel --cached-only $(ALLOW)
+	deno test --check --coverage=.coverage --parallel --cached-only $(ALLOW_TEST)
 	$(MAKE) coverage
 
 coverage:
