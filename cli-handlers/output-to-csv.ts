@@ -1,3 +1,4 @@
+import { AloeDatabase } from "../db/mod.ts";
 import {
   GithubPull,
   githubPullSchema,
@@ -11,7 +12,6 @@ import { Tail, ToTuple } from "../types.ts";
 import { withFileOpen } from "../path-and-file-utils.ts";
 
 import { formatGithubClientStatus } from "./formatting.ts";
-import { AloeDatabase } from "../db/aloe-database.ts";
 
 const prPrimaryHeaders = [
   "number",

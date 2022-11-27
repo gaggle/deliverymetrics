@@ -1,12 +1,11 @@
-import { Retrier } from "../fetching/retrier.ts";
 import { fetchExhaustively } from "../fetching/mod.ts";
+import { Retrier } from "../fetching/mod.ts";
 
 import { Epoch, RequestMethod } from "../types.ts";
-import { log } from "../deps.ts";
+import { deepMerge, log } from "../deps.ts";
 import { stringifyPull } from "../utils.ts";
 
 import { GithubPull, githubRestSpec } from "./types.ts";
-import { deepMerge } from "https://deno.land/std@0.159.0/collections/deep_merge.ts";
 
 function createGithubRequest(
   {

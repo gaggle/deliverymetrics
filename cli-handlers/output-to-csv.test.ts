@@ -1,5 +1,5 @@
 import { getFakePull } from "../github/testing.ts";
-import { GithubPull, SyncInfo } from "../github/types.ts";
+import { GithubPull, SyncInfo } from "../github/mod.ts";
 
 import { asserts } from "../dev-deps.ts";
 import { asyncToArray } from "../utils.ts";
