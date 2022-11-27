@@ -158,7 +158,7 @@ export type GithubPullDateKey = keyof Pick<
 export interface GithubDiff {
   syncedAt: Epoch;
   newPulls: Array<GithubPull>;
-  updatedPulls: Array<{ prev: GithubPull | undefined; updated: GithubPull }>;
+  updatedPulls: Array<{ prev: GithubPull; updated: GithubPull }>;
 }
 
 /**
