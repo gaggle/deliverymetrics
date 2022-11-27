@@ -1,4 +1,4 @@
-import { ReadonlyGithubClient, GithubPull, DiskGithubClient } from "../github/mod.ts";
+import { ReadonlyGithubClient, GithubPull, GithubClient } from "../github/mod.ts";
 
 import { asyncToArray, pluralize, stringifyPull, stringifyUpdatedPull } from "../utils.ts";
 
@@ -28,7 +28,7 @@ export async function formatGithubClientStatus(github: ReadonlyGithubClient,
   return msg;
 }
 
-export function formatGithubSyncResult(diff: Awaited<ReturnType<DiskGithubClient["sync"]>>): string {
+export function formatGithubSyncResult(diff: Awaited<ReturnType<GithubClient["sync"]>>): string {
   let msg = `Github client sync report from: ${new Date(diff.syncedAt).toLocaleString()}`;
 
   msg += pluralize(
