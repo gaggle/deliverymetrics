@@ -53,15 +53,10 @@ class BaseAloeDatabase<Schema extends DatabaseDocument> {
   ): ReturnType<aloe.Database<aloe.Acceptable<Schema>>["updateOne"]> {
     return this.db.updateOne(...args);
   }
-
-  updateMany(
-    ...args: Parameters<aloe.Database<aloe.Acceptable<Schema>>["updateMany"]>
-  ): ReturnType<aloe.Database<aloe.Acceptable<Schema>>["updateMany"]> {
-    return this.db.updateMany(...args);
-  }
 }
 
-export class AloeDatabase<Schema extends DatabaseDocument> extends BaseAloeDatabase<Schema> {
+export class AloeDatabase<Schema extends DatabaseDocument>
+  extends BaseAloeDatabase<Schema> {
   static async new<Schema extends DatabaseDocument>(
     { path: fp, schema }: {
       path: Filepath | undefined;
@@ -75,13 +70,17 @@ export class AloeDatabase<Schema extends DatabaseDocument> extends BaseAloeDatab
   }
 }
 
-export class MockAloeDatabase<Schema extends DatabaseDocument> extends BaseAloeDatabase<Schema> {
+export class MockAloeDatabase<Schema extends DatabaseDocument>
+  extends BaseAloeDatabase<Schema> {
   protected constructor(schema: z.Schema<Schema>) {
     super({ path: undefined, schema });
   }
 
   static async new<Schema extends DatabaseDocument>(
-    { schema, documents = [] }: { schema: z.Schema<Schema>, documents?: Array<aloe.Acceptable<Schema>> }
+    { schema, documents = [] }: {
+      schema: z.Schema<Schema>;
+      documents?: Array<aloe.Acceptable<Schema>>;
+    },
   ): Promise<MockAloeDatabase<Schema>> {
     const db = new MockAloeDatabase<Schema>(schema);
     await db.insertMany(documents);

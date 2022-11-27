@@ -1,12 +1,25 @@
 import { AloeDatabase } from "../db/mod.ts";
-import { AloeGithubClient, githubPullSchema, syncInfoSchema } from "../github/mod.ts";
+import {
+  AloeGithubClient,
+  githubPullSchema,
+  syncInfoSchema,
+} from "../github/mod.ts";
 
 import { path } from "../deps.ts";
 
-import { formatGithubClientStatus, formatGithubSyncResult } from "./formatting.ts";
+import {
+  formatGithubClientStatus,
+  formatGithubSyncResult,
+} from "./formatting.ts";
 
 export async function githubSyncHandler(
-  { owner, repo, token, persistenceRoot }: { owner: string, repo: string, token: string, persistenceRoot: string }) {
+  { owner, repo, token, persistenceRoot }: {
+    owner: string;
+    repo: string;
+    token: string;
+    persistenceRoot: string;
+  },
+) {
   const github = new AloeGithubClient({
     db: {
       syncs: await AloeDatabase.new({
@@ -20,7 +33,7 @@ export async function githubSyncHandler(
     },
     owner,
     repo,
-    token
+    token,
   });
   console.log(await formatGithubClientStatus(github));
 

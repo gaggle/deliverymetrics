@@ -16,6 +16,9 @@ coverage:
 lint:
 	deno fmt --check && deno check mod.ts dev-fixtures/mod.ts && deno lint
 
+lint-fix:
+	deno fmt
+
 compile:
 	deno compile --output dm-x86-gnu --target=x86_64-unknown-linux-gnu $(ALLOW) ./mod.ts
 	deno compile --output dm-x86-win --target=x86_64-pc-windows-msvc   $(ALLOW) ./mod.ts

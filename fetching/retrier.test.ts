@@ -4,7 +4,7 @@ import { Retrier } from "./retrier.ts";
 
 Deno.test("Retrier fetches a simple response", async () => {
   const cannedResponses: Array<Promise<Response>> = [
-    Promise.resolve(new Response("👍", { status: 200 }))
+    Promise.resolve(new Response("👍", { status: 200 })),
   ];
   const retrier = new Retrier({ fetch: () => cannedResponses.shift()! });
   const resp = await retrier.fetch("https://x/foo");
@@ -38,7 +38,10 @@ Deno.test("Retrier returns the most recent unwell response after max retries", a
     Promise.resolve(new Response("💥", { status: 404 })),
     Promise.resolve(new Response("🫖", { status: 418 })),
   ];
-  const retrier = new Retrier({ fetch: () => cannedResponses.shift()!, maxRetries: 3 });
+  const retrier = new Retrier({
+    fetch: () => cannedResponses.shift()!,
+    maxRetries: 3,
+  });
   const resp = await retrier.fetch("https://x/foo");
   asserts.assertEquals(resp.status, 418);
 });
@@ -49,8 +52,15 @@ Deno.test("Retrier throws the most recent error after max retries", async () => 
     Promise.reject(new Error("2️⃣") as unknown as Response),
     Promise.reject(new Error("3️⃣") as unknown as Response),
   ];
-  const retrier = new Retrier({ fetch: () => cannedResponses.shift()!, maxRetries: 2 });
-  await asserts.assertRejects(() => retrier.fetch("https://x/foo"), Error, "3️⃣");
+  const retrier = new Retrier({
+    fetch: () => cannedResponses.shift()!,
+    maxRetries: 2,
+  });
+  await asserts.assertRejects(
+    () => retrier.fetch("https://x/foo"),
+    Error,
+    "3️⃣",
+  );
   // ↑ A max retries of 2 means Retrier should retry twice, meaning we get the 3rd attempt
 });
 
@@ -64,8 +74,15 @@ Deno.test("Retrier when receiving alternating non-OK responses / errors", async 
       Promise.reject(new Error("3️⃣") as unknown as Response),
       // ↑ and then an error again
     ];
-    const retrier = new Retrier({ fetch: () => Promise.resolve(cannedResponses.shift()!), maxRetries: 2 });
-    await asserts.assertRejects(() => retrier.fetch("https://x/foo"), Error, "3️⃣");
+    const retrier = new Retrier({
+      fetch: () => Promise.resolve(cannedResponses.shift()!),
+      maxRetries: 2,
+    });
+    await asserts.assertRejects(
+      () => retrier.fetch("https://x/foo"),
+      Error,
+      "3️⃣",
+    );
   });
 
   await t.step("rejects if last retry was a non-OK response", async () => {
@@ -74,7 +91,10 @@ Deno.test("Retrier when receiving alternating non-OK responses / errors", async 
       Promise.reject(new Error("2️⃣") as unknown as Response),
       Promise.resolve(new Response("3️⃣", { status: 418 })),
     ];
-    const retrier = new Retrier({ fetch: () => Promise.resolve(cannedResponses.shift()!), maxRetries: 2 });
+    const retrier = new Retrier({
+      fetch: () => Promise.resolve(cannedResponses.shift()!),
+      maxRetries: 2,
+    });
     const resp = await retrier.fetch("https://x/foo");
     asserts.assertEquals(resp.status, 418);
   });

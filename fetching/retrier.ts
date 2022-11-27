@@ -1,6 +1,7 @@
-type RetryFn = (opts:
-                  | { response: Response, error?: never, attemptNumber: number }
-                  | { error: Error, response?: never, attemptNumber: number }
+type RetryFn = (
+  opts:
+    | { response: Response; error?: never; attemptNumber: number }
+    | { error: Error; response?: never; attemptNumber: number },
 ) => boolean | Promise<boolean>;
 
 export class Retrier {
@@ -15,7 +16,8 @@ export class Retrier {
   } = {}) {
     this._fetch = opts.fetch || globalThis.fetch;
     this.maxRetries = opts.maxRetries || 3;
-    this.shouldRetry = opts.shouldRetry || (({ response, error }) => !!(!response?.ok || error));
+    this.shouldRetry = opts.shouldRetry ||
+      (({ response, error }) => !!(!response?.ok || error));
   }
 
   async fetch(...args: Parameters<typeof fetch>): ReturnType<typeof fetch> {

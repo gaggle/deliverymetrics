@@ -5,7 +5,7 @@ import { log } from "../deps.ts";
  */
 export function parseLink(link: string): Record<string, string> {
   return link.split(", ").reduce(function (acc, curr) {
-    const match = curr.match("<(.*?)>; rel=\"(.*?)\"");
+    const match = curr.match('<(.*?)>; rel="(.*?)"');
 
     if (match && match.length === 3) {
       acc[match[2]] = match[1];
@@ -14,11 +14,14 @@ export function parseLink(link: string): Record<string, string> {
     return acc;
   }, {} as Record<string, string>);
 }
-export async function * fetchExhaustively(request: Request, opts: { fetchLike?: typeof fetch, maxPages?: number } = {}): AsyncGenerator<Response> {
+export async function* fetchExhaustively(
+  request: Request,
+  opts: { fetchLike?: typeof fetch; maxPages?: number } = {},
+): AsyncGenerator<Response> {
   const { fetchLike, maxPages } = {
     fetchLike: fetch,
     maxPages: 100,
-    ...opts
+    ...opts,
   };
 
   let currentRequest: Request | undefined = request;
@@ -27,7 +30,9 @@ export async function * fetchExhaustively(request: Request, opts: { fetchLike?: 
   do {
     const resp = await fetchLike(currentRequest);
     if (pagesConsumed > 1) {
-      log.debug(`Fetched page ${pagesConsumed}\n  via ${request.url}\n  -> ${currentRequest.url}`);
+      log.debug(
+        `Fetched page ${pagesConsumed}\n  via ${request.url}\n  -> ${currentRequest.url}`,
+      );
     }
     yield resp;
 

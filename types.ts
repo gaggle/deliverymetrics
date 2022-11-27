@@ -1,4 +1,4 @@
-export type Epoch = number
+export type Epoch = number;
 
 export type JSONValue =
   | string
@@ -8,8 +8,9 @@ export type JSONValue =
   | Array<JSONValue>;
 
 export type DeepPartial<T> = T extends Record<string, unknown> ? {
-  [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
+    [P in keyof T]?: DeepPartial<T[P]>;
+  }
+  : T;
 
 export type Filepath = string;
 
@@ -36,6 +37,8 @@ type ToTupleRec<Union, Rslt extends unknown[]> = SpliceOne<Union> extends never
  */
 export type ToTuple<Union> = ToTupleRec<Union, []>;
 
-export type Tail<T extends unknown[]> = T extends [infer Head, ...infer Tail] ? Tail : never;
+export type Tail<T extends unknown[]> = T extends [infer Head, ...infer Tail]
+  ? Tail
+  : never;
 
 export type RequestMethod = "GET" | "POST";

@@ -15,11 +15,12 @@ function createGithubRequest(
     method,
     url,
   }: {
-    token: string
-    body?: Record<string, string>,
-    method: RequestMethod,
-    url: string,
-  }): Request {
+    token: string;
+    body?: Record<string, string>;
+    method: RequestMethod;
+    url: string;
+  },
+): Request {
   const uri = new URL(url);
 
   return new Request(uri.toString(), {
@@ -33,12 +34,17 @@ function createGithubRequest(
   });
 }
 
-type FetchPullsOpts = { from: Epoch | undefined, retrier: Retrier }
+type FetchPullsOpts = { from: Epoch | undefined; retrier: Retrier };
 
-export async function * fetchPulls(owner: string, repo: string, token: string, opts: Partial<FetchPullsOpts> = {}): AsyncGenerator<GithubPull> {
+export async function* fetchPulls(
+  owner: string,
+  repo: string,
+  token: string,
+  opts: Partial<FetchPullsOpts> = {},
+): AsyncGenerator<GithubPull> {
   const { from, retrier }: FetchPullsOpts = deepMerge({
     from: undefined,
-    retrier: new Retrier()
+    retrier: new Retrier(),
   }, opts);
 
   const url = githubRestSpec.pulls.getUrl(owner, repo);
@@ -50,9 +56,16 @@ export async function * fetchPulls(owner: string, repo: string, token: string, o
     token,
     url: url.toString(),
   });
-  for await(const resp of fetchExhaustively(req, { fetchLike: retrier.fetch.bind(retrier) })) {
+  for await (
+    const resp of fetchExhaustively(req, {
+      fetchLike: retrier.fetch.bind(retrier),
+    })
+  ) {
     if (!resp.ok) {
-      throw new Error(`Could not fetch ${req.url}, got ${resp.status} ${resp.statusText}: ${await resp.text()}`);
+      throw new Error(
+        `Could not fetch ${req.url}, got ${resp.status} ${resp.statusText}: ${await resp
+          .text()}`,
+      );
     }
     log.debug(`Fetched ${resp.url}`);
 
@@ -63,7 +76,11 @@ export async function * fetchPulls(owner: string, repo: string, token: string, o
       const updatedAtDate = new Date(pull.updated_at);
       if (from && updatedAtDate.getTime() < from) {
         const fromDate = new Date(from);
-        log.debug(`Reached pull not updated since ${fromDate.toLocaleString()}: ${stringifyPull(pull)}`);
+        log.debug(
+          `Reached pull not updated since ${fromDate.toLocaleString()}: ${
+            stringifyPull(pull)
+          }`,
+        );
         return;
       }
       yield pull;

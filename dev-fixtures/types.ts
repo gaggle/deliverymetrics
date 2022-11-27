@@ -7,7 +7,6 @@ export const fetchSpecSchema = z.union([
     name: z.string().optional(),
     method: z.enum(["GET", "POST"]).optional(),
     body: z.object({}).catchall(z.string()).optional(),
-  })
+  }),
 ]).array();
-export type FetchSpec = z.infer<typeof fetchSpecSchema>
-
+export type FetchSpec = z.infer<typeof fetchSpecSchema>;

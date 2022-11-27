@@ -7,31 +7,40 @@ import { FetchSpec } from "./types.ts";
 const dirname = path.dirname(path.fromFileUrl(import.meta.url));
 
 export async function fetchGithubFixtures(
-  commands: FetchSpec, { token }: { token: string }): Promise<void> {
-
-  await Promise.all(commands.map(cmd => {
+  commands: FetchSpec,
+  { token }: { token: string },
+): Promise<void> {
+  await Promise.all(commands.map((cmd) => {
     switch (typeof cmd) {
       case "string":
         cmd = { url: cmd };
     }
-    const fixturePath = getFixturePath({ method: "GET", ...cmd, prefix: "github" });
+    const fixturePath = getFixturePath({
+      method: "GET",
+      ...cmd,
+      prefix: "github",
+    });
     const req = createGithubRequest({ method: "GET", ...cmd, token });
     return fetchFixture(req, fixturePath);
   }));
 }
 
 export async function fetchJiraFixtures(
-  commands: FetchSpec
+  commands: FetchSpec,
 ): Promise<void> {
   const apiToken = getEnv("JIRA_API_TOKEN");
   const apiUser = getEnv("JIRA_API_USER");
 
-  await Promise.all(commands.map(cmd => {
+  await Promise.all(commands.map((cmd) => {
     switch (typeof cmd) {
       case "string":
         cmd = { url: cmd };
     }
-    const fixturePath = getFixturePath({ method: "GET", ...cmd, prefix: "jira" });
+    const fixturePath = getFixturePath({
+      method: "GET",
+      ...cmd,
+      prefix: "jira",
+    });
     const req = createJiraRequest({ method: "GET", ...cmd, apiToken, apiUser });
     return fetchFixture(req, fixturePath);
   }));
@@ -44,11 +53,12 @@ function getFixturePath(
     prefix,
     url,
   }: {
-    method: RequestMethod,
-    name?: string,
-    prefix?: string,
-    url: string
-  }) {
+    method: RequestMethod;
+    name?: string;
+    prefix?: string;
+    url: string;
+  },
+) {
   const uri = new URL(url);
   const pathnameNoLeadingSlash = uri.pathname.slice(1);
   const folderPath = path.join(dirname, prefix || "", pathnameNoLeadingSlash);
@@ -70,12 +80,13 @@ function createJiraRequest(
     method,
     url,
   }: {
-    apiToken: string
-    apiUser: string,
-    body?: Record<string, string>,
-    method: RequestMethod,
-    url: string,
-  }): Request {
+    apiToken: string;
+    apiUser: string;
+    body?: Record<string, string>;
+    method: RequestMethod;
+    url: string;
+  },
+): Request {
   const uri = new URL(url);
 
   return new Request(uri.toString(), {
@@ -95,11 +106,12 @@ function createGithubRequest(
     method,
     url,
   }: {
-    token: string
-    body?: Record<string, string>,
-    method: RequestMethod,
-    url: string,
-  }): Request {
+    token: string;
+    body?: Record<string, string>;
+    method: RequestMethod;
+    url: string;
+  },
+): Request {
   const uri = new URL(url);
 
   return new Request(uri.toString(), {
@@ -133,20 +145,27 @@ async function fetchFixture(request: Request, filepath: string): Promise<void> {
   }
 
   await fs.ensureDir(path.dirname(filepath));
-  await Deno.writeTextFile(filepath, JSON.stringify({
-    request: {
-      body: request.body,
-      headers: Array.from(request.headers.entries()),
-      url: request.url
-    },
-    response: {
-      json,
-      text,
-      headers: Array.from(response.headers.entries()),
-      status: response.status,
-      statusText: response.statusText
-    }
-  }, null, 2));
+  await Deno.writeTextFile(
+    filepath,
+    JSON.stringify(
+      {
+        request: {
+          body: request.body,
+          headers: Array.from(request.headers.entries()),
+          url: request.url,
+        },
+        response: {
+          json,
+          text,
+          headers: Array.from(response.headers.entries()),
+          status: response.status,
+          statusText: response.statusText,
+        },
+      },
+      null,
+      2,
+    ),
+  );
   console.log("\tWrote fixture", path.relative(Deno.cwd(), filepath));
 }
 

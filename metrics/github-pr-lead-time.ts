@@ -12,21 +12,37 @@
  * A good practice is to measure this number over time so that you can spot trends and behaviors more pragmatically.
  * https://sourcelevel.io/blog/5-metrics-engineering-managers-can-extract-from-pull-requests
  */
-import { ReadonlyGithubClient, GithubPull } from "../github/mod.ts";
+import { GithubPull, ReadonlyGithubClient } from "../github/mod.ts";
 
 import { assertUnreachable } from "../utils.ts";
 
-import { dateEnd, dayStart, monthEnd, monthStart, nextDate, weekEnd, weekStart } from "./date-utils.ts";
+import {
+  dateEnd,
+  dayStart,
+  monthEnd,
+  monthStart,
+  nextDate,
+  weekEnd,
+  weekStart,
+} from "./date-utils.ts";
 
-type PullRequestLeadTime = { start: Date, end: Date, leadTime: number, mergedPRs: Array<number> }
+type PullRequestLeadTime = {
+  start: Date;
+  end: Date;
+  leadTime: number;
+  mergedPRs: Array<number>;
+};
 
-export async function * yieldPullRequestLeadTime(gh: ReadonlyGithubClient, { mode }: { mode: "daily" | "weekly" | "monthly" }): AsyncGenerator<PullRequestLeadTime> {
-  let leadTimes: Array<{ leadTime: number, number: GithubPull["number"] }> = [];
+export async function* yieldPullRequestLeadTime(
+  gh: ReadonlyGithubClient,
+  { mode }: { mode: "daily" | "weekly" | "monthly" },
+): AsyncGenerator<PullRequestLeadTime> {
+  let leadTimes: Array<{ leadTime: number; number: GithubPull["number"] }> = [];
   let prevPeriod: Date | undefined;
 
   let periodConf: {
-    ceil: (d: Date) => Date,
-    floor: (d: Date) => Date,
+    ceil: (d: Date) => Date;
+    floor: (d: Date) => Date;
   };
   switch (mode) {
     case "daily":
@@ -57,11 +73,13 @@ export async function * yieldPullRequestLeadTime(gh: ReadonlyGithubClient, { mod
       start: prevPeriod!,
       end: periodConf.ceil(prevPeriod!),
       leadTime: leadTimeSum / leadTimes.length,
-      mergedPRs: leadTimes.map(el => el.number)
+      mergedPRs: leadTimes.map((el) => el.number),
     };
   }
 
-  for await(const pull of gh.findPulls({ sort: { key: "merged_at", order: "asc" } })) {
+  for await (
+    const pull of gh.findPulls({ sort: { key: "merged_at", order: "asc" } })
+  ) {
     if (!pull.merged_at) {
       continue;
     }
@@ -75,7 +93,8 @@ export async function * yieldPullRequestLeadTime(gh: ReadonlyGithubClient, { mod
     prevPeriod = currentPeriod;
 
     leadTimes.push({
-      leadTime: nextDate(pull.merged_at).getTime() - dayStart(pull.created_at).getTime(),
+      leadTime: nextDate(pull.merged_at).getTime() -
+        dayStart(pull.created_at).getTime(),
       number: pull.number,
     });
   }
@@ -84,4 +103,3 @@ export async function * yieldPullRequestLeadTime(gh: ReadonlyGithubClient, { mod
     yield getYieldValue();
   }
 }
-

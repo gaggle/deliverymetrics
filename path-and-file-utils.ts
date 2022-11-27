@@ -25,7 +25,9 @@ export async function dirExists(p: string): Promise<boolean> {
   }
 }
 
-export async function safeReadTextFile(...args: Parameters<typeof Deno.readTextFile>): Promise<string | undefined> {
+export async function safeReadTextFile(
+  ...args: Parameters<typeof Deno.readTextFile>
+): Promise<string | undefined> {
   try {
     const content = await Deno.readTextFile(...args);
     return content;
@@ -37,7 +39,10 @@ export async function safeReadTextFile(...args: Parameters<typeof Deno.readTextF
   }
 }
 
-export async function readJsonFile<Schema extends z.ZodTypeAny>(p: string, schema: Schema): Promise<z.infer<Schema>> {
+export async function readJsonFile<Schema extends z.ZodTypeAny>(
+  p: string,
+  schema: Schema,
+): Promise<z.infer<Schema>> {
   const data = await Deno.readTextFile(p);
 
   let parsed;
@@ -54,7 +59,8 @@ export async function readJsonFile<Schema extends z.ZodTypeAny>(p: string, schem
 }
 
 export async function ensureJson<Schema extends z.ZodTypeAny>(
-  fp: string, { schema, defaults }: { schema: Schema, defaults: z.infer<Schema> }
+  fp: string,
+  { schema, defaults }: { schema: Schema; defaults: z.infer<Schema> },
 ): Promise<void> {
   await fs.ensureFile(fp);
   const content = await Deno.readTextFile(fp);
@@ -69,7 +75,9 @@ export async function ensureJson<Schema extends z.ZodTypeAny>(
     parsed = JSON.parse(content);
   } catch (err) {
     if (err instanceof SyntaxError) {
-      throw new SyntaxError(`Error parsing '${path.relative(Deno.cwd(), fp)}' got: ${content}`);
+      throw new SyntaxError(
+        `Error parsing '${path.relative(Deno.cwd(), fp)}' got: ${content}`,
+      );
     }
     throw err;
   }
@@ -80,7 +88,9 @@ export async function ensureJson<Schema extends z.ZodTypeAny>(
   }
 }
 
-export async function writeTempFile({ data, suffix }: Partial<{ data: string, suffix: string }> = {}): Promise<string> {
+export async function writeTempFile(
+  { data, suffix }: Partial<{ data: string; suffix: string }> = {},
+): Promise<string> {
   const fp = await Deno.makeTempFile({ suffix });
 
   if (data) {
@@ -90,7 +100,10 @@ export async function writeTempFile({ data, suffix }: Partial<{ data: string, su
   return fp;
 }
 
-export async function withTempFile(callable: (fp: string) => Promise<void>, ...args: Parameters<typeof writeTempFile>) {
+export async function withTempFile(
+  callable: (fp: string) => Promise<void>,
+  ...args: Parameters<typeof writeTempFile>
+) {
   const fp = await writeTempFile(...args);
   try {
     await callable(fp);
@@ -99,7 +112,10 @@ export async function withTempFile(callable: (fp: string) => Promise<void>, ...a
   }
 }
 
-export async function withTempDir(callable: (p: string) => Promise<void>, { suffix }: Partial<{ suffix: string }> = {}) {
+export async function withTempDir(
+  callable: (p: string) => Promise<void>,
+  { suffix }: Partial<{ suffix: string }> = {},
+) {
   const p = await Deno.makeTempDir({ suffix });
   try {
     await callable(p);
@@ -108,7 +124,15 @@ export async function withTempDir(callable: (p: string) => Promise<void>, { suff
   }
 }
 
-export function ensureFiles(root: string, files: Array<{ file: string, data: string | Record<string, unknown> | Array<Record<string, unknown>> }>): Promise<Array<string>> {
+export function ensureFiles(
+  root: string,
+  files: Array<
+    {
+      file: string;
+      data: string | Record<string, unknown> | Array<Record<string, unknown>>;
+    }
+  >,
+): Promise<Array<string>> {
   return Promise.all(files.map(async ({ file, data }) => {
     data = typeof data !== "string" ? JSON.stringify(data, null, 2) : data;
     const fp = path.join(root, file);
@@ -125,7 +149,10 @@ export function ensureFiles(root: string, files: Array<{ file: string, data: str
   }));
 }
 
-export async function withFileOpen(callable: (f: Deno.FsFile) => void, ...opts: Parameters<typeof Deno.open>) {
+export async function withFileOpen(
+  callable: (f: Deno.FsFile) => void,
+  ...opts: Parameters<typeof Deno.open>
+) {
   const f = await Deno.open(...opts);
   try {
     await callable(f);

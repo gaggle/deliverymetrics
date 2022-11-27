@@ -5,48 +5,72 @@ import { asserts } from "../dev-deps.ts";
 import { asyncToArray } from "../utils.ts";
 import { csv, path } from "../deps.ts";
 import { DeepPartial } from "../types.ts";
-import { ensureFiles, pathExists, withFileOpen, withTempDir } from "../path-and-file-utils.ts";
+import {
+  ensureFiles,
+  pathExists,
+  withFileOpen,
+  withTempDir,
+} from "../path-and-file-utils.ts";
 
 import { outputToCsv } from "./output-to-csv.ts";
 
 Deno.test("syncToCsv", async (t) => {
-  async function createStoredGithubFiles(dir: string, { pulls, syncs }: Partial<{
-    pulls: Array<DeepPartial<GithubPull>>
-    syncs: Array<DeepPartial<SyncInfo>>
-  }> = {}): Promise<void> {
+  async function createStoredGithubFiles(
+    dir: string,
+    { pulls, syncs }: Partial<{
+      pulls: Array<DeepPartial<GithubPull>>;
+      syncs: Array<DeepPartial<SyncInfo>>;
+    }> = {},
+  ): Promise<void> {
     syncs = syncs || [{ createdAt: 283996800000, updatedAt: 283996800001 }];
     //                             ↑ 1979-01-01T00:00:00Z
 
     pulls = (pulls || []).map((pull, idx) => {
       const pullNumber = pull.number ?? idx + 1;
-      return <GithubPull>getFakePull({ ...pull, number: pullNumber });
+      return <GithubPull> getFakePull({ ...pull, number: pullNumber });
     });
 
     await ensureFiles(dir, [
       {
         file: "github/owner/repo/pulls.json",
-        data: pulls
+        data: pulls,
       },
       {
         file: "github/owner/repo/syncs.json",
-        data: syncs
+        data: syncs,
       },
     ]);
   }
 
-  async function withCsvContent(callback: (content: Array<{ [key: string]: string }>) => void, filepath: string) {
+  async function withCsvContent(
+    callback: (content: Array<{ [key: string]: string }>) => void,
+    filepath: string,
+  ) {
     await withFileOpen(async (f) => {
       const content = await asyncToArray(csv.readCSVObjects(f));
       await callback(content);
     }, filepath);
   }
 
-  await withTempDir(async p => {
+  await withTempDir(async (p) => {
     const fakePulls: Record<string, DeepPartial<GithubPull>> = {
       simple: { number: 1, created_at: "1981-01-01T00:00:00Z" },
-      multiline: { number: 2, created_at: "1982-01-01T00:00:00Z", body: "multiline\nbody" },
-      cancelled: { number: 3, created_at: "1983-01-01T00:00:00Z", closed_at: "1983-01-02T00:00:00Z", merged_at: null },
-      merged: { number: 4, created_at: "1984-01-01T00:00:00Z", merged_at: "1984-01-05T00:00:00Z" },
+      multiline: {
+        number: 2,
+        created_at: "1982-01-01T00:00:00Z",
+        body: "multiline\nbody",
+      },
+      cancelled: {
+        number: 3,
+        created_at: "1983-01-01T00:00:00Z",
+        closed_at: "1983-01-02T00:00:00Z",
+        merged_at: null,
+      },
+      merged: {
+        number: 4,
+        created_at: "1984-01-01T00:00:00Z",
+        merged_at: "1984-01-05T00:00:00Z",
+      },
     };
 
     await createStoredGithubFiles(p, {
@@ -69,16 +93,30 @@ Deno.test("syncToCsv", async (t) => {
 
     const expectedFiles = {
       "all-pr-data.csv": path.join(outputDir, "all-pull-request-data.csv"),
-      "pr-lead-times-daily.csv": path.join(outputDir, "pull-request-lead-times-daily.csv"),
-      "pr-lead-times-weekly.csv": path.join(outputDir, "pull-request-lead-times-weekly.csv"),
-      "pr-lead-times-monthly.csv": path.join(outputDir, "pull-request-lead-times-monthly.csv"),
+      "pr-lead-times-daily.csv": path.join(
+        outputDir,
+        "pull-request-lead-times-daily.csv",
+      ),
+      "pr-lead-times-weekly.csv": path.join(
+        outputDir,
+        "pull-request-lead-times-weekly.csv",
+      ),
+      "pr-lead-times-monthly.csv": path.join(
+        outputDir,
+        "pull-request-lead-times-monthly.csv",
+      ),
     } as const;
 
     for (const [key, val] of Object.entries(expectedFiles)) {
       await t.step(`outputs expected file ${key}`, async () => {
         asserts.assertEquals(
-          await pathExists(val), true,
-          `Could not find '${path.relative(outputDir, val)}', got: ${(await asyncToArray(await Deno.readDir(outputDir))).map(el => el.name).join(", ")}`
+          await pathExists(val),
+          true,
+          `Could not find '${path.relative(outputDir, val)}', got: ${
+            (await asyncToArray(await Deno.readDir(outputDir))).map((el) =>
+              el.name
+            ).join(", ")
+          }`,
         );
       });
     }
@@ -87,17 +125,31 @@ Deno.test("syncToCsv", async (t) => {
       const expectedFile = expectedFiles["all-pr-data.csv"];
 
       await t.step("has expected format", async () => {
-        await withCsvContent(content => {
-          asserts.assertEquals(content.length, Object.keys(fakePulls).length, `Expected ${Object.keys(fakePulls).length} content elements but got ${content.length}: ${JSON.stringify(content, null, 2)}`);
+        await withCsvContent((content) => {
+          asserts.assertEquals(
+            content.length,
+            Object.keys(fakePulls).length,
+            `Expected ${
+              Object.keys(fakePulls).length
+            } content elements but got ${content.length}: ${
+              JSON.stringify(content, null, 2)
+            }`,
+          );
           const contentEl = content[Object.keys(fakePulls).indexOf("simple")];
           asserts.assertEquals(contentEl, {
             _links: JSON.stringify({
               html: { href: "https://url" },
               self: { href: "https://url" },
-              commits: { href: `https://api.github.com/repos/owner/repo/pulls/1/commits` },
-              statuses: { href: "https://api.github.com/repos/owner/repo/statuses/da39a3ee5e6b4b0d3255bfef95601890afd80709" },
+              commits: {
+                href: `https://api.github.com/repos/owner/repo/pulls/1/commits`,
+              },
+              statuses: {
+                href:
+                  "https://api.github.com/repos/owner/repo/statuses/da39a3ee5e6b4b0d3255bfef95601890afd80709",
+              },
             }),
-            base: `{"label":"Foo:main","ref":"main","sha":"de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3"}`,
+            base:
+              `{"label":"Foo:main","ref":"main","sha":"de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3"}`,
             body: "",
             closed_at: "",
             created_at: "1981-01-01T00:00:00Z",
@@ -118,29 +170,43 @@ Deno.test("syncToCsv", async (t) => {
 
       await t.step("encodes body column", async () => {
         // ↑ encoded to avoid outputting literal newlines that can confuse the csv format
-        await withCsvContent(content => {
-          const contentEl = content[Object.keys(fakePulls).indexOf("multiline")];
-          asserts.assertEquals(contentEl.body, JSON.stringify("multiline\nbody"));
+        await withCsvContent((content) => {
+          const contentEl =
+            content[Object.keys(fakePulls).indexOf("multiline")];
+          asserts.assertEquals(
+            contentEl.body,
+            JSON.stringify("multiline\nbody"),
+          );
         }, expectedFile);
       });
 
-      await t.step("sets was_cancelled as true when pull was closed but not merged", async () => {
-        await withCsvContent(content => {
-          const simpleEL = content[Object.keys(fakePulls).indexOf("simple")];
-          asserts.assertEquals(simpleEL.was_cancelled, "false",
-            `should not be cancelled: ${JSON.stringify(simpleEL, null, 2)}`);
-          const cancelledEl = content[Object.keys(fakePulls).indexOf("cancelled")];
-          asserts.assertEquals(cancelledEl.was_cancelled, "true",
-            `should be cancelled: ${JSON.stringify(cancelledEl, null, 2)}`);
-        }, expectedFile);
-      });
+      await t.step(
+        "sets was_cancelled as true when pull was closed but not merged",
+        async () => {
+          await withCsvContent((content) => {
+            const simpleEL = content[Object.keys(fakePulls).indexOf("simple")];
+            asserts.assertEquals(
+              simpleEL.was_cancelled,
+              "false",
+              `should not be cancelled: ${JSON.stringify(simpleEL, null, 2)}`,
+            );
+            const cancelledEl =
+              content[Object.keys(fakePulls).indexOf("cancelled")];
+            asserts.assertEquals(
+              cancelledEl.was_cancelled,
+              "true",
+              `should be cancelled: ${JSON.stringify(cancelledEl, null, 2)}`,
+            );
+          }, expectedFile);
+        },
+      );
     });
 
     await t.step("pr-lead-times-daily.csv", async (t) => {
       const expectedFile = expectedFiles["pr-lead-times-daily.csv"];
 
       await t.step("has expected format", async () => {
-        await withCsvContent(content => {
+        await withCsvContent((content) => {
           const contentEl = content[0];
           asserts.assertEquals(contentEl, {
             "Period Start": "1984-01-05T00:00:00.000Z",
@@ -157,7 +223,7 @@ Deno.test("syncToCsv", async (t) => {
       const expectedFile = expectedFiles["pr-lead-times-weekly.csv"];
 
       await t.step("has expected format", async () => {
-        await withCsvContent(content => {
+        await withCsvContent((content) => {
           const contentEl = content[0];
           asserts.assertEquals(contentEl, {
             "Period Start": "1984-01-02T00:00:00.000Z",
@@ -174,7 +240,7 @@ Deno.test("syncToCsv", async (t) => {
       const expectedFile = expectedFiles["pr-lead-times-monthly.csv"];
 
       await t.step("has expected format", async () => {
-        await withCsvContent(content => {
+        await withCsvContent((content) => {
           const contentEl = content[0];
           asserts.assertEquals(contentEl, {
             "Period Start": "1984-01-01T00:00:00.000Z",

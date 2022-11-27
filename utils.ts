@@ -2,17 +2,22 @@ import { GithubPull } from "./github/mod.ts";
 
 import { z } from "./deps.ts";
 
-export async function asyncToArray<T>(iter: AsyncIterable<T>): Promise<Array<T>> {
+export async function asyncToArray<T>(
+  iter: AsyncIterable<T>,
+): Promise<Array<T>> {
   const arr = [];
-  for await(const el of iter) {
+  for await (const el of iter) {
     arr.push(el);
   }
   return arr;
 }
 
-export async function * limit<T>(iter: AsyncIterable<T>, maxItems: number): AsyncIterable<T> {
+export async function* limit<T>(
+  iter: AsyncIterable<T>,
+  maxItems: number,
+): AsyncIterable<T> {
   let count = 0;
-  for await(const el of iter) {
+  for await (const el of iter) {
     yield el;
     count++;
     if (count >= maxItems) {
@@ -36,7 +41,9 @@ export async function last<T>(iter: AsyncIterable<T>): Promise<T | undefined> {
   return lastEl;
 }
 
-export async function * arrayToAsyncGenerator<T>(array: Array<T>): AsyncGenerator<T> {
+export async function* arrayToAsyncGenerator<T>(
+  array: Array<T>,
+): AsyncGenerator<T> {
   for (const el of array) {
     yield el;
   }
@@ -53,12 +60,13 @@ export function getEnv(key: string) {
 }
 
 export function pluralize(
-  collection: Array<unknown>, {
+  collection: Array<unknown>,
+  {
     empty,
     singular,
-    plural
-  }: { empty: () => string, singular: () => string, plural: () => string }) {
-
+    plural,
+  }: { empty: () => string; singular: () => string; plural: () => string },
+) {
   if (collection.length > 1) {
     return plural();
   }
@@ -70,14 +78,23 @@ export function pluralize(
   return empty();
 }
 
-export const zodCastToString = z.preprocess((val) => val === undefined ? val : String(val), z.string());
+export const zodCastToString = z.preprocess(
+  (val) => val === undefined ? val : String(val),
+  z.string(),
+);
 
 export function stringifyPull(pull: GithubPull): string {
-  return `#${pull.number} (${pull.draft ? "draft" : pull.state}) ${pull._links.html.href}`;
+  return `#${pull.number} (${
+    pull.draft ? "draft" : pull.state
+  }) ${pull._links.html.href}`;
 }
 
-export function stringifyUpdatedPull({ prev, updated }: { prev: GithubPull, updated: GithubPull }): string {
-  return `#${updated.number} (${prev.draft ? "draft" : prev.state} -> ${updated.draft ? "draft" : updated.state}) ${updated._links.html.href}`;
+export function stringifyUpdatedPull(
+  { prev, updated }: { prev: GithubPull; updated: GithubPull },
+): string {
+  return `#${updated.number} (${prev.draft ? "draft" : prev.state} -> ${
+    updated.draft ? "draft" : updated.state
+  }) ${updated._links.html.href}`;
 }
 
 /**
@@ -98,4 +115,3 @@ export function stringifyUpdatedPull({ prev, updated }: { prev: GithubPull, upda
 export function assertUnreachable(_: never): never {
   throw new Error("Unreachable");
 }
-

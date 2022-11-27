@@ -10,12 +10,11 @@ import {
   pluralize,
   stringifyPull,
   stringifyUpdatedPull,
-
 } from "./utils.ts";
 
 Deno.test("asyncToArray", async (t) => {
   await t.step("converts AsyncGenerator", async () => {
-    async function * yielder(): AsyncGenerator<string> {
+    async function* yielder(): AsyncGenerator<string> {
       yield "foo";
     }
 
@@ -23,7 +22,7 @@ Deno.test("asyncToArray", async (t) => {
   });
 
   await t.step("converts AsyncIterable", async () => {
-    async function * yielder(): AsyncIterable<string> {
+    async function* yielder(): AsyncIterable<string> {
       yield "foo";
     }
 
@@ -33,29 +32,35 @@ Deno.test("asyncToArray", async (t) => {
 
 Deno.test("limit", async (t) => {
   await t.step("limits AsyncGenerator", async () => {
-    async function * yielder(): AsyncGenerator<string> {
+    async function* yielder(): AsyncGenerator<string> {
       while (true) {
         yield "foo";
       }
     }
 
-    asserts.assertEquals(await asyncToArray(limit(yielder(), 2)), ["foo", "foo"]);
+    asserts.assertEquals(await asyncToArray(limit(yielder(), 2)), [
+      "foo",
+      "foo",
+    ]);
   });
 
   await t.step("limits AsyncIterable", async () => {
-    async function * yielder(): AsyncIterable<string> {
+    async function* yielder(): AsyncIterable<string> {
       while (true) {
         yield "foo";
       }
     }
 
-    asserts.assertEquals(await asyncToArray(limit(yielder(), 2)), ["foo", "foo"]);
+    asserts.assertEquals(await asyncToArray(limit(yielder(), 2)), [
+      "foo",
+      "foo",
+    ]);
   });
 });
 
 Deno.test("first", async (t) => {
   await t.step("yields first element of an AsyncGenerator", async () => {
-    async function * yielder(): AsyncGenerator<string> {
+    async function* yielder(): AsyncGenerator<string> {
       yield "foo";
       yield "bar";
     }
@@ -66,7 +71,7 @@ Deno.test("first", async (t) => {
 
 Deno.test("last", async (t) => {
   await t.step("yields last element of an AsyncGenerator", async () => {
-    async function * yielder(): AsyncGenerator<string> {
+    async function* yielder(): AsyncGenerator<string> {
       yield "foo";
       yield "bar";
     }
@@ -84,7 +89,9 @@ Deno.test("getEnv", async (t) => {
     try {
       asserts.assertEquals(getEnv("foo"), "bar");
     } finally {
-      originalValue ? Deno.env.set("foo", originalValue) : Deno.env.delete("foo");
+      originalValue
+        ? Deno.env.set("foo", originalValue)
+        : Deno.env.delete("foo");
     }
   });
 
@@ -92,9 +99,15 @@ Deno.test("getEnv", async (t) => {
     Deno.env.delete("foo");
 
     try {
-      asserts.assertThrows(() => getEnv("foo"), Error, "Required environment variable missing: foo");
+      asserts.assertThrows(
+        () => getEnv("foo"),
+        Error,
+        "Required environment variable missing: foo",
+      );
     } finally {
-      originalValue ? Deno.env.set("foo", originalValue) : Deno.env.delete("foo");
+      originalValue
+        ? Deno.env.set("foo", originalValue)
+        : Deno.env.delete("foo");
     }
   });
 });
@@ -103,11 +116,14 @@ Deno.test("pluralize", async (t) => {
   const pluralizationData = {
     plural: () => "plural",
     singular: () => "singular",
-    empty: () => "empty"
+    empty: () => "empty",
   };
 
   await t.step("pluralizes multiple elements", () => {
-    asserts.assertEquals(pluralize(["a", "b", "c"], pluralizationData), "plural");
+    asserts.assertEquals(
+      pluralize(["a", "b", "c"], pluralizationData),
+      "plural",
+    );
   });
 
   await t.step("chooses singular for one element", () => {
@@ -121,66 +137,81 @@ Deno.test("pluralize", async (t) => {
 
 Deno.test("stringifyPull", async (t) => {
   await t.step("makes a nice string", () => {
-    asserts.assertEquals(stringifyPull(getFakePull({
-      _links: { html: { href: "https://url" } },
-      number: 1,
-      state: "open",
-    })), "#1 (open) https://url");
+    asserts.assertEquals(
+      stringifyPull(getFakePull({
+        _links: { html: { href: "https://url" } },
+        number: 1,
+        state: "open",
+      })),
+      "#1 (open) https://url",
+    );
   });
 
   await t.step("understands draft mode", () => {
-    asserts.assertEquals(stringifyPull(getFakePull({
-      _links: { html: { href: "https://url" } },
-      draft: true,
-      number: 1,
-      state: "open",
-    })), "#1 (draft) https://url");
+    asserts.assertEquals(
+      stringifyPull(getFakePull({
+        _links: { html: { href: "https://url" } },
+        draft: true,
+        number: 1,
+        state: "open",
+      })),
+      "#1 (draft) https://url",
+    );
   });
 });
 
 Deno.test("stringifyUpdatedPull", async (t) => {
   await t.step("makes a nice string", () => {
-    asserts.assertEquals(stringifyUpdatedPull({
+    asserts.assertEquals(
+      stringifyUpdatedPull({
+        prev: getFakePull({
+          _links: { html: { href: "https://url" } },
+          number: 1,
+          state: "open",
+        }),
+        updated: getFakePull({
+          _links: { html: { href: "https://url" } },
+          number: 1,
+          state: "closed",
+        }),
+      }),
+      "#1 (open -> closed) https://url",
+    );
+  });
+
+  await t.step("understands draft mode", () => {
+    asserts.assertEquals(
+      stringifyUpdatedPull({
+        prev: getFakePull({
+          _links: { html: { href: "https://url" } },
+          draft: true,
+          number: 1,
+          state: "open",
+        }),
+        updated: getFakePull({
+          _links: { html: { href: "https://url" } },
+          number: 1,
+          state: "closed",
+        }),
+      }),
+      "#1 (draft -> closed) https://url",
+    );
+  });
+
+  asserts.assertEquals(
+    stringifyUpdatedPull({
       prev: getFakePull({
         _links: { html: { href: "https://url" } },
         number: 1,
         state: "open",
       }),
       updated: getFakePull({
-        _links: { html: { href: "https://url" } },
-        number: 1,
-        state: "closed",
-      })
-    }), "#1 (open -> closed) https://url");
-  });
-
-  await t.step("understands draft mode", () => {
-    asserts.assertEquals(stringifyUpdatedPull({
-      prev: getFakePull({
         _links: { html: { href: "https://url" } },
         draft: true,
         number: 1,
         state: "open",
       }),
-      updated: getFakePull({
-        _links: { html: { href: "https://url" } },
-        number: 1,
-        state: "closed",
-      })
-    }), "#1 (draft -> closed) https://url");
-  });
-
-  asserts.assertEquals(stringifyUpdatedPull({
-    prev: getFakePull({
-      _links: { html: { href: "https://url" } },
-      number: 1,
-      state: "open",
     }),
-    updated: getFakePull({
-      _links: { html: { href: "https://url" } },
-      draft: true,
-      number: 1,
-      state: "open",
-    })
-  }), "#1 (open -> draft) https://url");
+    "#1 (open -> draft) https://url",
+  );
 });
