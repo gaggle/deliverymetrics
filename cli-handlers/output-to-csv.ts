@@ -61,12 +61,10 @@ type LeadTimeRow = Record<typeof leadTimeHeaders[number], string>;
 export async function outputToCsv(
   {
     github,
-    now,
     outputDir,
     persistenceRoot,
   }: {
     github: { owner: string; repo: string };
-    now: Date;
     outputDir: string;
     persistenceRoot: string;
   },
@@ -102,6 +100,8 @@ export async function outputToCsv(
   );
 
   const pulls = gh.findPulls({ sort: { key: "created_at", order: "asc" } });
+
+  const latestSync = await gh.findLatestSync();
 
   function dot() {
     const text = new TextEncoder().encode(".");
@@ -141,13 +141,13 @@ export async function outputToCsv(
       ),
       { header: leadTimeHeaders.slice() },
     ),
-    writeCSVToFile(
+    latestSync && writeCSVToFile(
       path.join(outputDir, "pull-request-lead-times-30d.csv"),
       inspectIter(
         dot,
         prLeadTimeAsCsv(
           filterIter(
-            (el) => daysBetween(el.start, now) < 30,
+            (el) => daysBetween(el.start, new Date(latestSync.updatedAt)) < 30,
             yieldPullRequestLeadTime(gh, { mode: "daily" }),
           ),
         ),

@@ -85,7 +85,6 @@ Deno.test("syncToCsv", async (t) => {
     await t.step("can be called", async () => {
       await outputToCsv({
         github: { owner: "owner", repo: "repo" },
-        now: new Date("1984-01-30T00:00:00Z"),
         outputDir,
         persistenceRoot: p,
       });
