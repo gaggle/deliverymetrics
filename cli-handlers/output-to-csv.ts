@@ -1,9 +1,8 @@
 import {
-  GithubDiskCache,
   GithubPull,
   githubPullSchema,
   ReadonlyAloeGithubClient,
-  ReadonlyDiskGithubClient, syncInfoSchema
+  syncInfoSchema
 } from "../github/mod.ts";
 import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
