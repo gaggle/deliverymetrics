@@ -1,10 +1,10 @@
-import { Retrier } from "../fetching/mod.ts";
+import { Retrier } from "../../fetching/mod.ts";
 
-import { asserts, mock } from "../dev-deps.ts";
-import { asyncToArray } from "../utils.ts";
-import { withStubs } from "../dev-utils.ts";
+import { asserts, mock } from "../../dev-deps.ts";
+import { asyncToArray } from "../../utils.ts";
+import { withStubs } from "../../dev-utils.ts";
 
-import { getFakePull } from "./testing.ts";
+import { getFakePull } from "../testing.ts";
 import { fetchPulls } from "./fetch-pulls.ts";
 
 Deno.test("fetchPulls", async (t) => {

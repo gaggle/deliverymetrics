@@ -1,11 +1,11 @@
-import { fetchExhaustively } from "../fetching/mod.ts";
-import { Retrier } from "../fetching/mod.ts";
+import { fetchExhaustively } from "../../fetching/mod.ts";
+import { Retrier } from "../../fetching/mod.ts";
 
-import { Epoch, RequestMethod } from "../types.ts";
-import { deepMerge, log } from "../deps.ts";
-import { stringifyPull } from "../utils.ts";
+import { Epoch, RequestMethod } from "../../types.ts";
+import { deepMerge, log } from "../../deps.ts";
+import { stringifyPull } from "../../utils.ts";
 
-import { GithubPull, githubRestSpec } from "./types.ts";
+import { GithubPull, githubRestSpec } from "../types.ts";
 
 function createGithubRequest(
   {

@@ -1,4 +1,4 @@
-import { url } from "../deps.ts";
+import { url } from "../../deps.ts";
 
 export function parseGithubUrl(id: string): { owner: string; repo: string } {
   const simpleMatch = /^([\w-.]+)\/([\w-.]+)$/.exec(id);

@@ -9,7 +9,7 @@ import {
   SyncInfo,
   syncInfoSchema,
 } from "./types.ts";
-import { ReadonlyAloeGithubClient } from "./aloe-github-client.ts";
+import { ReadonlyAloeGithubClient } from "./clients/aloe-github-client.ts";
 
 export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
   const repo: GithubPull["base"]["repo"] = {

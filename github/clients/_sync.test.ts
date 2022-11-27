@@ -1,18 +1,18 @@
-import { MockAloeDatabase } from "../db/mod.ts";
+import { MockAloeDatabase } from "../../db/mod.ts";
 
-import { arrayToAsyncGenerator, asyncToArray } from "../utils.ts";
-import { asserts, mock, time } from "../dev-deps.ts";
-import { withFakeTime, withStubs } from "../dev-utils.ts";
+import { arrayToAsyncGenerator, asyncToArray } from "../../utils.ts";
+import { asserts, mock, time } from "../../dev-deps.ts";
+import { withFakeTime, withStubs } from "../../dev-utils.ts";
 
 import { _internals, AloeGithubClient } from "./aloe-github-client.ts";
-import { getFakePull } from "./testing.ts";
+import { getFakePull } from "../testing.ts";
 import {
   GithubClient,
   GithubPull,
   githubPullSchema,
   SyncInfo,
   syncInfoSchema,
-} from "./types.ts";
+} from "../types.ts";
 
 async function* yieldGithubClient(
   opts?: {

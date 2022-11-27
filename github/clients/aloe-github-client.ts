@@ -1,10 +1,10 @@
-import { AloeDatabase } from "../db/mod.ts";
+import { AloeDatabase } from "../../db/mod.ts";
 
-import { asyncToArray, first } from "../utils.ts";
-import { Epoch } from "../types.ts";
-import { equal, groupBy } from "../deps.ts";
+import { asyncToArray, first } from "../../utils.ts";
+import { Epoch } from "../../types.ts";
+import { equal, groupBy } from "../../deps.ts";
 
-import { fetchPulls } from "./fetch-pulls.ts";
+import { fetchPulls } from "../utils/fetch-pulls.ts";
 import {
   GithubClient,
   GithubDiff,
@@ -12,8 +12,8 @@ import {
   GithubPullDateKey,
   ReadonlyGithubClient,
   SyncInfo,
-} from "./types.ts";
-import { sortPullsByKey } from "./sorting.ts";
+} from "../types.ts";
+import { sortPullsByKey } from "../utils/sorting.ts";
 
 interface AloeGithubClientDb {
   pulls: AloeDatabase<GithubPull>;

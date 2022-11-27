@@ -1,4 +1,4 @@
-import { asserts } from "../dev-deps.ts";
+import { asserts } from "../../dev-deps.ts";
 
 import { parseGithubUrl as parse } from "./parse-github-url.ts";
 
