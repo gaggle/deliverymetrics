@@ -1,5 +1,5 @@
 .PHONY : test-watch test coverage lint lint-fix compile help pull-github output-csv get-fixtures
-ALLOW = --allow-read --allow-write=.deliverymetrics-data --allow-net --allow-env
+ALLOW = --allow-read --allow-write=.deliverymetrics-data,.output --allow-net --allow-env
 ALLOW_TEST = --allow-read --allow-write --allow-env
 
 ### Dev
