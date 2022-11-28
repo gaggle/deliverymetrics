@@ -1,3 +1,9 @@
+import { ensureFile } from "fs";
+import { join } from "path";
+import { writeCSVObjects } from "csv";
+
+import { writeAll as streamWriteAll } from "stream-conversion";
+
 import { AloeDatabase } from "../db/mod.ts";
 import {
   GithubPull,
@@ -7,7 +13,6 @@ import {
 } from "../github/mod.ts";
 import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
-import { conversion, csv, fs, path } from "../deps.ts";
 import { Tail, ToTuple } from "../types.ts";
 import { withFileOpen } from "../path-and-file-utils.ts";
 
@@ -72,7 +77,7 @@ export async function outputToCsv(
   const gh = new ReadonlyAloeGithubClient({
     db: {
       syncs: await AloeDatabase.new({
-        path: path.join(
+        path: join(
           persistenceRoot,
           "github",
           github.owner,
@@ -82,7 +87,7 @@ export async function outputToCsv(
         schema: syncInfoSchema,
       }),
       pulls: await AloeDatabase.new({
-        path: path.join(
+        path: join(
           persistenceRoot,
           "github",
           github.owner,
@@ -105,20 +110,20 @@ export async function outputToCsv(
 
   function dot() {
     const text = new TextEncoder().encode(".");
-    conversion.writeAll(Deno.stdout, text);
+    streamWriteAll(Deno.stdout, text);
   }
 
   await Promise.all([
     writeCSVToFile(
-      path.join(outputDir, "all-pull-request-data.csv"),
+      join(outputDir, "all-pull-request-data.csv"),
       inspectIter(
         dot,
         githubPullsAsCsv(pulls),
       ),
-      { header: prHeaders.slice() },
+      { header: prHeaders.slice() as Array<string> },
     ),
     writeCSVToFile(
-      path.join(outputDir, "pull-request-lead-times-daily.csv"),
+      join(outputDir, "pull-request-lead-times-daily.csv"),
       inspectIter(
         dot,
         prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "daily" })),
@@ -126,7 +131,7 @@ export async function outputToCsv(
       { header: leadTimeHeaders.slice() },
     ),
     writeCSVToFile(
-      path.join(outputDir, "pull-request-lead-times-weekly.csv"),
+      join(outputDir, "pull-request-lead-times-weekly.csv"),
       inspectIter(
         dot,
         prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "weekly" })),
@@ -134,7 +139,7 @@ export async function outputToCsv(
       { header: leadTimeHeaders.slice() },
     ),
     writeCSVToFile(
-      path.join(outputDir, "pull-request-lead-times-monthly.csv"),
+      join(outputDir, "pull-request-lead-times-monthly.csv"),
       inspectIter(
         dot,
         prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "monthly" })),
@@ -142,7 +147,7 @@ export async function outputToCsv(
       { header: leadTimeHeaders.slice() },
     ),
     latestSync && writeCSVToFile(
-      path.join(outputDir, "pull-request-lead-times-30d.csv"),
+      join(outputDir, "pull-request-lead-times-30d.csv"),
       inspectIter(
         dot,
         prLeadTimeAsCsv(
@@ -234,13 +239,13 @@ async function* filterIter<T>(
 
 async function writeCSVToFile(
   fp: string,
-  ...args: Tail<Parameters<typeof csv.writeCSVObjects>>
+  ...args: Tail<Parameters<typeof writeCSVObjects>>
 ) {
   const f = fp;
-  await fs.ensureFile(f);
+  await ensureFile(f);
   await withFileOpen(
     async (f) => {
-      await csv.writeCSVObjects(f, ...args);
+      await writeCSVObjects(f, ...args);
     },
     f,
     { write: true, create: true, truncate: true },

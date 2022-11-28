@@ -4,7 +4,6 @@ import { arrayToAsyncGenerator, asyncToArray } from "../../utils.ts";
 import { asserts, mock, time } from "../../dev-deps.ts";
 import { withFakeTime, withStubs } from "../../dev-utils.ts";
 
-import { _internals, AloeGithubClient } from "./aloe-github-client.ts";
 import { getFakePull } from "../testing.ts";
 import {
   GithubClient,
@@ -13,6 +12,8 @@ import {
   SyncInfo,
   syncInfoSchema,
 } from "../types.ts";
+
+import { _internals, AloeGithubClient } from "./aloe-github-client.ts";
 
 async function* yieldGithubClient(
   opts?: {

@@ -1,4 +1,4 @@
-import { log } from "../deps.ts";
+import { debug } from "log";
 
 /**
  * Copied from https://github.com/SamVerschueren/github-parse-link/blob/master/index.js
@@ -30,7 +30,7 @@ export async function* fetchExhaustively(
   do {
     const resp = await fetchLike(currentRequest);
     if (pagesConsumed > 1) {
-      log.debug(
+      debug(
         `Fetched page ${pagesConsumed}\n  via ${request.url}\n  -> ${currentRequest.url}`,
       );
     }

@@ -1,5 +1,6 @@
+import * as z from "zod";
+
 import { Epoch } from "../types.ts";
-import { z } from "../deps.ts";
 
 const githubPullRepoSchema = z.object({
   id: z.number(),

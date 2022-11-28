@@ -1,16 +1,19 @@
+import { ensureDir } from "fs";
+import { handlers, setup as logSetup } from "log";
+import { join, normalize, resolve } from "path";
+import { yargs, YargsArguments, YargsInstance } from "yargs";
+
 import { githubSyncHandler, outputToCsv } from "./cli-handlers/mod.ts";
 import { parseGithubUrl } from "./github/mod.ts";
-
-import { fs, log, path, yargs, YargsArguments, YargsInstance } from "./deps.ts";
 
 const logLevels = ["DEBUG", "INFO", "WARNING"] as const;
 type LogLevel = typeof logLevels[number];
 const defaultLogLevel: LogLevel = "INFO";
 
 function setupLogging(level: LogLevel) {
-  log.setup({
+  logSetup({
     handlers: {
-      console: new log.handlers.ConsoleHandler("DEBUG"),
+      console: new handlers.ConsoleHandler("DEBUG"),
     },
     loggers: {
       default: {
@@ -22,7 +25,7 @@ function setupLogging(level: LogLevel) {
 }
 
 /** Where to pull to/read from cached data? */
-const persistenceRoot = path.join(Deno.cwd(), ".deliverymetrics-data");
+const persistenceRoot = join(Deno.cwd(), ".deliverymetrics-data");
 
 yargs(Deno.args)
   .scriptName("dm")
@@ -71,8 +74,8 @@ yargs(Deno.args)
         type: "string",
         normalize: true,
         coerce: async (arg: string) => {
-          const resolved = path.resolve(path.normalize(arg));
-          await fs.ensureDir(resolved);
+          const resolved = resolve(normalize(arg));
+          await ensureDir(resolved);
 
           // Test write access
           const f = await Deno.makeTempFile({ dir: resolved });

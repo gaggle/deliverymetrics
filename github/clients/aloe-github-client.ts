@@ -1,10 +1,14 @@
+import { equal } from "equal";
+import { groupBy } from "group-by";
+
 import { AloeDatabase } from "../../db/mod.ts";
 
 import { asyncToArray, first } from "../../utils.ts";
 import { Epoch } from "../../types.ts";
-import { equal, groupBy } from "../../deps.ts";
 
 import { fetchPulls } from "../utils/fetch-pulls.ts";
+import { sortPullsByKey } from "../utils/sorting.ts";
+
 import {
   GithubClient,
   GithubDiff,
@@ -13,7 +17,6 @@ import {
   ReadonlyGithubClient,
   SyncInfo,
 } from "../types.ts";
-import { sortPullsByKey } from "../utils/sorting.ts";
 
 interface AloeGithubClientDb {
   pulls: AloeDatabase<GithubPull>;
@@ -134,9 +137,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient
       syncedAt: sync.createdAt,
       newPulls: sortPullsByKey(bucket.newPulls || []),
       updatedPulls: sortPullsByKey(bucket.updatedPulls || [])
-        .filter((updated) =>
-          !equal.equal(updated, prevPullsByNumber[updated.number])
-        )
+        .filter((updated) => !equal(updated, prevPullsByNumber[updated.number]))
         .map((updated) => ({
           prev: prevPullsByNumber[updated.number],
           updated,

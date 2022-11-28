@@ -1,5 +1,6 @@
+import * as z from "zod";
+
 import { asserts } from "../dev-deps.ts";
-import { z } from "../deps.ts";
 
 import { AloeDatabase, MockAloeDatabase } from "./aloe-database.ts";
 

@@ -1,5 +1,7 @@
+import * as z from "zod";
+import { dirname, fromFileUrl, join, resolve } from "path";
+
 import { asserts } from "./dev-deps.ts";
-import { path, z } from "./deps.ts";
 
 import {
   dirExists,
@@ -12,7 +14,7 @@ import {
   withTempFile,
 } from "./path-and-file-utils.ts";
 
-const modulePath = path.fromFileUrl(import.meta.url);
+const modulePath = fromFileUrl(import.meta.url);
 
 Deno.test("pathExists", async (t) => {
   await t.step("is false when path doesn't exist", async () => {
@@ -37,7 +39,7 @@ Deno.test("dirExists", async (t) => {
   );
 
   await t.step("is true when path exists", async () => {
-    asserts.assertEquals(await dirExists(path.dirname(modulePath)), true);
+    asserts.assertEquals(await dirExists(dirname(modulePath)), true);
   });
 });
 
@@ -83,7 +85,7 @@ Deno.test("ensureJson", async (t) => {
 
   await t.step("can create a json file", async () => {
     await withTempDir(async (p) => {
-      const fp = path.join(p, "a-json-file.json");
+      const fp = join(p, "a-json-file.json");
       await ensureJson(fp, {
         schema: z.object({ foo: z.string() }),
         defaults: { foo: "bar" },
@@ -97,7 +99,7 @@ Deno.test("ensureJson", async (t) => {
 
   await t.step("creates subfolders as needed", async () => {
     await withTempDir(async (p) => {
-      const fp = path.join(p, "foo/bar/baz/ham.json");
+      const fp = join(p, "foo/bar/baz/ham.json");
       await ensureJson(fp, {
         schema: z.object({ foo: z.string() }),
         defaults: { foo: "bar" },
@@ -161,7 +163,7 @@ Deno.test("ensureFiles", async (t) => {
   await t.step("returns absolute file-paths", async () => {
     await withTempDir(async (p) => {
       const result = await ensureFiles(p, [{ file: "foo.txt", data: "foo" }]);
-      asserts.assertEquals(result, [path.join(p, "foo.txt")]);
+      asserts.assertEquals(result, [join(p, "foo.txt")]);
     });
   });
 
@@ -169,7 +171,7 @@ Deno.test("ensureFiles", async (t) => {
     await withTempDir(async (p) => {
       await ensureFiles(p, [{ file: "foo.txt", data: "foo" }]);
       asserts.assertEquals(
-        await Deno.readTextFile(path.join(p, "foo.txt")),
+        await Deno.readTextFile(join(p, "foo.txt")),
         "foo",
       );
     });
@@ -179,7 +181,7 @@ Deno.test("ensureFiles", async (t) => {
     await withTempDir(async (p) => {
       await ensureFiles(p, [{ file: "foo.txt", data: { foo: "bar" } }]);
       asserts.assertEquals(
-        await Deno.readTextFile(path.join(p, "foo.txt")),
+        await Deno.readTextFile(join(p, "foo.txt")),
         JSON.stringify({ foo: "bar" }, null, 2),
       );
     });
@@ -189,7 +191,7 @@ Deno.test("ensureFiles", async (t) => {
     await withTempDir(async (p) => {
       await ensureFiles(p, [{ file: "foo.txt", data: [{ foo: "bar" }] }]);
       asserts.assertEquals(
-        await Deno.readTextFile(path.join(p, "foo.txt")),
+        await Deno.readTextFile(join(p, "foo.txt")),
         JSON.stringify([{ foo: "bar" }], null, 2),
       );
     });
@@ -200,9 +202,7 @@ Deno.test("ensureFiles", async (t) => {
       await asserts.assertRejects(
         () => ensureFiles(p, [{ file: "../foo.txt", data: "foo" }]),
         Error,
-        `File ${
-          path.resolve(path.join(p, "..", "foo.txt"))
-        } must be inside root ${p}`,
+        `File ${resolve(join(p, "..", "foo.txt"))} must be inside root ${p}`,
       );
     });
   });
@@ -215,7 +215,7 @@ Deno.test("ensureFiles", async (t) => {
       }]);
       asserts.assertEquals(
         await Deno.readTextFile(
-          path.join(p, "foo/bar/baz/ham/spam/eggs/bacon.txt"),
+          join(p, "foo/bar/baz/ham/spam/eggs/bacon.txt"),
         ),
         "foo",
       );

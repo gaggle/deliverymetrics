@@ -1,9 +1,11 @@
+import { join, relative } from "path";
+import { readCSVObjects } from "csv";
+
 import { getFakePull } from "../github/testing.ts";
 import { GithubPull, SyncInfo } from "../github/mod.ts";
 
 import { asserts } from "../dev-deps.ts";
 import { asyncToArray } from "../utils.ts";
-import { csv, path } from "../deps.ts";
 import { DeepPartial } from "../types.ts";
 import {
   ensureFiles,
@@ -47,7 +49,7 @@ Deno.test("syncToCsv", async (t) => {
     filepath: string,
   ) {
     await withFileOpen(async (f) => {
-      const content = await asyncToArray(csv.readCSVObjects(f));
+      const content = await asyncToArray(readCSVObjects(f));
       await callback(content);
     }, filepath);
   }
@@ -80,7 +82,7 @@ Deno.test("syncToCsv", async (t) => {
       }],
       pulls: Object.values(fakePulls),
     });
-    const outputDir = path.join(p, "out");
+    const outputDir = join(p, "out");
 
     await t.step("can be called", async () => {
       await outputToCsv({
@@ -91,16 +93,16 @@ Deno.test("syncToCsv", async (t) => {
     });
 
     const expectedFiles = {
-      "all-pr-data.csv": path.join(outputDir, "all-pull-request-data.csv"),
-      "pr-lead-times-daily.csv": path.join(
+      "all-pr-data.csv": join(outputDir, "all-pull-request-data.csv"),
+      "pr-lead-times-daily.csv": join(
         outputDir,
         "pull-request-lead-times-daily.csv",
       ),
-      "pr-lead-times-weekly.csv": path.join(
+      "pr-lead-times-weekly.csv": join(
         outputDir,
         "pull-request-lead-times-weekly.csv",
       ),
-      "pr-lead-times-monthly.csv": path.join(
+      "pr-lead-times-monthly.csv": join(
         outputDir,
         "pull-request-lead-times-monthly.csv",
       ),
@@ -111,7 +113,7 @@ Deno.test("syncToCsv", async (t) => {
         asserts.assertEquals(
           await pathExists(val),
           true,
-          `Could not find '${path.relative(outputDir, val)}', got: ${
+          `Could not find '${relative(outputDir, val)}', got: ${
             (await asyncToArray(await Deno.readDir(outputDir))).map((el) =>
               el.name
             ).join(", ")

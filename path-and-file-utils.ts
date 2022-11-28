@@ -1,5 +1,8 @@
+import * as z from "zod";
+import { dirname, join, relative, resolve } from "path";
+import { ensureDir, ensureFile } from "fs";
+
 import { JSONValue } from "./types.ts";
-import { fs, path, z } from "./deps.ts";
 
 export async function pathExists(p: string): Promise<boolean> {
   try {
@@ -62,7 +65,7 @@ export async function ensureJson<Schema extends z.ZodTypeAny>(
   fp: string,
   { schema, defaults }: { schema: Schema; defaults: z.infer<Schema> },
 ): Promise<void> {
-  await fs.ensureFile(fp);
+  await ensureFile(fp);
   const content = await Deno.readTextFile(fp);
 
   if (content === "") {
@@ -76,7 +79,7 @@ export async function ensureJson<Schema extends z.ZodTypeAny>(
   } catch (err) {
     if (err instanceof SyntaxError) {
       throw new SyntaxError(
-        `Error parsing '${path.relative(Deno.cwd(), fp)}' got: ${content}`,
+        `Error parsing '${relative(Deno.cwd(), fp)}' got: ${content}`,
       );
     }
     throw err;
@@ -126,24 +129,22 @@ export async function withTempDir(
 
 export function ensureFiles(
   root: string,
-  files: Array<
-    {
-      file: string;
-      data: string | Record<string, unknown> | Array<Record<string, unknown>>;
-    }
-  >,
+  files: Array<{
+    file: string;
+    data: string | Record<string, unknown> | Array<Record<string, unknown>>;
+  }>,
 ): Promise<Array<string>> {
   return Promise.all(files.map(async ({ file, data }) => {
     data = typeof data !== "string" ? JSON.stringify(data, null, 2) : data;
-    const fp = path.join(root, file);
+    const fp = join(root, file);
 
-    if (path.relative(root, fp).indexOf("..") > -1) {
-      throw new Error(`File ${path.resolve(fp)} must be inside root ${root}`);
+    if (relative(root, fp).indexOf("..") > -1) {
+      throw new Error(`File ${resolve(fp)} must be inside root ${root}`);
     }
     // ↑ Too much of a security/accident risk to allow files to end up outside the root,
     //   e.g. because of an errand leading slash.
 
-    await fs.ensureDir(path.dirname(fp));
+    await ensureDir(dirname(fp));
     await Deno.writeTextFile(fp, data);
     return fp;
   }));

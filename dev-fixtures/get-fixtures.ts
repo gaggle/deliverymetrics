@@ -1,10 +1,12 @@
-import { fs, path } from "../deps.ts";
+import { dirname, fromFileUrl, join, relative } from "path";
+import { ensureDir } from "fs";
+
 import { getEnv } from "../utils.ts";
 import { JSONValue, RequestMethod } from "../types.ts";
 
 import { FetchSpec } from "./types.ts";
 
-const dirname = path.dirname(path.fromFileUrl(import.meta.url));
+const metaDir = dirname(fromFileUrl(import.meta.url));
 
 export async function fetchGithubFixtures(
   commands: FetchSpec,
@@ -61,7 +63,7 @@ function getFixturePath(
 ) {
   const uri = new URL(url);
   const pathnameNoLeadingSlash = uri.pathname.slice(1);
-  const folderPath = path.join(dirname, prefix || "", pathnameNoLeadingSlash);
+  const folderPath = join(metaDir, prefix || "", pathnameNoLeadingSlash);
 
   let filename: string = method;
   if (name) {
@@ -69,7 +71,7 @@ function getFixturePath(
   }
   filename += ".json";
 
-  return path.join(folderPath, filename);
+  return join(folderPath, filename);
 }
 
 function createJiraRequest(
@@ -127,7 +129,7 @@ function createGithubRequest(
 
 async function fetchFixture(request: Request, filepath: string): Promise<void> {
   if (await fileExists(filepath)) {
-    console.log("Skipped fixture", path.relative(Deno.cwd(), filepath));
+    console.log("Skipped fixture", relative(Deno.cwd(), filepath));
     return;
   }
 
@@ -144,7 +146,7 @@ async function fetchFixture(request: Request, filepath: string): Promise<void> {
     text = await response.clone().text();
   }
 
-  await fs.ensureDir(path.dirname(filepath));
+  await ensureDir(dirname(filepath));
   await Deno.writeTextFile(
     filepath,
     JSON.stringify(
@@ -166,7 +168,7 @@ async function fetchFixture(request: Request, filepath: string): Promise<void> {
       2,
     ),
   );
-  console.log("\tWrote fixture", path.relative(Deno.cwd(), filepath));
+  console.log("\tWrote fixture", relative(Deno.cwd(), filepath));
 }
 
 async function fileExists(filename: string): Promise<boolean> {

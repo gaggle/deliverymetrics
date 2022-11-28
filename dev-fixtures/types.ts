@@ -1,4 +1,4 @@
-import { z } from "../deps.ts";
+import * as z from "zod";
 
 export const fetchSpecSchema = z.union([
   z.string(),

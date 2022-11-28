@@ -1,4 +1,4 @@
-import { url } from "../../deps.ts";
+import { URL } from "node-url";
 
 export function parseGithubUrl(id: string): { owner: string; repo: string } {
   const simpleMatch = /^([\w-.]+)\/([\w-.]+)$/.exec(id);
@@ -14,7 +14,7 @@ export function parseGithubUrl(id: string): { owner: string; repo: string } {
   }
 
   const pathnameMatch = /^\/([\w-.]+)\/([\w-.]+)/.exec(
-    new url.URL(id).pathname.replace(/\.git$/, ""),
+    new URL(id).pathname.replace(/\.git$/, ""),
   );
   if (pathnameMatch) {
     const [, owner, repo] = pathnameMatch;

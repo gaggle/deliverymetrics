@@ -1,6 +1,6 @@
-import { GithubPull } from "./github/mod.ts";
+import * as z from "zod";
 
-import { z } from "./deps.ts";
+import { GithubPull } from "./github/mod.ts";
 
 export async function asyncToArray<T>(
   iter: AsyncIterable<T>,

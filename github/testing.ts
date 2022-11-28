@@ -1,6 +1,8 @@
-import { deepMerge } from "../deps.ts";
-import { DeepPartial } from "../types.ts";
+import { deepMerge } from "deep-merge";
+
 import { MockAloeDatabase } from "../db/mod.ts";
+
+import { DeepPartial } from "../types.ts";
 
 import {
   GithubPull,

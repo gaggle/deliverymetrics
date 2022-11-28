@@ -1,8 +1,10 @@
+import { debug } from "log";
+import { deepMerge } from "deep-merge";
+
 import { fetchExhaustively } from "../../fetching/mod.ts";
 import { Retrier } from "../../fetching/mod.ts";
 
 import { Epoch, RequestMethod } from "../../types.ts";
-import { deepMerge, log } from "../../deps.ts";
 import { stringifyPull } from "../../utils.ts";
 
 import { GithubPull, githubRestSpec } from "../types.ts";
@@ -66,7 +68,7 @@ export async function* fetchPulls(
           .text()}`,
       );
     }
-    log.debug(`Fetched ${resp.url}`);
+    debug(`Fetched ${resp.url}`);
 
     const data = await resp.json();
     githubRestSpec.pulls.schema.parse(data);
@@ -75,7 +77,7 @@ export async function* fetchPulls(
       const updatedAtDate = new Date(pull.updated_at);
       if (from && updatedAtDate.getTime() < from) {
         const fromDate = new Date(from);
-        log.debug(
+        debug(
           `Reached pull not updated since ${fromDate.toLocaleString()}: ${
             stringifyPull(pull)
           }`,

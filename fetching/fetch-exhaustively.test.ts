@@ -1,6 +1,7 @@
 import { asserts } from "../dev-deps.ts";
 import { asyncToArray } from "../utils.ts";
 import { withMockedFetch } from "../dev-utils.ts";
+
 import { fetchExhaustively, parseLink } from "./fetch-exhaustively.ts";
 
 Deno.test("parseLink", async (t) => {
