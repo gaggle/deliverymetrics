@@ -1,6 +1,7 @@
+import { assertEquals } from "dev:asserts";
+
 import { MockAloeDatabase } from "../../db/mod.ts";
 
-import { asserts } from "../../dev-deps.ts";
 import { asyncToArray } from "../../utils.ts";
 
 import { getFakePull } from "../testing.ts";
@@ -53,7 +54,7 @@ Deno.test("Github Client shared tests", async (t) => {
         })
       ) {
         await t.step(`for ${client.constructor.name}`, async () => {
-          asserts.assertEquals(
+          assertEquals(
             await (await client.findLatestSync() || {}).updatedAt,
             10_000,
           );
@@ -70,7 +71,7 @@ Deno.test("Github Client shared tests", async (t) => {
           AloeGithubClient: { pulls: [getFakePull()] },
         })
       ) {
-        asserts.assertEquals(await asyncToArray(client.findPulls()), [
+        assertEquals(await asyncToArray(client.findPulls()), [
           getFakePull(),
         ]);
       }
@@ -98,7 +99,7 @@ Deno.test("Github Client shared tests", async (t) => {
             AloeGithubClient: { pulls: [pull90s, pull2ks, pull80s] },
           })
         ) {
-          asserts.assertEquals(await asyncToArray(client.findPulls()), [
+          assertEquals(await asyncToArray(client.findPulls()), [
             pull80s,
             pull90s,
             pull2ks,
@@ -126,7 +127,7 @@ Deno.test("Github Client shared tests", async (t) => {
         AloeGithubClient: { pulls: [createdRecent, createdOld] },
       })
     ) {
-      asserts.assertEquals(
+      assertEquals(
         await asyncToArray(client.findPulls({ sort: { key: "created_at" } })),
         [
           createdOld,
@@ -154,7 +155,7 @@ Deno.test("Github Client shared tests", async (t) => {
         AloeGithubClient: { pulls: [createdOld, createdRecent] },
       })
     ) {
-      asserts.assertEquals(
+      assertEquals(
         await asyncToArray(
           client.findPulls({ sort: { key: "created_at", order: "desc" } }),
         ),
@@ -184,7 +185,7 @@ Deno.test("Github Client shared tests", async (t) => {
           },
         })
       ) {
-        asserts.assertEquals(await asyncToArray(client.findUnclosedPulls()), [
+        assertEquals(await asyncToArray(client.findUnclosedPulls()), [
           getFakePull({
             number: 2,
             state: "open",
@@ -219,7 +220,7 @@ Deno.test("Github Client shared tests", async (t) => {
           },
         })
       ) {
-        asserts.assertEquals(await client.findLatestPull(), mostRecentPull);
+        assertEquals(await client.findLatestPull(), mostRecentPull);
       }
     });
   });
@@ -227,7 +228,7 @@ Deno.test("Github Client shared tests", async (t) => {
   await t.step("#htmlUrl", async (t) => {
     await t.step("should return the full GitHub repo URL", async () => {
       for await (const client of yieldGithubClient()) {
-        asserts.assertEquals(
+        assertEquals(
           client.repoHtmlUrl,
           "https://github.com/owner/repo",
         );

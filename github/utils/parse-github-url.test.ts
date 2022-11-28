@@ -1,4 +1,4 @@
-import { asserts } from "../../dev-deps.ts";
+import { assertEquals } from "dev:asserts";
 
 import { parseGithubUrl as parse } from "./parse-github-url.ts";
 
@@ -10,12 +10,12 @@ Deno.test("parseGithubUrl", async (t) => {
     ]
   ) {
     await t.step(`should parse simple id: '${url}'`, () => {
-      asserts.assertEquals(parse(url), { owner: "owner", repo: "repo" });
+      assertEquals(parse(url), { owner: "owner", repo: "repo" });
     });
   }
 
   await t.step("should parse simple id: 'my.owner/repo'", function () {
-    asserts.assertEquals(parse("my.owner/repo"), {
+    assertEquals(parse("my.owner/repo"), {
       owner: "my.owner",
       repo: "repo",
     });
@@ -34,7 +34,7 @@ Deno.test("parseGithubUrl", async (t) => {
     ]
   ) {
     await t.step(`should parse url: '${url}'`, () => {
-      asserts.assertEquals(parse(url), {
+      assertEquals(parse(url), {
         owner: "owner",
         repo: "repo",
       });
@@ -44,7 +44,7 @@ Deno.test("parseGithubUrl", async (t) => {
   await t.step(
     "should parse url: 'https://github.com/my.owner/repo'",
     function () {
-      asserts.assertEquals(parse("https://github.com/my.owner/repo"), {
+      assertEquals(parse("https://github.com/my.owner/repo"), {
         owner: "my.owner",
         repo: "repo",
       });

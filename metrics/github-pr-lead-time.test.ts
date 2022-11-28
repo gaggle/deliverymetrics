@@ -1,6 +1,7 @@
+import { assertEquals } from "dev:asserts";
+
 import { createFakeGithubClient } from "../github/testing.ts";
 
-import { asserts } from "../dev-deps.ts";
 import { asyncToArray } from "../utils.ts";
 
 import { yieldPullRequestLeadTime } from "./github-pr-lead-time.ts";
@@ -18,7 +19,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           }],
         });
 
-        asserts.assertEquals(
+        assertEquals(
           await asyncToArray(
             yieldPullRequestLeadTime(github, { mode: "daily" }),
           ),
@@ -68,7 +69,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           ],
         });
 
-        asserts.assertEquals(
+        assertEquals(
           await asyncToArray(
             yieldPullRequestLeadTime(github, { mode: "daily" }),
           ),
@@ -111,7 +112,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         ],
       });
 
-      asserts.assertEquals(
+      assertEquals(
         await asyncToArray(yieldPullRequestLeadTime(github, { mode: "daily" })),
         [
           {
@@ -142,7 +143,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         ],
       });
 
-      asserts.assertEquals(
+      assertEquals(
         await asyncToArray(
           yieldPullRequestLeadTime(github, { mode: "weekly" }),
         ),
@@ -181,7 +182,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         ],
       });
 
-      asserts.assertEquals(
+      assertEquals(
         await asyncToArray(
           yieldPullRequestLeadTime(github, { mode: "monthly" }),
         ),

@@ -1,7 +1,10 @@
+import { assertEquals, assertObjectMatch } from "dev:asserts";
+import { assertSpyCalls, returnsNext, stub } from "dev:mock";
+import { FakeTime } from "dev:time";
+
 import { MockAloeDatabase } from "../../db/mod.ts";
 
 import { arrayToAsyncGenerator, asyncToArray } from "../../utils.ts";
-import { asserts, mock, time } from "../../dev-deps.ts";
 import { withFakeTime, withStubs } from "../../dev-utils.ts";
 
 import { getFakePull } from "../testing.ts";
@@ -40,17 +43,17 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
           await withStubs(
             async (stub) => {
               await client.sync();
-              mock.assertSpyCalls(stub, 1);
-              asserts.assertObjectMatch(stub.calls[0].args, {
+              assertSpyCalls(stub, 1);
+              assertObjectMatch(stub.calls[0].args, {
                 "0": "owner",
                 "1": "repo",
                 "2": "token",
               });
             },
-            mock.stub(
+            stub(
               _internals,
               "fetchPulls",
-              mock.returnsNext([arrayToAsyncGenerator([getFakePull()])]),
+              returnsNext([arrayToAsyncGenerator([getFakePull()])]),
             ),
           );
         });
@@ -72,15 +75,15 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
           await withStubs(
             async (stub) => {
               await client.sync();
-              mock.assertSpyCalls(stub, 1);
-              asserts.assertObjectMatch(stub.calls[0].args, {
+              assertSpyCalls(stub, 1);
+              assertObjectMatch(stub.calls[0].args, {
                 "3": { from: 10_000 },
               });
             },
-            mock.stub(
+            stub(
               _internals,
               "fetchPulls",
-              mock.returnsNext([arrayToAsyncGenerator([getFakePull()])]),
+              returnsNext([arrayToAsyncGenerator([getFakePull()])]),
             ),
           );
         });
@@ -95,14 +98,14 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
         await withStubs(
           async (_) => {
             await client.sync();
-            asserts.assertEquals(await asyncToArray(client.findPulls()), [
+            assertEquals(await asyncToArray(client.findPulls()), [
               fakePull,
             ]);
           },
-          mock.stub(
+          stub(
             _internals,
             "fetchPulls",
-            mock.returnsNext([arrayToAsyncGenerator([fakePull])]),
+            returnsNext([arrayToAsyncGenerator([fakePull])]),
           ),
         );
       });
@@ -116,18 +119,18 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
           await withStubs(
             async () => {
               await client.sync();
-              asserts.assertEquals(
+              assertEquals(
                 await (await client.findLatestSync())?.updatedAt,
                 10_000,
               );
             },
-            mock.stub(
+            stub(
               _internals,
               "fetchPulls",
-              mock.returnsNext([arrayToAsyncGenerator([])]),
+              returnsNext([arrayToAsyncGenerator([])]),
             ),
           );
-        }, new time.FakeTime(10_000));
+        }, new FakeTime(10_000));
       });
     }
   });
@@ -139,15 +142,15 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
           await withStubs(
             async () => {
               const result = await client.sync();
-              asserts.assertEquals(result.syncedAt, 10_000);
+              assertEquals(result.syncedAt, 10_000);
             },
-            mock.stub(
+            stub(
               _internals,
               "fetchPulls",
-              mock.returnsNext([arrayToAsyncGenerator([])]),
+              returnsNext([arrayToAsyncGenerator([])]),
             ),
           );
-        }, new time.FakeTime(10_000));
+        }, new FakeTime(10_000));
       });
     }
   });
@@ -164,15 +167,15 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
         await withStubs(
           async () => {
             const result = await client.sync();
-            asserts.assertEquals(result.updatedPulls, [{
+            assertEquals(result.updatedPulls, [{
               prev: pullOpen,
               updated: pullClosed,
             }]);
           },
-          mock.stub(
+          stub(
             _internals,
             "fetchPulls",
-            mock.returnsNext([arrayToAsyncGenerator([pullClosed])]),
+            returnsNext([arrayToAsyncGenerator([pullClosed])]),
           ),
         );
       });
@@ -186,12 +189,12 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
         await withStubs(
           async () => {
             const result = await client.sync();
-            asserts.assertEquals(result.newPulls, [newPull]);
+            assertEquals(result.newPulls, [newPull]);
           },
-          mock.stub(
+          stub(
             _internals,
             "fetchPulls",
-            mock.returnsNext([arrayToAsyncGenerator([newPull])]),
+            returnsNext([arrayToAsyncGenerator([newPull])]),
           ),
         );
       });

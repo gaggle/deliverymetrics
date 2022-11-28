@@ -1,6 +1,5 @@
 import * as z from "zod";
-
-import { asserts } from "../dev-deps.ts";
+import { assertEquals } from "dev:asserts";
 
 import { AloeDatabase, MockAloeDatabase } from "./aloe-database.ts";
 
@@ -12,7 +11,7 @@ Deno.test("AloeDatabase", async (t) => {
     });
     await db.insertOne({ name: "foo" });
     const result = await db.count();
-    asserts.assertEquals(result, 1);
+    assertEquals(result, 1);
   });
 
   await t.step("#findOne", async () => {
@@ -22,7 +21,7 @@ Deno.test("AloeDatabase", async (t) => {
     });
     await db.insertMany([{ name: "foo" }, { name: "bar" }]);
     const result = await db.findOne({ name: "bar" });
-    asserts.assertEquals(result, { name: "bar" });
+    assertEquals(result, { name: "bar" });
   });
 
   await t.step("#insertOne", async () => {
@@ -31,7 +30,7 @@ Deno.test("AloeDatabase", async (t) => {
       schema: z.object({ name: z.string() }),
     });
     const result = await db.insertOne({ name: "foo" });
-    asserts.assertEquals(result, { name: "foo" });
+    assertEquals(result, { name: "foo" });
   });
 });
 
@@ -40,7 +39,7 @@ Deno.test("MockAloeDatabase", async (t) => {
     const db = await MockAloeDatabase.new({
       schema: z.object({ name: z.string() }),
     });
-    asserts.assertEquals(await db.findMany(), []);
+    assertEquals(await db.findMany(), []);
   });
 
   await t.step("can be pre-populated with docs", async () => {
@@ -48,6 +47,6 @@ Deno.test("MockAloeDatabase", async (t) => {
       schema: z.object({ name: z.string() }),
       documents: [{ name: "Foo" }],
     });
-    asserts.assertEquals(await db.findMany(), [{ name: "Foo" }]);
+    assertEquals(await db.findMany(), [{ name: "Foo" }]);
   });
 });

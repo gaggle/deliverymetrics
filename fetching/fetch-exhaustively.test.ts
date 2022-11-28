@@ -1,4 +1,5 @@
-import { asserts } from "../dev-deps.ts";
+import { assertEquals } from "dev:asserts";
+
 import { asyncToArray } from "../utils.ts";
 import { withMockedFetch } from "../dev-utils.ts";
 
@@ -9,7 +10,7 @@ Deno.test("parseLink", async (t) => {
     const parsed = parseLink(
       `<https://next>; rel="next", <https://last>; rel="last"`,
     );
-    asserts.assertEquals(parsed, {
+    assertEquals(parsed, {
       last: "https://last",
       next: "https://next",
     });
@@ -18,12 +19,12 @@ Deno.test("parseLink", async (t) => {
 
 Deno.test("fetchExhaustively", async (t) => {
   await t.step("fetches once for a simple endpoint", async () => {
-    await withMockedFetch(async (mf) => {
-      mf.mock("GET@/pulls", () => new Response("foo", { status: 200 }));
+    await withMockedFetch(async (mockFetch) => {
+      mockFetch("GET@/pulls", () => new Response("foo", { status: 200 }));
       const responses = await asyncToArray(
         fetchExhaustively(new Request("https://x/pulls")),
       );
-      asserts.assertEquals(
+      assertEquals(
         await Promise.all(responses.map((resp) => resp.text())),
         ["foo"],
       );
@@ -33,8 +34,8 @@ Deno.test("fetchExhaustively", async (t) => {
   await t.step(
     "fetches thrice to exhaust a three-paginated endpoint",
     async () => {
-      await withMockedFetch(async (mf) => {
-        mf.mock("GET@/pulls", (req) => {
+      await withMockedFetch(async (mockFetch) => {
+        mockFetch("GET@/pulls", (req) => {
           const pageQuery = new URL(req.url).searchParams.get("page");
           switch (pageQuery) {
             case null:
@@ -59,7 +60,7 @@ Deno.test("fetchExhaustively", async (t) => {
         const request = new Request("https://x/pulls");
         const responses = await asyncToArray(fetchExhaustively(request));
         const bodies = await Promise.all(responses.map((resp) => resp.text()));
-        asserts.assertEquals(bodies, ["foo", "bar", "baz"]);
+        assertEquals(bodies, ["foo", "bar", "baz"]);
       });
     },
   );
@@ -67,8 +68,8 @@ Deno.test("fetchExhaustively", async (t) => {
   await t.step(
     "fetchExhaustively fetches once if endpoint has a Link header with no next link",
     async () => {
-      await withMockedFetch(async (mf) => {
-        mf.mock("GET@/pulls", () => {
+      await withMockedFetch(async (mockFetch) => {
+        mockFetch("GET@/pulls", () => {
           return new Response("foo", {
             status: 200,
             headers: {
@@ -79,7 +80,7 @@ Deno.test("fetchExhaustively", async (t) => {
         const request = new Request("https://x/pulls");
         const responses = await asyncToArray(fetchExhaustively(request));
         const bodies = await Promise.all(responses.map((resp) => resp.text()));
-        asserts.assertEquals(bodies, ["foo"]);
+        assertEquals(bodies, ["foo"]);
       });
     },
   );

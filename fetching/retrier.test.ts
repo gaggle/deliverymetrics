@@ -1,4 +1,4 @@
-import { asserts } from "../dev-deps.ts";
+import { assertEquals, assertRejects } from "dev:asserts";
 
 import { Retrier } from "./retrier.ts";
 
@@ -8,7 +8,7 @@ Deno.test("Retrier fetches a simple response", async () => {
   ];
   const retrier = new Retrier({ fetch: () => cannedResponses.shift()! });
   const resp = await retrier.fetch("https://x/foo");
-  asserts.assertEquals(resp.status, 200);
+  assertEquals(resp.status, 200);
 });
 
 Deno.test("Retrier retries an unwell response by default", async () => {
@@ -18,7 +18,7 @@ Deno.test("Retrier retries an unwell response by default", async () => {
   ];
   const retrier = new Retrier({ fetch: () => cannedResponses.shift()! });
   const resp = await retrier.fetch("https://x/foo");
-  asserts.assertEquals(resp.status, 200);
+  assertEquals(resp.status, 200);
 });
 
 Deno.test("Retrier retries an error", async () => {
@@ -28,7 +28,7 @@ Deno.test("Retrier retries an error", async () => {
   ];
   const retrier = new Retrier({ fetch: () => cannedResponses.shift()! });
   const resp = await retrier.fetch("https://x/foo");
-  asserts.assertEquals(resp.status, 200);
+  assertEquals(resp.status, 200);
 });
 
 Deno.test("Retrier returns the most recent unwell response after max retries", async () => {
@@ -43,7 +43,7 @@ Deno.test("Retrier returns the most recent unwell response after max retries", a
     maxRetries: 3,
   });
   const resp = await retrier.fetch("https://x/foo");
-  asserts.assertEquals(resp.status, 418);
+  assertEquals(resp.status, 418);
 });
 
 Deno.test("Retrier throws the most recent error after max retries", async () => {
@@ -56,7 +56,7 @@ Deno.test("Retrier throws the most recent error after max retries", async () => 
     fetch: () => cannedResponses.shift()!,
     maxRetries: 2,
   });
-  await asserts.assertRejects(
+  await assertRejects(
     () => retrier.fetch("https://x/foo"),
     Error,
     "3️⃣",
@@ -78,7 +78,7 @@ Deno.test("Retrier when receiving alternating non-OK responses / errors", async 
       fetch: () => Promise.resolve(cannedResponses.shift()!),
       maxRetries: 2,
     });
-    await asserts.assertRejects(
+    await assertRejects(
       () => retrier.fetch("https://x/foo"),
       Error,
       "3️⃣",
@@ -96,6 +96,6 @@ Deno.test("Retrier when receiving alternating non-OK responses / errors", async 
       maxRetries: 2,
     });
     const resp = await retrier.fetch("https://x/foo");
-    asserts.assertEquals(resp.status, 418);
+    assertEquals(resp.status, 418);
   });
 });

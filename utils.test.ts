@@ -1,6 +1,7 @@
+import { assertEquals, assertThrows } from "dev:asserts";
+
 import { getFakePull } from "./github/testing.ts";
 
-import { asserts } from "./dev-deps.ts";
 import { asyncToArray, first, getEnv, last, limit, pluralize, stringifyPull, stringifyUpdatedPull } from "./utils.ts";
 
 Deno.test("asyncToArray", async (t) => {
@@ -9,7 +10,7 @@ Deno.test("asyncToArray", async (t) => {
       yield "foo";
     }
 
-    asserts.assertEquals(await asyncToArray(yielder()), ["foo"]);
+    assertEquals(await asyncToArray(yielder()), ["foo"]);
   });
 
   await t.step("converts AsyncIterable", async () => {
@@ -17,7 +18,7 @@ Deno.test("asyncToArray", async (t) => {
       yield "foo";
     }
 
-    asserts.assertEquals(await asyncToArray(yielder()), ["foo"]);
+    assertEquals(await asyncToArray(yielder()), ["foo"]);
   });
 });
 
@@ -29,7 +30,7 @@ Deno.test("limit", async (t) => {
       }
     }
 
-    asserts.assertEquals(await asyncToArray(limit(yielder(), 2)), [
+    assertEquals(await asyncToArray(limit(yielder(), 2)), [
       "foo",
       "foo",
     ]);
@@ -42,7 +43,7 @@ Deno.test("limit", async (t) => {
       }
     }
 
-    asserts.assertEquals(await asyncToArray(limit(yielder(), 2)), [
+    assertEquals(await asyncToArray(limit(yielder(), 2)), [
       "foo",
       "foo",
     ]);
@@ -56,7 +57,7 @@ Deno.test("first", async (t) => {
       yield "bar";
     }
 
-    asserts.assertEquals(await first(yielder()), "foo");
+    assertEquals(await first(yielder()), "foo");
   });
 });
 
@@ -67,7 +68,7 @@ Deno.test("last", async (t) => {
       yield "bar";
     }
 
-    asserts.assertEquals(await last(yielder()), "bar");
+    assertEquals(await last(yielder()), "bar");
   });
 });
 
@@ -78,7 +79,7 @@ Deno.test("getEnv", async (t) => {
     Deno.env.set("foo", "bar");
 
     try {
-      asserts.assertEquals(getEnv("foo"), "bar");
+      assertEquals(getEnv("foo"), "bar");
     } finally {
       originalValue ? Deno.env.set("foo", originalValue) : Deno.env.delete("foo");
     }
@@ -88,7 +89,7 @@ Deno.test("getEnv", async (t) => {
     Deno.env.delete("foo");
 
     try {
-      asserts.assertThrows(
+      assertThrows(
         () => getEnv("foo"),
         Error,
         "Required environment variable missing: foo",
@@ -107,24 +108,24 @@ Deno.test("pluralize", async (t) => {
   };
 
   await t.step("pluralizes multiple elements", () => {
-    asserts.assertEquals(
+    assertEquals(
       pluralize(["a", "b", "c"], pluralizationData),
       "plural",
     );
   });
 
   await t.step("chooses singular for one element", () => {
-    asserts.assertEquals(pluralize(["a"], pluralizationData), "singular");
+    assertEquals(pluralize(["a"], pluralizationData), "singular");
   });
 
   await t.step("chooses empty when collection is empty", () => {
-    asserts.assertEquals(pluralize([], pluralizationData), "empty");
+    assertEquals(pluralize([], pluralizationData), "empty");
   });
 });
 
 Deno.test("stringifyPull", async (t) => {
   await t.step("makes a nice string", () => {
-    asserts.assertEquals(
+    assertEquals(
       stringifyPull(getFakePull({
         _links: { html: { href: "https://url" } },
         number: 1,
@@ -135,7 +136,7 @@ Deno.test("stringifyPull", async (t) => {
   });
 
   await t.step("understands draft mode", () => {
-    asserts.assertEquals(
+    assertEquals(
       stringifyPull(getFakePull({
         _links: { html: { href: "https://url" } },
         draft: true,
@@ -149,7 +150,7 @@ Deno.test("stringifyPull", async (t) => {
 
 Deno.test("stringifyUpdatedPull", async (t) => {
   await t.step("makes a nice string", () => {
-    asserts.assertEquals(
+    assertEquals(
       stringifyUpdatedPull({
         prev: getFakePull({
           _links: { html: { href: "https://url" } },
@@ -167,7 +168,7 @@ Deno.test("stringifyUpdatedPull", async (t) => {
   });
 
   await t.step("understands draft mode", () => {
-    asserts.assertEquals(
+    assertEquals(
       stringifyUpdatedPull({
         prev: getFakePull({
           _links: { html: { href: "https://url" } },
@@ -185,7 +186,7 @@ Deno.test("stringifyUpdatedPull", async (t) => {
     );
   });
 
-  asserts.assertEquals(
+  assertEquals(
     stringifyUpdatedPull({
       prev: getFakePull({
         _links: { html: { href: "https://url" } },

@@ -1,10 +1,10 @@
+import { assertEquals } from "dev:asserts";
 import { join, relative } from "path";
 import { readCSVObjects } from "csv";
 
 import { getFakePull } from "../github/testing.ts";
 import { GithubPull, SyncInfo } from "../github/mod.ts";
 
-import { asserts } from "../dev-deps.ts";
 import { asyncToArray } from "../utils.ts";
 import { DeepPartial } from "../types.ts";
 import { ensureFiles, pathExists, withFileOpen, withTempDir } from "../path-and-file-utils.ts";
@@ -105,7 +105,7 @@ Deno.test("syncToCsv", async (t) => {
 
     for (const [key, val] of Object.entries(expectedFiles)) {
       await t.step(`outputs expected file ${key}`, async () => {
-        asserts.assertEquals(
+        assertEquals(
           await pathExists(val),
           true,
           `Could not find '${relative(outputDir, val)}', got: ${
@@ -120,7 +120,7 @@ Deno.test("syncToCsv", async (t) => {
 
       await t.step("has expected format", async () => {
         await withCsvContent((content) => {
-          asserts.assertEquals(
+          assertEquals(
             content.length,
             Object.keys(fakePulls).length,
             `Expected ${Object.keys(fakePulls).length} content elements but got ${content.length}: ${
@@ -128,7 +128,7 @@ Deno.test("syncToCsv", async (t) => {
             }`,
           );
           const contentEl = content[Object.keys(fakePulls).indexOf("simple")];
-          asserts.assertEquals(contentEl, {
+          assertEquals(contentEl, {
             _links: JSON.stringify({
               html: { href: "https://url" },
               self: { href: "https://url" },
@@ -162,7 +162,7 @@ Deno.test("syncToCsv", async (t) => {
         // ↑ encoded to avoid outputting literal newlines that can confuse the csv format
         await withCsvContent((content) => {
           const contentEl = content[Object.keys(fakePulls).indexOf("multiline")];
-          asserts.assertEquals(
+          assertEquals(
             contentEl.body,
             JSON.stringify("multiline\nbody"),
           );
@@ -174,13 +174,13 @@ Deno.test("syncToCsv", async (t) => {
         async () => {
           await withCsvContent((content) => {
             const simpleEL = content[Object.keys(fakePulls).indexOf("simple")];
-            asserts.assertEquals(
+            assertEquals(
               simpleEL.was_cancelled,
               "false",
               `should not be cancelled: ${JSON.stringify(simpleEL, null, 2)}`,
             );
             const cancelledEl = content[Object.keys(fakePulls).indexOf("cancelled")];
-            asserts.assertEquals(
+            assertEquals(
               cancelledEl.was_cancelled,
               "true",
               `should be cancelled: ${JSON.stringify(cancelledEl, null, 2)}`,
@@ -196,7 +196,7 @@ Deno.test("syncToCsv", async (t) => {
       await t.step("has expected format", async () => {
         await withCsvContent((content) => {
           const contentEl = content[0];
-          asserts.assertEquals(contentEl, {
+          assertEquals(contentEl, {
             "Period Start": "1984-01-05T00:00:00.000Z",
             "Period End": "1984-01-05T23:59:59.999Z",
             "# of PRs Merged": "1",
@@ -213,7 +213,7 @@ Deno.test("syncToCsv", async (t) => {
       await t.step("has expected format", async () => {
         await withCsvContent((content) => {
           const contentEl = content[0];
-          asserts.assertEquals(contentEl, {
+          assertEquals(contentEl, {
             "Period Start": "1984-01-02T00:00:00.000Z",
             "Period End": "1984-01-08T23:59:59.999Z",
             "# of PRs Merged": "1",
@@ -230,7 +230,7 @@ Deno.test("syncToCsv", async (t) => {
       await t.step("has expected format", async () => {
         await withCsvContent((content) => {
           const contentEl = content[0];
-          asserts.assertEquals(contentEl, {
+          assertEquals(contentEl, {
             "Period Start": "1984-01-01T00:00:00.000Z",
             "Period End": "1984-01-31T23:59:59.999Z",
             "# of PRs Merged": "1",

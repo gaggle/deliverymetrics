@@ -1,19 +1,20 @@
-import type { mock, time } from "./dev-deps.ts";
-import { mockFetch as mf } from "./dev-deps.ts";
+import { FakeTime } from "dev:time";
+import { install as mockFetchInstall, mock as mockFetch, uninstall as mockFetchUninstall } from "dev:mock-fetch";
+import { Stub } from "dev:mock";
 
 export async function withMockedFetch(
-  callback: (mockFetch: typeof mf) => Promise<void>,
+  callback: (mf: typeof mockFetch) => Promise<void>,
 ) {
-  mf.install();
+  mockFetchInstall();
   try {
-    await callback(mf);
+    await callback(mockFetch);
   } finally {
-    mf.uninstall();
+    mockFetchUninstall();
   }
 }
 export async function withStubs(
-  callable: (...stubs: Array<mock.Stub>) => Promise<void>,
-  ...stubs: Array<mock.Stub>
+  callable: (...stubs: Array<Stub>) => Promise<void>,
+  ...stubs: Array<Stub>
 ): Promise<void> {
   try {
     await callable(...stubs);
@@ -24,8 +25,8 @@ export async function withStubs(
   }
 }
 export async function withFakeTime(
-  callable: (t: time.FakeTime) => Promise<void>,
-  fakeTime: time.FakeTime,
+  callable: (t: FakeTime) => Promise<void>,
+  fakeTime: FakeTime,
 ): Promise<void> {
   try {
     await callable(fakeTime);

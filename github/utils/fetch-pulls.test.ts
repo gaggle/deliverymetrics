@@ -1,6 +1,8 @@
+import { assertEquals, assertRejects } from "dev:asserts";
+import { assertSpyCalls, returnsNext, stub } from "dev:mock";
+
 import { Retrier } from "../../fetching/mod.ts";
 
-import { asserts, mock } from "../../dev-deps.ts";
 import { asyncToArray } from "../../utils.ts";
 import { withStubs } from "../../dev-utils.ts";
 
@@ -14,23 +16,23 @@ Deno.test("fetchPulls", async (t) => {
       async (stub) => {
         await asyncToArray(fetchPulls("owner", "repo", "token", { retrier }));
 
-        mock.assertSpyCalls(stub, 1);
+        assertSpyCalls(stub, 1);
         const request = stub.calls[0].args["0"] as Request;
-        asserts.assertEquals(request.method, "GET");
-        asserts.assertEquals(
+        assertEquals(request.method, "GET");
+        assertEquals(
           request.url,
           "https://api.github.com/repos/owner/repo/pulls?state=all&sort=updated&direction=desc",
         );
-        asserts.assertEquals(Array.from(request.headers.entries()), [
+        assertEquals(Array.from(request.headers.entries()), [
           ["accept", "Accept: application/vnd.github.v3+json"],
           ["authorization", "Bearer token"],
           ["content-type", "application/json"],
         ]);
       },
-      mock.stub(
+      stub(
         retrier,
         "fetch",
-        mock.returnsNext([Promise.resolve(
+        returnsNext([Promise.resolve(
           new Response(JSON.stringify([getFakePull()]), {
             status: 200,
             statusText: "OK",
@@ -47,12 +49,12 @@ Deno.test("fetchPulls", async (t) => {
         const res = await asyncToArray(
           fetchPulls("owner", "repo", "token", { retrier }),
         );
-        asserts.assertEquals(res, [getFakePull()]);
+        assertEquals(res, [getFakePull()]);
       },
-      mock.stub(
+      stub(
         retrier,
         "fetch",
-        mock.returnsNext([Promise.resolve(
+        returnsNext([Promise.resolve(
           new Response(JSON.stringify([getFakePull()]), {
             status: 200,
             statusText: "OK",
@@ -68,25 +70,25 @@ Deno.test("fetchPulls", async (t) => {
       async (stub) => {
         await asyncToArray(fetchPulls("owner", "repo", "token", { retrier }));
 
-        mock.assertSpyCalls(stub, 3);
+        assertSpyCalls(stub, 3);
         // ↑ Called thrice because it fetches pages 2 & 3
-        asserts.assertEquals(
+        assertEquals(
           stub.calls[0].args["0"].url,
           "https://api.github.com/repos/owner/repo/pulls?state=all&sort=updated&direction=desc",
         );
-        asserts.assertEquals(
+        assertEquals(
           stub.calls[1].args["0"].url,
           "https://api.github.com/repositories/1/pulls?state=all&page=2",
         );
-        asserts.assertEquals(
+        assertEquals(
           stub.calls[2].args["0"].url,
           "https://api.github.com/repositories/1/pulls?state=all&page=3",
         );
       },
-      mock.stub(
+      stub(
         retrier,
         "fetch",
-        mock.returnsNext([
+        returnsNext([
           Promise.resolve(
             new Response(JSON.stringify([getFakePull({ id: 1, number: 1 })]), {
               status: 200,
@@ -144,17 +146,17 @@ Deno.test("fetchPulls", async (t) => {
             retrier,
           }));
 
-          mock.assertSpyCalls(stub, 1);
-          asserts.assertEquals(
+          assertSpyCalls(stub, 1);
+          assertEquals(
             stub.calls[0].args["0"].url,
             "https://api.github.com/repos/owner/repo/pulls?state=all&sort=updated&direction=desc",
           );
-          asserts.assertEquals(res, [pull1]);
+          assertEquals(res, [pull1]);
         },
-        mock.stub(
+        stub(
           retrier,
           "fetch",
-          mock.returnsNext([
+          returnsNext([
             Promise.resolve(
               new Response(JSON.stringify([pull1, pull2]), {
                 status: 200,
@@ -198,23 +200,23 @@ Deno.test("fetchPulls", async (t) => {
             retrier,
           }));
 
-          mock.assertSpyCalls(stub, 2);
+          assertSpyCalls(stub, 2);
           // ↑ Called twice because the last page sits after a pull older than `from`
-          asserts.assertEquals(
+          assertEquals(
             stub.calls[0].args["0"].url,
             "https://api.github.com/repos/owner/repo/pulls?state=all&sort=updated&direction=desc",
           );
-          asserts.assertEquals(
+          assertEquals(
             stub.calls[1].args["0"].url,
             "https://api.github.com/repositories/1/pulls?state=all&page=2",
           );
-          asserts.assertEquals(res, [pull1]);
+          assertEquals(res, [pull1]);
           // ↑ Even though it called fetch twice there's only one pull, because the pull on page
         },
-        mock.stub(
+        stub(
           retrier,
           "fetch",
-          mock.returnsNext([
+          returnsNext([
             Promise.resolve(
               new Response(JSON.stringify([pull1]), {
                 status: 200,
@@ -251,16 +253,16 @@ Deno.test("fetchPulls", async (t) => {
     const retrier = new Retrier();
     await withStubs(
       async () => {
-        await asserts.assertRejects(
+        await assertRejects(
           () => asyncToArray(fetchPulls("owner", "repo", "token", { retrier })),
           Error,
           "Could not fetch https://api.github.com/repos/owner/repo/pulls?state=all&sort=updated&direction=desc, got 404 Not Found: Some error",
         );
       },
-      mock.stub(
+      stub(
         retrier,
         "fetch",
-        mock.returnsNext([Promise.resolve(
+        returnsNext([Promise.resolve(
           new Response("Some error", { status: 404, statusText: "Not Found" }),
         )]),
       ),
