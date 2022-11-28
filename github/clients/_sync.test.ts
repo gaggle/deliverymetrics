@@ -8,9 +8,11 @@ import { arrayToAsyncGenerator, asyncToArray } from "../../utils.ts";
 import { withFakeTime, withStubs } from "../../dev-utils.ts";
 
 import { getFakePull } from "../testing.ts";
-import { GithubClient, GithubPull, githubPullSchema, SyncInfo, syncInfoSchema } from "../types.ts";
 
 import { _internals, AloeGithubClient } from "./aloe-github-client.ts";
+import { GithubPull, githubPullSchema } from "../types/mod.ts";
+import { GithubClient } from "../types/github-client.ts";
+import { SyncInfo, syncInfoSchema } from "../types/sync-info.ts";
 
 async function* yieldGithubClient(
   opts?: {

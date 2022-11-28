@@ -7,7 +7,7 @@ import { Retrier } from "../../fetching/mod.ts";
 import { Epoch, RequestMethod } from "../../types.ts";
 import { stringifyPull } from "../../utils.ts";
 
-import { GithubPull, githubRestSpec } from "../types.ts";
+import { GithubPull, githubRestSpec } from "../types/mod.ts";
 
 function createGithubRequest(
   {

@@ -9,7 +9,11 @@ import { Epoch } from "../../types.ts";
 import { fetchPulls } from "../utils/fetch-pulls.ts";
 import { sortPullsByKey } from "../utils/sorting.ts";
 
-import { GithubClient, GithubDiff, GithubPull, GithubPullDateKey, ReadonlyGithubClient, SyncInfo } from "../types.ts";
+import { GithubPull } from "../types/mod.ts";
+import { GithubPullDateKey } from "../types/github-pull.ts";
+import { GithubClient, ReadonlyGithubClient } from "../types/github-client.ts";
+import { SyncInfo } from "../types/sync-info.ts";
+import { GithubDiff } from "../types/sync-diff.ts";
 
 interface AloeGithubClientDb {
   pulls: AloeDatabase<GithubPull>;

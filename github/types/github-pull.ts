@@ -1,7 +1,5 @@
 import * as z from "zod";
 
-import { Epoch } from "../types.ts";
-
 const githubPullRepoSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -81,6 +79,7 @@ const githubPullRepoSchema = z.object({
   watchers: z.number(),
   default_branch: z.string(),
 });
+
 export const githubPullSchema = z.object({
   url: z.string(),
   id: z.number(),
@@ -150,61 +149,7 @@ export const githubPullSchema = z.object({
     statuses: z.object({ href: z.string() }),
   }),
 });
+
 export type GithubPull = z.infer<typeof githubPullSchema>;
-export type GithubPullDateKey = keyof Pick<
-  GithubPull,
-  "created_at" | "updated_at" | "closed_at" | "merged_at"
->;
 
-export interface GithubDiff {
-  syncedAt: Epoch;
-  newPulls: Array<GithubPull>;
-  updatedPulls: Array<{ prev: GithubPull; updated: GithubPull }>;
-}
-
-/**
- * https://docs.github.com/en/rest/pulls/pulls
- */
-export const githubRestReposPullsSchema = z.array(githubPullSchema);
-export type GithubRestReposPulls = z.infer<typeof githubRestReposPullsSchema>;
-
-export const githubRestSpec = {
-  pulls: {
-    getUrl: (owner: string, repo: string) => new URL(`https://api.github.com/repos/${owner}/${repo}/pulls`),
-    schema: z.array(githubPullSchema),
-  },
-};
-
-export const githubDiskCacheInfoSchema = z.object({
-  updatedAt: z.union([z.number(), z.undefined()]),
-});
-export type GithubDiskCacheInfo = z.infer<typeof githubDiskCacheInfoSchema>;
-
-export interface ReadonlyGithubClient {
-  repoHtmlUrl: string;
-
-  findPulls(opts?: Sortable): AsyncGenerator<GithubPull>;
-
-  findUnclosedPulls(): AsyncGenerator<GithubPull>;
-
-  findLatestPull(): Promise<GithubPull | undefined>;
-
-  findLatestSync(): Promise<
-    { createdAt: Epoch; updatedAt: Epoch; diff?: GithubDiff } | undefined
-  >;
-}
-
-export interface GithubClient extends ReadonlyGithubClient {
-  sync(): Promise<GithubDiff>;
-}
-
-export type Sortable = Partial<
-  { sort: { key: GithubPullDateKey; order?: "asc" | "desc" } }
->;
-
-export const syncInfoSchema = z.object({
-  createdAt: z.number(),
-  updatedAt: z.number(),
-});
-
-export type SyncInfo = z.infer<typeof syncInfoSchema>;
+export type GithubPullDateKey = keyof Pick<GithubPull, "created_at" | "updated_at" | "closed_at" | "merged_at">;

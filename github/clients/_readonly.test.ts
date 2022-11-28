@@ -4,8 +4,9 @@ import { MockAloeDatabase } from "../../db/mod.ts";
 
 import { asyncToArray } from "../../utils.ts";
 
+import { GithubPull, githubPullSchema, ReadonlyGithubClient, SyncInfo, syncInfoSchema } from "../types/mod.ts";
+
 import { getFakePull } from "../testing.ts";
-import { GithubPull, githubPullSchema, ReadonlyGithubClient, SyncInfo, syncInfoSchema } from "../types.ts";
 
 import { AloeGithubClient, ReadonlyAloeGithubClient } from "./aloe-github-client.ts";
 

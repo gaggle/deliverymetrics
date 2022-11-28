@@ -1,4 +1,4 @@
-import { GithubPull, GithubPullDateKey } from "../types.ts";
+import { GithubPull, GithubPullDateKey } from "../types/mod.ts";
 
 export function sortPullsByKey(
   pulls: Array<GithubPull>,

@@ -4,8 +4,8 @@ import { MockAloeDatabase } from "../db/mod.ts";
 
 import { DeepPartial } from "../types.ts";
 
-import { GithubPull, githubPullSchema, ReadonlyGithubClient, SyncInfo, syncInfoSchema } from "./types.ts";
 import { ReadonlyAloeGithubClient } from "./clients/aloe-github-client.ts";
+import { GithubPull, githubPullSchema, ReadonlyGithubClient, SyncInfo, syncInfoSchema } from "./types/mod.ts";
 
 export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
   const repo: GithubPull["base"]["repo"] = {
