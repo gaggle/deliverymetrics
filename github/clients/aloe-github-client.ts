@@ -9,14 +9,7 @@ import { Epoch } from "../../types.ts";
 import { fetchPulls } from "../utils/fetch-pulls.ts";
 import { sortPullsByKey } from "../utils/sorting.ts";
 
-import {
-  GithubClient,
-  GithubDiff,
-  GithubPull,
-  GithubPullDateKey,
-  ReadonlyGithubClient,
-  SyncInfo,
-} from "../types.ts";
+import { GithubClient, GithubDiff, GithubPull, GithubPullDateKey, ReadonlyGithubClient, SyncInfo } from "../types.ts";
 
 interface AloeGithubClientDb {
   pulls: AloeDatabase<GithubPull>;
@@ -57,9 +50,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
 
   async *findUnclosedPulls(): AsyncGenerator<GithubPull> {
     for (
-      const el of (await asyncToArray(this.findPulls())).filter((pull) =>
-        pull.state !== "closed"
-      )
+      const el of (await asyncToArray(this.findPulls())).filter((pull) => pull.state !== "closed")
     ) {
       yield el;
     }
@@ -79,8 +70,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
   }
 }
 
-export class AloeGithubClient extends ReadonlyAloeGithubClient
-  implements GithubClient {
+export class AloeGithubClient extends ReadonlyAloeGithubClient implements GithubClient {
   private readonly owner: string;
   private readonly repo: string;
   private readonly token: string;

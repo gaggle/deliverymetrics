@@ -17,8 +17,7 @@ const fixtureConfig: Array<
     fetchSpecFilepath: join(moduleDir, "jira.yml"),
   },
   {
-    callable: (commands) =>
-      fetchGithubFixtures(commands, { token: getEnv("GITHUB_TOKEN") }),
+    callable: (commands) => fetchGithubFixtures(commands, { token: getEnv("GITHUB_TOKEN") }),
     fetchSpecFilepath: join(moduleDir, "github.yml"),
   },
 ];

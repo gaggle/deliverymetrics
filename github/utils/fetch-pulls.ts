@@ -78,9 +78,7 @@ export async function* fetchPulls(
       if (from && updatedAtDate.getTime() < from) {
         const fromDate = new Date(from);
         debug(
-          `Reached pull not updated since ${fromDate.toLocaleString()}: ${
-            stringifyPull(pull)
-          }`,
+          `Reached pull not updated since ${fromDate.toLocaleString()}: ${stringifyPull(pull)}`,
         );
         return;
       }

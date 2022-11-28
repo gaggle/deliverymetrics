@@ -170,8 +170,7 @@ export type GithubRestReposPulls = z.infer<typeof githubRestReposPullsSchema>;
 
 export const githubRestSpec = {
   pulls: {
-    getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/pulls`),
+    getUrl: (owner: string, repo: string) => new URL(`https://api.github.com/repos/${owner}/${repo}/pulls`),
     schema: z.array(githubPullSchema),
   },
 };

@@ -47,8 +47,7 @@ yargs(Deno.args)
         type: "string",
       });
       inst.positional("token", {
-        describe:
-          "GitHub Personal Access Token, one can be created at https://github.com/settings/tokens",
+        describe: "GitHub Personal Access Token, one can be created at https://github.com/settings/tokens",
         type: "string",
       });
     },

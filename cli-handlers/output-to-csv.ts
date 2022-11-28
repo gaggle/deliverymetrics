@@ -5,12 +5,7 @@ import { writeCSVObjects } from "csv";
 import { writeAll as streamWriteAll } from "stream-conversion";
 
 import { AloeDatabase } from "../db/mod.ts";
-import {
-  GithubPull,
-  githubPullSchema,
-  ReadonlyAloeGithubClient,
-  syncInfoSchema,
-} from "../github/mod.ts";
+import { GithubPull, githubPullSchema, ReadonlyAloeGithubClient, syncInfoSchema } from "../github/mod.ts";
 import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
 import { Tail, ToTuple } from "../types.ts";
@@ -39,9 +34,7 @@ const prIgnoreHeaders = [
 
 const prRemainingHeaders = Object.keys(githubPullSchema.shape)
   .filter((n) => !(prPrimaryHeaders.slice() as string[]).includes(n))
-  .filter((n) =>
-    !(prIgnoreHeaders.slice() as string[]).includes(n)
-  ) as unknown as PrRemainingHeaders;
+  .filter((n) => !(prIgnoreHeaders.slice() as string[]).includes(n)) as unknown as PrRemainingHeaders;
 type PrRemainingHeaders = Readonly<
   ToTuple<
     keyof Omit<

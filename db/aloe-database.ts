@@ -59,8 +59,7 @@ class BaseAloeDatabase<Schema extends DatabaseDocument> {
   }
 }
 
-export class AloeDatabase<Schema extends DatabaseDocument>
-  extends BaseAloeDatabase<Schema> {
+export class AloeDatabase<Schema extends DatabaseDocument> extends BaseAloeDatabase<Schema> {
   static async new<Schema extends DatabaseDocument>(
     { path: fp, schema }: {
       path: Filepath | undefined;
@@ -74,8 +73,7 @@ export class AloeDatabase<Schema extends DatabaseDocument>
   }
 }
 
-export class MockAloeDatabase<Schema extends DatabaseDocument>
-  extends BaseAloeDatabase<Schema> {
+export class MockAloeDatabase<Schema extends DatabaseDocument> extends BaseAloeDatabase<Schema> {
   protected constructor(schema: ZodSchema<Schema>) {
     super({ path: undefined, schema });
   }

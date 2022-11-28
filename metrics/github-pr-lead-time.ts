@@ -16,15 +16,7 @@ import { GithubPull, ReadonlyGithubClient } from "../github/mod.ts";
 
 import { assertUnreachable } from "../utils.ts";
 
-import {
-  dateEnd,
-  dayStart,
-  monthEnd,
-  monthStart,
-  nextDate,
-  weekEnd,
-  weekStart,
-} from "./date-utils.ts";
+import { dateEnd, dayStart, monthEnd, monthStart, nextDate, weekEnd, weekStart } from "./date-utils.ts";
 
 type PullRequestLeadTime = {
   start: Date;

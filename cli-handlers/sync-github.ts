@@ -1,16 +1,9 @@
 import { join } from "path";
 
 import { AloeDatabase } from "../db/mod.ts";
-import {
-  AloeGithubClient,
-  githubPullSchema,
-  syncInfoSchema,
-} from "../github/mod.ts";
+import { AloeGithubClient, githubPullSchema, syncInfoSchema } from "../github/mod.ts";
 
-import {
-  formatGithubClientStatus,
-  formatGithubSyncResult,
-} from "./formatting.ts";
+import { formatGithubClientStatus, formatGithubSyncResult } from "./formatting.ts";
 
 export async function githubSyncHandler(
   { owner, repo, token, persistenceRoot }: {

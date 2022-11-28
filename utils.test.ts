@@ -1,16 +1,7 @@
 import { getFakePull } from "./github/testing.ts";
 
 import { asserts } from "./dev-deps.ts";
-import {
-  asyncToArray,
-  first,
-  getEnv,
-  last,
-  limit,
-  pluralize,
-  stringifyPull,
-  stringifyUpdatedPull,
-} from "./utils.ts";
+import { asyncToArray, first, getEnv, last, limit, pluralize, stringifyPull, stringifyUpdatedPull } from "./utils.ts";
 
 Deno.test("asyncToArray", async (t) => {
   await t.step("converts AsyncGenerator", async () => {
@@ -89,9 +80,7 @@ Deno.test("getEnv", async (t) => {
     try {
       asserts.assertEquals(getEnv("foo"), "bar");
     } finally {
-      originalValue
-        ? Deno.env.set("foo", originalValue)
-        : Deno.env.delete("foo");
+      originalValue ? Deno.env.set("foo", originalValue) : Deno.env.delete("foo");
     }
   });
 
@@ -105,9 +94,7 @@ Deno.test("getEnv", async (t) => {
         "Required environment variable missing: foo",
       );
     } finally {
-      originalValue
-        ? Deno.env.set("foo", originalValue)
-        : Deno.env.delete("foo");
+      originalValue ? Deno.env.set("foo", originalValue) : Deno.env.delete("foo");
     }
   });
 });

@@ -41,16 +41,14 @@ Deno.test("fetchExhaustively", async (t) => {
               return new Response("foo", {
                 status: 200,
                 headers: {
-                  link:
-                    `<https://x/pulls?page=2>; rel="next", <https://x/pulls?page=3>; rel="last"`,
+                  link: `<https://x/pulls?page=2>; rel="next", <https://x/pulls?page=3>; rel="last"`,
                 },
               });
             case "2":
               return new Response("bar", {
                 status: 200,
                 headers: {
-                  link:
-                    `<https://x/pulls?page=3>; rel="next", <https://x/pulls?page=3>; rel="last"`,
+                  link: `<https://x/pulls?page=3>; rel="next", <https://x/pulls?page=3>; rel="last"`,
                 },
               });
             case "3":
@@ -74,8 +72,7 @@ Deno.test("fetchExhaustively", async (t) => {
           return new Response("foo", {
             status: 200,
             headers: {
-              link:
-                `<https://x/pulls?page=2>; rel="foo", <https://x/pulls?page=3>; rel="last"`,
+              link: `<https://x/pulls?page=2>; rel="foo", <https://x/pulls?page=3>; rel="last"`,
             },
           });
         });

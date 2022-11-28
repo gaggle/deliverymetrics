@@ -7,12 +7,7 @@ import { GithubPull, SyncInfo } from "../github/mod.ts";
 import { asserts } from "../dev-deps.ts";
 import { asyncToArray } from "../utils.ts";
 import { DeepPartial } from "../types.ts";
-import {
-  ensureFiles,
-  pathExists,
-  withFileOpen,
-  withTempDir,
-} from "../path-and-file-utils.ts";
+import { ensureFiles, pathExists, withFileOpen, withTempDir } from "../path-and-file-utils.ts";
 
 import { outputToCsv } from "./output-to-csv.ts";
 
@@ -114,9 +109,7 @@ Deno.test("syncToCsv", async (t) => {
           await pathExists(val),
           true,
           `Could not find '${relative(outputDir, val)}', got: ${
-            (await asyncToArray(await Deno.readDir(outputDir))).map((el) =>
-              el.name
-            ).join(", ")
+            (await asyncToArray(await Deno.readDir(outputDir))).map((el) => el.name).join(", ")
           }`,
         );
       });
@@ -130,9 +123,7 @@ Deno.test("syncToCsv", async (t) => {
           asserts.assertEquals(
             content.length,
             Object.keys(fakePulls).length,
-            `Expected ${
-              Object.keys(fakePulls).length
-            } content elements but got ${content.length}: ${
+            `Expected ${Object.keys(fakePulls).length} content elements but got ${content.length}: ${
               JSON.stringify(content, null, 2)
             }`,
           );
@@ -145,12 +136,10 @@ Deno.test("syncToCsv", async (t) => {
                 href: `https://api.github.com/repos/owner/repo/pulls/1/commits`,
               },
               statuses: {
-                href:
-                  "https://api.github.com/repos/owner/repo/statuses/da39a3ee5e6b4b0d3255bfef95601890afd80709",
+                href: "https://api.github.com/repos/owner/repo/statuses/da39a3ee5e6b4b0d3255bfef95601890afd80709",
               },
             }),
-            base:
-              `{"label":"Foo:main","ref":"main","sha":"de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3"}`,
+            base: `{"label":"Foo:main","ref":"main","sha":"de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3"}`,
             body: "",
             closed_at: "",
             created_at: "1981-01-01T00:00:00Z",
@@ -172,8 +161,7 @@ Deno.test("syncToCsv", async (t) => {
       await t.step("encodes body column", async () => {
         // ↑ encoded to avoid outputting literal newlines that can confuse the csv format
         await withCsvContent((content) => {
-          const contentEl =
-            content[Object.keys(fakePulls).indexOf("multiline")];
+          const contentEl = content[Object.keys(fakePulls).indexOf("multiline")];
           asserts.assertEquals(
             contentEl.body,
             JSON.stringify("multiline\nbody"),
@@ -191,8 +179,7 @@ Deno.test("syncToCsv", async (t) => {
               "false",
               `should not be cancelled: ${JSON.stringify(simpleEL, null, 2)}`,
             );
-            const cancelledEl =
-              content[Object.keys(fakePulls).indexOf("cancelled")];
+            const cancelledEl = content[Object.keys(fakePulls).indexOf("cancelled")];
             asserts.assertEquals(
               cancelledEl.was_cancelled,
               "true",

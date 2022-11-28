@@ -4,13 +4,7 @@ import { MockAloeDatabase } from "../db/mod.ts";
 
 import { DeepPartial } from "../types.ts";
 
-import {
-  GithubPull,
-  githubPullSchema,
-  ReadonlyGithubClient,
-  SyncInfo,
-  syncInfoSchema,
-} from "./types.ts";
+import { GithubPull, githubPullSchema, ReadonlyGithubClient, SyncInfo, syncInfoSchema } from "./types.ts";
 import { ReadonlyAloeGithubClient } from "./clients/aloe-github-client.ts";
 
 export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
@@ -25,12 +19,10 @@ export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
     url: "https://api.github.com/repos/owner/repo",
     forks_url: "https://api.github.com/repos/owner/repo/forks",
     keys_url: "https://api.github.com/repos/owner/repo/keys{/key_id}",
-    collaborators_url:
-      "https://api.github.com/repos/owner/repo/collaborators{/collaborator}",
+    collaborators_url: "https://api.github.com/repos/owner/repo/collaborators{/collaborator}",
     teams_url: "https://api.github.com/repos/owner/repo/teams",
     hooks_url: "https://api.github.com/repos/owner/repo/hooks",
-    issue_events_url:
-      "https://api.github.com/repos/owner/repo/issues/events{/number}",
+    issue_events_url: "https://api.github.com/repos/owner/repo/issues/events{/number}",
     events_url: "https://api.github.com/repos/owner/repo/events",
     assignees_url: "https://api.github.com/repos/owner/repo/assignees{/user}",
     branches_url: "https://api.github.com/repos/owner/repo/branches{/branch}",
@@ -46,24 +38,18 @@ export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
     subscribers_url: "https://api.github.com/repos/owner/repo/subscribers",
     subscription_url: "https://api.github.com/repos/owner/repo/subscription",
     commits_url: "https://api.github.com/repos/owner/repo/commits{/sha}",
-    git_commits_url:
-      "https://api.github.com/repos/owner/repo/git/commits{/sha}",
+    git_commits_url: "https://api.github.com/repos/owner/repo/git/commits{/sha}",
     comments_url: "https://api.github.com/repos/owner/repo/comments{/number}",
-    issue_comment_url:
-      "https://api.github.com/repos/owner/repo/issues/comments{/number}",
+    issue_comment_url: "https://api.github.com/repos/owner/repo/issues/comments{/number}",
     contents_url: "https://api.github.com/repos/owner/repo/contents/{+path}",
-    compare_url:
-      "https://api.github.com/repos/owner/repo/compare/{base}...{head}",
+    compare_url: "https://api.github.com/repos/owner/repo/compare/{base}...{head}",
     merges_url: "https://api.github.com/repos/owner/repo/merges",
-    archive_url:
-      "https://api.github.com/repos/owner/repo/{archive_format}{/ref}",
+    archive_url: "https://api.github.com/repos/owner/repo/{archive_format}{/ref}",
     downloads_url: "https://api.github.com/repos/owner/repo/downloads",
     issues_url: "https://api.github.com/repos/owner/repo/issues{/number}",
     pulls_url: "https://api.github.com/repos/owner/repo/pulls{/number}",
-    milestones_url:
-      "https://api.github.com/repos/owner/repo/milestones{/number}",
-    notifications_url:
-      "https://api.github.com/repos/owner/repo/notifications{?since,all,participating}",
+    milestones_url: "https://api.github.com/repos/owner/repo/milestones{/number}",
+    notifications_url: "https://api.github.com/repos/owner/repo/notifications{?since,all,participating}",
     labels_url: "https://api.github.com/repos/owner/repo/labels{/name}",
     releases_url: "https://api.github.com/repos/owner/repo/releases{/id}",
     deployments_url: "https://api.github.com/repos/owner/repo/deployments",
@@ -130,19 +116,11 @@ export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
         description: "description",
       },
     ],
-    commits_url: `https://api.github.com/repos/owner/repo/pulls/${
-      partial.number || 1
-    }/commits`,
-    review_comments_url: `https://api.github.com/repos/owner/repo/pulls/${
-      partial.number || 1
-    }/comments`,
-    review_comment_url:
-      "https://api.github.com/repos/owner/repo/pulls/comments{/number}",
-    comments_url: `https://api.github.com/repos/owner/repo/issues/${
-      partial.number || 1
-    }/comments`,
-    statuses_url:
-      "https://api.github.com/repos/owner/repo/statuses/da39a3ee5e6b4b0d3255bfef95601890afd80709",
+    commits_url: `https://api.github.com/repos/owner/repo/pulls/${partial.number || 1}/commits`,
+    review_comments_url: `https://api.github.com/repos/owner/repo/pulls/${partial.number || 1}/comments`,
+    review_comment_url: "https://api.github.com/repos/owner/repo/pulls/comments{/number}",
+    comments_url: `https://api.github.com/repos/owner/repo/issues/${partial.number || 1}/comments`,
+    statuses_url: "https://api.github.com/repos/owner/repo/statuses/da39a3ee5e6b4b0d3255bfef95601890afd80709",
     draft: false,
     head: {
       label: "owner:fix/FOO-01",
@@ -157,17 +135,14 @@ export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
         url: "https://api.github.com/users/owner",
         html_url: "https://github.com/owner",
         followers_url: "https://api.github.com/users/owner/followers",
-        following_url:
-          "https://api.github.com/users/owner/following{/other_user}",
+        following_url: "https://api.github.com/users/owner/following{/other_user}",
         gists_url: "https://api.github.com/users/owner/gists{/gist_id}",
-        starred_url:
-          "https://api.github.com/users/owner/starred{/owner}{/repo}",
+        starred_url: "https://api.github.com/users/owner/starred{/owner}{/repo}",
         subscriptions_url: "https://api.github.com/users/owner/subscriptions",
         organizations_url: "https://api.github.com/users/owner/orgs",
         repos_url: "https://api.github.com/users/owner/repos",
         events_url: "https://api.github.com/users/owner/events{/privacy}",
-        received_events_url:
-          "https://api.github.com/users/owner/received_events",
+        received_events_url: "https://api.github.com/users/owner/received_events",
         type: "Organization",
         site_admin: false,
       },
@@ -183,13 +158,10 @@ export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
       html: { href: "https://url" },
       self: { href: "https://url" },
       commits: {
-        href: `https://api.github.com/repos/owner/repo/pulls/${
-          partial.number || 1
-        }/commits`,
+        href: `https://api.github.com/repos/owner/repo/pulls/${partial.number || 1}/commits`,
       },
       statuses: {
-        href:
-          "https://api.github.com/repos/owner/repo/statuses/da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        href: "https://api.github.com/repos/owner/repo/statuses/da39a3ee5e6b4b0d3255bfef95601890afd80709",
       },
     },
   };
@@ -198,12 +170,8 @@ export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
 
 export function getFakeSyncInfo(partial: DeepPartial<SyncInfo> = {}): SyncInfo {
   const base: SyncInfo = {
-    createdAt: partial.updatedAt
-      ? partial.updatedAt - 1
-      : new Date("2000-01-01T00:00:00Z").getTime(),
-    updatedAt: partial.createdAt
-      ? partial.createdAt + 1
-      : new Date("2000-01-01T00:01:00Z").getTime(),
+    createdAt: partial.updatedAt ? partial.updatedAt - 1 : new Date("2000-01-01T00:00:00Z").getTime(),
+    updatedAt: partial.createdAt ? partial.createdAt + 1 : new Date("2000-01-01T00:01:00Z").getTime(),
   };
   return deepMerge(base, partial as SyncInfo);
 }

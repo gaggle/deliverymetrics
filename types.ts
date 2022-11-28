@@ -21,8 +21,7 @@ type UnionToSect<U> = UnionToParm<U> extends (k: infer I) => void ? I : never;
 type ExtractParm<F> = F extends { (a: infer A): void } ? A : never;
 type SpliceOne<Union> = Exclude<Union, ExtractOne<Union>>;
 type ExtractOne<Union> = ExtractParm<UnionToSect<UnionToParm<Union>>>;
-type ToTupleRec<Union, Rslt extends unknown[]> = SpliceOne<Union> extends never
-  ? [ExtractOne<Union>, ...Rslt]
+type ToTupleRec<Union, Rslt extends unknown[]> = SpliceOne<Union> extends never ? [ExtractOne<Union>, ...Rslt]
   : ToTupleRec<SpliceOne<Union>, [ExtractOne<Union>, ...Rslt]>;
 
 /**
@@ -37,8 +36,7 @@ type ToTupleRec<Union, Rslt extends unknown[]> = SpliceOne<Union> extends never
  */
 export type ToTuple<Union> = ToTupleRec<Union, []>;
 
-export type Tail<T extends unknown[]> = T extends [infer Head, ...infer Tail]
-  ? Tail
+export type Tail<T extends unknown[]> = T extends [infer Head, ...infer Tail] ? Tail
   : never;
 
 export type RequestMethod = "GET" | "POST";

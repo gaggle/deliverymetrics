@@ -84,9 +84,7 @@ export const zodCastToString = z.preprocess(
 );
 
 export function stringifyPull(pull: GithubPull): string {
-  return `#${pull.number} (${
-    pull.draft ? "draft" : pull.state
-  }) ${pull._links.html.href}`;
+  return `#${pull.number} (${pull.draft ? "draft" : pull.state}) ${pull._links.html.href}`;
 }
 
 export function stringifyUpdatedPull(
