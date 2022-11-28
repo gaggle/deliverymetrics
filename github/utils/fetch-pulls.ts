@@ -1,39 +1,14 @@
 import { debug } from "log";
 import { deepMerge } from "deep-merge";
 
-import { fetchExhaustively } from "../../fetching/mod.ts";
-import { Retrier } from "../../fetching/mod.ts";
+import { fetchExhaustively, Retrier } from "../../fetching/mod.ts";
 
-import { Epoch, RequestMethod } from "../../types.ts";
+import { Epoch } from "../../types.ts";
 import { stringifyPull } from "../../utils.ts";
 
 import { GithubPull, githubRestSpec } from "../types/mod.ts";
 
-function createGithubRequest(
-  {
-    token,
-    body,
-    method,
-    url,
-  }: {
-    token: string;
-    body?: Record<string, string>;
-    method: RequestMethod;
-    url: string;
-  },
-): Request {
-  const uri = new URL(url);
-
-  return new Request(uri.toString(), {
-    body: JSON.stringify(body),
-    headers: {
-      "Accept": "Accept: application/vnd.github.v3+json",
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    method,
-  });
-}
+import { createGithubRequest } from "./create-github-request.ts";
 
 type FetchPullsOpts = { from: Epoch | undefined; retrier: Retrier };
 
