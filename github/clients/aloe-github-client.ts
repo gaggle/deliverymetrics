@@ -36,9 +36,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
    * Default sort is by `updated_at`
    */
   async *findPulls(
-    { sort }: Partial<
-      { sort: { key: GithubPullDateKey; order?: "asc" | "desc" } }
-    > = {},
+    { sort }: Partial<{ sort: { key: GithubPullDateKey; order?: "asc" | "desc" } }> = {},
   ): AsyncGenerator<GithubPull> {
     const sortedPulls = sortPullsByKey(
       await this.db.pulls.findMany(),
@@ -66,9 +64,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     );
   }
 
-  async findLatestSync(): Promise<
-    { createdAt: Epoch; updatedAt: Epoch } | undefined
-  > {
+  async findLatestSync(): Promise<{ createdAt: Epoch; updatedAt: Epoch } | undefined> {
     const syncs = await this.db.syncs.findMany();
     return syncs[0];
   }
