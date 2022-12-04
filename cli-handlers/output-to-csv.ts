@@ -34,12 +34,7 @@ const prRemainingHeaders = Object.keys(githubPullSchema.shape)
   .filter((n) => !(prPrimaryHeaders.slice() as string[]).includes(n))
   .filter((n) => !(prIgnoreHeaders.slice() as string[]).includes(n)) as unknown as PrRemainingHeaders;
 type PrRemainingHeaders = Readonly<
-  ToTuple<
-    keyof Omit<
-      GithubPull,
-      typeof prPrimaryHeaders[number] | typeof prIgnoreHeaders[number]
-    >
-  >
+  ToTuple<keyof Omit<GithubPull, typeof prPrimaryHeaders[number] | typeof prIgnoreHeaders[number]>>
 >;
 
 const prHeaders = [...prPrimaryHeaders, ...prRemainingHeaders] as const;
