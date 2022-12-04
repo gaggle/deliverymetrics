@@ -1,9 +1,12 @@
-import { AloeDatabase } from "../../db/aloe-database.ts";
 import { join } from "path";
-import { syncInfoSchema } from "../types/sync-info.ts";
-import { githubPullSchema } from "../types/github-pull.ts";
-import { AloeGithubClient, ReadonlyAloeGithubClient } from "./aloe-github-client.ts";
+
+import { AloeDatabase } from "../../db/mod.ts";
+
 import { assertUnreachable } from "../../utils.ts";
+
+import { boundGithubPullCommit, githubPullSchema, syncInfoSchema } from "../types/mod.ts";
+
+import { AloeGithubClient, ReadonlyAloeGithubClient } from "./aloe-github-client.ts";
 
 interface BaseOpts {
   persistenceDir: string;
@@ -25,14 +28,18 @@ export async function getAloeGithubClient(opts: ReadonlyAloeGithubClientOpts): P
 export async function getAloeGithubClient(
   opts: AloeGithubClientOpts | ReadonlyAloeGithubClientOpts,
 ): Promise<AloeGithubClient | ReadonlyAloeGithubClient> {
-  const db = {
-    syncs: await AloeDatabase.new({
-      path: join(opts.persistenceDir, "syncs.json"),
-      schema: syncInfoSchema,
+  const db: ConstructorParameters<typeof AloeGithubClient>[0]["db"] = {
+    pullCommits: await AloeDatabase.new({
+      path: join(opts.persistenceDir, "pull-commits.json"),
+      schema: boundGithubPullCommit,
     }),
     pulls: await AloeDatabase.new({
       path: join(opts.persistenceDir, "pulls.json"),
       schema: githubPullSchema,
+    }),
+    syncs: await AloeDatabase.new({
+      path: join(opts.persistenceDir, "syncs.json"),
+      schema: syncInfoSchema,
     }),
   };
 

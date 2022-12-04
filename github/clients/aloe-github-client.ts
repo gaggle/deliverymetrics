@@ -3,13 +3,15 @@ import { groupBy } from "group-by";
 
 import { AloeDatabase } from "../../db/mod.ts";
 
-import { asyncToArray, first } from "../../utils.ts";
+import { asyncToArray, first, inspectIter } from "../../utils.ts";
 import { Epoch } from "../../types.ts";
 
+import { fetchPullCommits } from "../utils/fetch-pull-commits.ts";
 import { fetchPulls } from "../utils/fetch-pulls.ts";
 import { sortPullsByKey } from "../utils/sorting.ts";
 
 import {
+  BoundGithubPullCommit,
   GithubClient,
   GithubDiff,
   GithubPull,
@@ -19,6 +21,7 @@ import {
 } from "../types/mod.ts";
 
 interface AloeGithubClientDb {
+  pullCommits: AloeDatabase<BoundGithubPullCommit>;
   pulls: AloeDatabase<GithubPull>;
   syncs: AloeDatabase<{ createdAt: Epoch; updatedAt: Epoch }>;
 }
@@ -67,6 +70,13 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     );
   }
 
+  async *findPullCommits(opts?: Partial<{ pr: number }>): AsyncGenerator<BoundGithubPullCommit> {
+    const pullCommits = await this.db.pullCommits.findMany(opts?.pr ? { pr: opts.pr } : undefined);
+    for (const el of pullCommits) {
+      yield el;
+    }
+  }
+
   async findLatestSync(): Promise<{ createdAt: Epoch; updatedAt: Epoch } | undefined> {
     const syncs = await this.db.syncs.findMany();
     return syncs[0];
@@ -92,7 +102,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     this.token = opts.token;
   }
 
-  async sync(opts: Partial<{ progress: (type: "pull") => void }> = {}): Promise<GithubDiff> {
+  async sync(opts: Partial<{ progress: (type: "commit" | "pull") => void }> = {}): Promise<GithubDiff> {
     const { progress } = { progress: () => {}, ...opts };
     const lastSync = await this.findLatestSync();
 
@@ -116,6 +126,16 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
       fetchedPulls.push(pull);
       await this.db.pulls.insertOne(pull);
       await progress("pull");
+    }
+
+    for (const pull of fetchedPulls) {
+      const commits = await asyncToArray(
+        inspectIter(
+          () => progress("commit"),
+          _internals.fetchPullCommits({ commits_url: pull.commits_url }, this.token),
+        ),
+      );
+      await this.db.pullCommits.insertMany(commits.map((commit) => ({ ...commit, pr: pull.number })));
     }
 
     sync = await this.db.syncs.updateOne(sync, {
@@ -142,5 +162,6 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 }
 
 export const _internals = {
+  fetchPullCommits,
   fetchPulls,
 };

@@ -20,7 +20,7 @@ Deno.test("fetchPullCommits", async (t) => {
         assertSpyCalls(stub, 1);
         const request = stub.calls[0].args["0"] as Request;
         assertEquals(request.method, "GET");
-        assertEquals(request.url, "https://foo/",);
+        assertEquals(request.url, "https://foo/");
         assertEquals(Array.from(request.headers.entries()), [
           ["accept", "Accept: application/vnd.github.v3+json"],
           ["authorization", "Bearer token"],
@@ -90,23 +90,21 @@ Deno.test("fetchPullCommits", async (t) => {
               status: 200,
               statusText: "OK",
               headers: new Headers({
-                link:
-                  "<https://foo?page=2>; rel=\"next\", <https://foo?page=3>; rel=\"last\"",
+                link: '<https://foo?page=2>; rel="next", <https://foo?page=3>; rel="last"',
               }),
             }),
           ),
           Promise.resolve(
-            new Response(JSON.stringify([getFakePullCommit({commit: { message: "message 2" }})]), {
+            new Response(JSON.stringify([getFakePullCommit({ commit: { message: "message 2" } })]), {
               status: 200,
               statusText: "OK",
               headers: new Headers({
-                link:
-                  "<https://foo?page=3>; rel=\"next\", <https://foo?page=3>; rel=\"last\"",
+                link: '<https://foo?page=3>; rel="next", <https://foo?page=3>; rel="last"',
               }),
             }),
           ),
           Promise.resolve(
-            new Response(JSON.stringify([getFakePullCommit({commit: { message: "message 3" }})]), {
+            new Response(JSON.stringify([getFakePullCommit({ commit: { message: "message 3" } })]), {
               status: 200,
               statusText: "OK",
             }),
@@ -121,7 +119,7 @@ Deno.test("fetchPullCommits", async (t) => {
     await withStubs(
       async () => {
         await assertRejects(
-          () => asyncToArray(fetchPullCommits({commits_url: "https://foo"}, "token", { retrier })),
+          () => asyncToArray(fetchPullCommits({ commits_url: "https://foo" }, "token", { retrier })),
           Error,
           "Could not fetch https://foo/, got 404 Not Found: Some error",
         );

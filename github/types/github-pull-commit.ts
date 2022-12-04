@@ -102,3 +102,13 @@ export const githubPullCommitSchema = z.object({
   .describe("Commit");
 
 export type GithubPullCommit = z.infer<typeof githubPullCommitSchema>;
+
+/**
+ * "Bound" meaning bound to a pull, i.e. it has a `pr` field
+ */
+export const boundGithubPullCommit = githubPullCommitSchema.extend({ pr: z.number() });
+
+/**
+ * "Bound" meaning bound to a pull, i.e. it has a `pr` field
+ */
+export type BoundGithubPullCommit = z.infer<typeof boundGithubPullCommit>;

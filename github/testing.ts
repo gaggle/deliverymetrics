@@ -6,10 +6,11 @@ import { DeepPartial } from "../types.ts";
 
 import { AloeGithubClient, ReadonlyAloeGithubClient } from "./clients/aloe-github-client.ts";
 import {
+  BoundGithubPullCommit,
+  boundGithubPullCommit,
   GithubClient,
   GithubPull,
   GithubPullCommit,
-  githubPullCommitSchema,
   githubPullSchema,
   ReadonlyGithubClient,
   SyncInfo,
@@ -274,7 +275,7 @@ export function getFakeSyncInfo(partial: DeepPartial<SyncInfo> = {}): SyncInfo {
 
 export async function createFakeReadonlyGithubClient(
   { pullCommits, pulls, syncs }: Partial<{
-    pullCommits: Array<GithubPullCommit>;
+    pullCommits: Array<BoundGithubPullCommit>;
     pulls: Array<GithubPull>;
     syncs: Array<SyncInfo>;
   }> = {},
@@ -284,7 +285,7 @@ export async function createFakeReadonlyGithubClient(
     repo: "repo",
     db: {
       pullCommits: await MockAloeDatabase.new({
-        schema: githubPullCommitSchema,
+        schema: boundGithubPullCommit,
         documents: pullCommits,
       }),
       pulls: await MockAloeDatabase.new({
@@ -301,7 +302,7 @@ export async function createFakeReadonlyGithubClient(
 
 export async function createFakeGithubClient(
   { pullCommits, pulls, syncs }: Partial<{
-    pullCommits: Array<GithubPullCommit>;
+    pullCommits: Array<BoundGithubPullCommit>;
     pulls: Array<GithubPull>;
     syncs: Array<SyncInfo>;
   }> = {},
@@ -312,7 +313,7 @@ export async function createFakeGithubClient(
     token: "token",
     db: {
       pullCommits: await MockAloeDatabase.new({
-        schema: githubPullCommitSchema,
+        schema: boundGithubPullCommit,
         documents: pullCommits,
       }),
       pulls: await MockAloeDatabase.new({

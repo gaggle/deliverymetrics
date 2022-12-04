@@ -2,12 +2,13 @@ import { assertEquals } from "dev:asserts";
 
 import { asyncToArray } from "../../utils.ts";
 
-import { GithubPull, ReadonlyGithubClient, SyncInfo } from "../types/mod.ts";
+import { BoundGithubPullCommit, GithubPull, ReadonlyGithubClient, SyncInfo } from "../types/mod.ts";
 
 import { createFakeGithubClient, createFakeReadonlyGithubClient, getFakePull } from "../testing.ts";
 
 async function* yieldGithubClient(
   opts?: {
+    pullCommits?: Array<BoundGithubPullCommit>;
     pulls?: Array<GithubPull>;
     syncs?: Array<SyncInfo>;
   },
