@@ -1,6 +1,7 @@
 .coverage/
 .deliverymetrics-data/
 .output/
+.vscode/
 dm-*-*
 
 dev-fixtures/**
