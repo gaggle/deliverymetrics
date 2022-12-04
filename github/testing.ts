@@ -8,11 +8,96 @@ import { AloeGithubClient, ReadonlyAloeGithubClient } from "./clients/aloe-githu
 import {
   GithubClient,
   GithubPull,
+  GithubPullCommit,
+  githubPullCommitSchema,
   githubPullSchema,
   ReadonlyGithubClient,
   SyncInfo,
   syncInfoSchema,
 } from "./types/mod.ts";
+
+export function getFakePullCommit(partial: DeepPartial<GithubPullCommit> = {}): GithubPullCommit {
+  const base: GithubPullCommit = {
+    sha: "de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3",
+    node_id: "A_bcDEFGtYwNoAKGU0Yzk4YjIyNTEzMjk3ZjgzYjNmMWYxNzU1MGIyMDBlNzU0YTc2OTc",
+    commit: {
+      author: {
+        name: "author",
+        email: "author@example.com",
+        date: "1980-02-26T00:00:00Z",
+      },
+      committer: {
+        name: "committer",
+        email: "committer@example.com",
+        date: "2000-01-01T00:00:00Z",
+      },
+      message: "commit message",
+      tree: {
+        sha: "de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3",
+        url: "https://api.github.com/repos/owner/repo/git/trees/de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3",
+      },
+      url: "https://api.github.com/repos/owner/repo/git/commits/de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3",
+      comment_count: 0,
+      verification: {
+        verified: false,
+        reason: "unsigned",
+        signature: null,
+        payload: null,
+      },
+    },
+    url: "https://api.github.com/repos/owner/repo/commits/de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3",
+    html_url: "https://github.com/owner/repo/commit/de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3",
+    comments_url: "https://api.github.com/repos/owner/repo/commits/de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3/comments",
+    author: {
+      login: "owner",
+      id: 1234567,
+      node_id: "ABCdOk9yZ2FuaXphdGlvbjQ1MzAxNjQ=",
+      avatar_url: "https://avatars.githubusercontent.com/u/1234567?v=4",
+      gravatar_id: "",
+      url: "https://api.github.com/users/owner",
+      html_url: "https://github.com/owner",
+      followers_url: "https://api.github.com/users/owner/followers",
+      following_url: "https://api.github.com/users/owner/following{/other_user}",
+      gists_url: "https://api.github.com/users/owner/gists{/gist_id}",
+      starred_url: "https://api.github.com/users/owner/starred{/owner}{/repo}",
+      subscriptions_url: "https://api.github.com/users/owner/subscriptions",
+      organizations_url: "https://api.github.com/users/owner/orgs",
+      repos_url: "https://api.github.com/users/owner/repos",
+      events_url: "https://api.github.com/users/owner/events{/privacy}",
+      received_events_url: "https://api.github.com/users/owner/received_events",
+      type: "User",
+      site_admin: false,
+    },
+    committer: {
+      login: "owner",
+      id: 1234567,
+      node_id: "ABCdOk9yZ2FuaXphdGlvbjQ1MzAxNjQ=",
+      avatar_url: "https://avatars.githubusercontent.com/u/1234567?v=4",
+      gravatar_id: "",
+      url: "https://api.github.com/users/owner",
+      html_url: "https://github.com/owner",
+      followers_url: "https://api.github.com/users/owner/followers",
+      following_url: "https://api.github.com/users/owner/following{/other_user}",
+      gists_url: "https://api.github.com/users/owner/gists{/gist_id}",
+      starred_url: "https://api.github.com/users/owner/starred{/owner}{/repo}",
+      subscriptions_url: "https://api.github.com/users/owner/subscriptions",
+      organizations_url: "https://api.github.com/users/owner/orgs",
+      repos_url: "https://api.github.com/users/owner/repos",
+      events_url: "https://api.github.com/users/owner/events{/privacy}",
+      received_events_url: "https://api.github.com/users/owner/received_events",
+      type: "User",
+      site_admin: false,
+    },
+    parents: [
+      {
+        sha: "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12",
+        url: "https://api.github.com/repos/owner/repo/commits/2fd4e1c67a2d28fced849ee1bb76e7391b93eb12",
+        html_url: "https://github.com/owner/repo/commit/2fd4e1c67a2d28fced849ee1bb76e7391b93eb12",
+      },
+    ],
+  };
+  return deepMerge(base, partial as GithubPullCommit);
+}
 
 export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
   const repo: GithubPull["base"]["repo"] = {
@@ -184,7 +269,8 @@ export function getFakeSyncInfo(partial: DeepPartial<SyncInfo> = {}): SyncInfo {
 }
 
 export async function createFakeReadonlyGithubClient(
-  { pulls, syncs }: Partial<{
+  { pullCommits, pulls, syncs }: Partial<{
+    pullCommits: Array<GithubPullCommit>;
     pulls: Array<GithubPull>;
     syncs: Array<SyncInfo>;
   }> = {},
@@ -193,6 +279,10 @@ export async function createFakeReadonlyGithubClient(
     owner: "owner",
     repo: "repo",
     db: {
+      pullCommits: await MockAloeDatabase.new({
+        schema: githubPullCommitSchema,
+        documents: pullCommits,
+      }),
       pulls: await MockAloeDatabase.new({
         schema: githubPullSchema,
         documents: pulls,
@@ -206,7 +296,8 @@ export async function createFakeReadonlyGithubClient(
 }
 
 export async function createFakeGithubClient(
-  { pulls, syncs }: Partial<{
+  { pullCommits, pulls, syncs }: Partial<{
+    pullCommits: Array<GithubPullCommit>;
     pulls: Array<GithubPull>;
     syncs: Array<SyncInfo>;
   }> = {},
@@ -216,6 +307,10 @@ export async function createFakeGithubClient(
     repo: "repo",
     token: "token",
     db: {
+      pullCommits: await MockAloeDatabase.new({
+        schema: githubPullCommitSchema,
+        documents: pullCommits,
+      }),
       pulls: await MockAloeDatabase.new({
         schema: githubPullSchema,
         documents: pulls,

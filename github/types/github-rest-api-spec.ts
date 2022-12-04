@@ -1,6 +1,7 @@
 import * as z from "zod";
 
-import { githubPullSchema } from "./github-pull.ts";
+import { GithubPull, githubPullSchema } from "./github-pull.ts";
+import { githubPullCommitSchema } from "./github-pull-commit.ts";
 
 export const githubRestSpec = {
   /**
@@ -15,5 +16,12 @@ export const githubRestSpec = {
       return url.toString();
     },
     schema: z.array(githubPullSchema),
+  },
+  /**
+   * https://docs.github.com/en/rest/pulls/pulls#list-commits-on-a-pull-request
+   */
+  pullCommits: {
+    getUrl: (pull: Pick<GithubPull, "commits_url">) => pull.commits_url,
+    schema: z.array(githubPullCommitSchema),
   },
 } as const;
