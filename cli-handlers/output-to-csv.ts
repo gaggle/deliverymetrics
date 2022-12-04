@@ -6,6 +6,7 @@ import { AloeDatabase } from "../db/mod.ts";
 import { GithubPull, githubPullSchema, ReadonlyAloeGithubClient, syncInfoSchema } from "../github/mod.ts";
 import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
+import { filterIter, inspectIter } from "../utils.ts";
 import { Tail, ToTuple } from "../types.ts";
 import { withFileOpen } from "../path-and-file-utils.ts";
 
@@ -191,30 +192,6 @@ async function* prLeadTimeAsCsv(
       "# of PRs Merged": el.mergedPRs.length.toString(),
       "Merged PRs": el.mergedPRs.toString(),
     };
-  }
-}
-
-async function* inspectIter<T>(
-  callback: (el: T, index: number) => void,
-  iter: AsyncIterableIterator<T>,
-): AsyncIterableIterator<T> {
-  let idx = 0;
-  for await (const el of iter) {
-    callback(el, idx++);
-    yield el;
-  }
-}
-
-async function* filterIter<T>(
-  predicate: (value: T, index: number) => boolean,
-  iter: AsyncGenerator<T>,
-): AsyncGenerator<T> {
-  let idx = 0;
-  for await (const el of iter) {
-    if (!predicate(el, idx++)) {
-      continue;
-    }
-    yield el;
   }
 }
 

@@ -113,3 +113,25 @@ export function stringifyUpdatedPull(
 export function assertUnreachable(_: never): never {
   throw new Error("Unreachable");
 }
+export async function* inspectIter<T>(
+  callback: (el: T, index: number) => void,
+  iter: AsyncIterableIterator<T>,
+): AsyncIterableIterator<T> {
+  let idx = 0;
+  for await (const el of iter) {
+    callback(el, idx++);
+    yield el;
+  }
+}
+export async function* filterIter<T>(
+  predicate: (value: T, index: number) => boolean,
+  iter: AsyncGenerator<T>,
+): AsyncGenerator<T> {
+  let idx = 0;
+  for await (const el of iter) {
+    if (!predicate(el, idx++)) {
+      continue;
+    }
+    yield el;
+  }
+}
