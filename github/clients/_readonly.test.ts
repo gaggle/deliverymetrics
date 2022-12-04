@@ -1,46 +1,19 @@
 import { assertEquals } from "dev:asserts";
 
-import { MockAloeDatabase } from "../../db/mod.ts";
-
 import { asyncToArray } from "../../utils.ts";
 
-import { GithubPull, githubPullSchema, ReadonlyGithubClient, SyncInfo, syncInfoSchema } from "../types/mod.ts";
+import { GithubPull, ReadonlyGithubClient, SyncInfo } from "../types/mod.ts";
 
-import { getFakePull } from "../testing.ts";
-
-import { AloeGithubClient, ReadonlyAloeGithubClient } from "./aloe-github-client.ts";
+import { createFakeGithubClient, createFakeReadonlyGithubClient, getFakePull } from "../testing.ts";
 
 async function* yieldGithubClient(
   opts?: {
-    ReadonlyAloeGithubClient?: {
-      pulls?: Array<GithubPull>;
-      syncs?: Array<SyncInfo>;
-    };
-    AloeGithubClient?: { pulls?: Array<GithubPull>; syncs?: Array<SyncInfo> };
+    pulls?: Array<GithubPull>;
+    syncs?: Array<SyncInfo>;
   },
 ): AsyncGenerator<ReadonlyGithubClient> {
-  const db = {
-    pulls: await MockAloeDatabase.new({
-      schema: githubPullSchema,
-      documents: opts?.ReadonlyAloeGithubClient?.pulls,
-    }),
-    syncs: await MockAloeDatabase.new({
-      schema: syncInfoSchema,
-      documents: opts?.ReadonlyAloeGithubClient?.syncs,
-    }),
-  };
-  yield new ReadonlyAloeGithubClient({
-    owner: "owner",
-    repo: "repo",
-    db,
-  });
-
-  yield new AloeGithubClient({
-    owner: "owner",
-    repo: "repo",
-    token: "token",
-    db,
-  });
+  yield createFakeReadonlyGithubClient(opts);
+  yield createFakeGithubClient(opts);
 }
 
 Deno.test("Github Client shared tests", async (t) => {
@@ -48,10 +21,7 @@ Deno.test("Github Client shared tests", async (t) => {
     await t.step("should say when it was last updated at", async (t) => {
       for await (
         const client of yieldGithubClient({
-          ReadonlyAloeGithubClient: {
-            syncs: [{ createdAt: 0, updatedAt: 10_000 }],
-          },
-          AloeGithubClient: { syncs: [{ createdAt: 0, updatedAt: 10_000 }] },
+          syncs: [{ createdAt: 0, updatedAt: 10_000 }],
         })
       ) {
         await t.step(`for ${client.constructor.name}`, async () => {
@@ -67,10 +37,7 @@ Deno.test("Github Client shared tests", async (t) => {
   await t.step("#findPulls", async (t) => {
     await t.step("should find all cached pulls", async () => {
       for await (
-        const client of yieldGithubClient({
-          ReadonlyAloeGithubClient: { pulls: [getFakePull()] },
-          AloeGithubClient: { pulls: [getFakePull()] },
-        })
+        const client of yieldGithubClient({ pulls: [getFakePull()] })
       ) {
         assertEquals(await asyncToArray(client.findPulls()), [
           getFakePull(),
@@ -95,10 +62,7 @@ Deno.test("Github Client shared tests", async (t) => {
         });
 
         for await (
-          const client of yieldGithubClient({
-            ReadonlyAloeGithubClient: { pulls: [pull90s, pull2ks, pull80s] },
-            AloeGithubClient: { pulls: [pull90s, pull2ks, pull80s] },
-          })
+          const client of yieldGithubClient({ pulls: [pull90s, pull2ks, pull80s] })
         ) {
           assertEquals(await asyncToArray(client.findPulls()), [
             pull80s,
@@ -123,10 +87,7 @@ Deno.test("Github Client shared tests", async (t) => {
     });
 
     for await (
-      const client of yieldGithubClient({
-        ReadonlyAloeGithubClient: { pulls: [createdRecent, createdOld] },
-        AloeGithubClient: { pulls: [createdRecent, createdOld] },
-      })
+      const client of yieldGithubClient({ pulls: [createdRecent, createdOld] })
     ) {
       assertEquals(
         await asyncToArray(client.findPulls({ sort: { key: "created_at" } })),
@@ -151,10 +112,7 @@ Deno.test("Github Client shared tests", async (t) => {
     });
 
     for await (
-      const client of yieldGithubClient({
-        ReadonlyAloeGithubClient: { pulls: [createdOld, createdRecent] },
-        AloeGithubClient: { pulls: [createdOld, createdRecent] },
-      })
+      const client of yieldGithubClient({ pulls: [createdOld, createdRecent] })
     ) {
       assertEquals(
         await asyncToArray(
@@ -172,18 +130,10 @@ Deno.test("Github Client shared tests", async (t) => {
     await t.step("should find only the pull that's open", async () => {
       for await (
         const client of yieldGithubClient({
-          ReadonlyAloeGithubClient: {
-            pulls: [
-              getFakePull({ number: 1, state: "closed" }),
-              getFakePull({ number: 2, state: "open" }),
-            ],
-          },
-          AloeGithubClient: {
-            pulls: [
-              getFakePull({ number: 1, state: "closed" }),
-              getFakePull({ number: 2, state: "open" }),
-            ],
-          },
+          pulls: [
+            getFakePull({ number: 1, state: "closed" }),
+            getFakePull({ number: 2, state: "open" }),
+          ],
         })
       ) {
         assertEquals(await asyncToArray(client.findUnclosedPulls()), [
@@ -205,20 +155,11 @@ Deno.test("Github Client shared tests", async (t) => {
     await t.step("should find the most recent cached pull", async () => {
       for await (
         const client of yieldGithubClient({
-          ReadonlyAloeGithubClient: {
-            pulls: [
-              getFakePull({ number: 3, updated_at: "1980-01-01T00:00:00Z" }),
-              mostRecentPull,
-              getFakePull({ number: 1, updated_at: "1970-01-01T00:00:00Z" }),
-            ],
-          },
-          AloeGithubClient: {
-            pulls: [
-              getFakePull({ number: 3, updated_at: "1980-01-01T00:00:00Z" }),
-              mostRecentPull,
-              getFakePull({ number: 1, updated_at: "1970-01-01T00:00:00Z" }),
-            ],
-          },
+          pulls: [
+            getFakePull({ number: 3, updated_at: "1980-01-01T00:00:00Z" }),
+            mostRecentPull,
+            getFakePull({ number: 1, updated_at: "1970-01-01T00:00:00Z" }),
+          ],
         })
       ) {
         assertEquals(await client.findLatestPull(), mostRecentPull);

@@ -4,8 +4,15 @@ import { MockAloeDatabase } from "../db/mod.ts";
 
 import { DeepPartial } from "../types.ts";
 
-import { ReadonlyAloeGithubClient } from "./clients/aloe-github-client.ts";
-import { GithubPull, githubPullSchema, ReadonlyGithubClient, SyncInfo, syncInfoSchema } from "./types/mod.ts";
+import { AloeGithubClient, ReadonlyAloeGithubClient } from "./clients/aloe-github-client.ts";
+import {
+  GithubClient,
+  GithubPull,
+  githubPullSchema,
+  ReadonlyGithubClient,
+  SyncInfo,
+  syncInfoSchema,
+} from "./types/mod.ts";
 
 export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
   const repo: GithubPull["base"]["repo"] = {
@@ -176,10 +183,10 @@ export function getFakeSyncInfo(partial: DeepPartial<SyncInfo> = {}): SyncInfo {
   return deepMerge(base, partial as SyncInfo);
 }
 
-export async function createFakeGithubClient(
+export async function createFakeReadonlyGithubClient(
   { pulls, syncs }: Partial<{
-    pulls: Array<DeepPartial<GithubPull>>;
-    syncs: Array<DeepPartial<SyncInfo>>;
+    pulls: Array<GithubPull>;
+    syncs: Array<SyncInfo>;
   }> = {},
 ): Promise<ReadonlyGithubClient> {
   return new ReadonlyAloeGithubClient({
@@ -188,11 +195,34 @@ export async function createFakeGithubClient(
     db: {
       pulls: await MockAloeDatabase.new({
         schema: githubPullSchema,
-        documents: pulls?.map(getFakePull),
+        documents: pulls,
       }),
       syncs: await MockAloeDatabase.new({
         schema: syncInfoSchema,
-        documents: syncs?.map(getFakeSyncInfo),
+        documents: syncs,
+      }),
+    },
+  });
+}
+
+export async function createFakeGithubClient(
+  { pulls, syncs }: Partial<{
+    pulls: Array<GithubPull>;
+    syncs: Array<SyncInfo>;
+  }> = {},
+): Promise<GithubClient> {
+  return new AloeGithubClient({
+    owner: "owner",
+    repo: "repo",
+    token: "token",
+    db: {
+      pulls: await MockAloeDatabase.new({
+        schema: githubPullSchema,
+        documents: pulls,
+      }),
+      syncs: await MockAloeDatabase.new({
+        schema: syncInfoSchema,
+        documents: syncs,
       }),
     },
   });

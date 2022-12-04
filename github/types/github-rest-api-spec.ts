@@ -15,5 +15,5 @@ export const githubRestSpec = {
       return url.toString();
     },
     schema: z.array(githubPullSchema),
-  }
+  },
 } as const;
