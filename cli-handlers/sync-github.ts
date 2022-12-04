@@ -3,7 +3,7 @@ import { join } from "path";
 import { AloeDatabase } from "../db/mod.ts";
 import { AloeGithubClient, githubPullSchema, syncInfoSchema } from "../github/mod.ts";
 
-import { formatGithubClientStatus, formatGithubSyncResult } from "./formatting.ts";
+import { dot, formatGithubClientStatus, formatGithubSyncResult } from "./formatting.ts";
 
 export async function githubSyncHandler(
   { owner, repo, token, persistenceRoot }: {
@@ -30,6 +30,8 @@ export async function githubSyncHandler(
   });
   console.log(await formatGithubClientStatus(github));
 
-  const syncResult = await github.sync();
+  const syncResult = await github.sync({ progress: dot });
+  console.log(""); // End the dot progress
+
   console.log(formatGithubSyncResult(syncResult));
 }

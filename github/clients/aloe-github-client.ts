@@ -93,7 +93,8 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     this.token = opts.token;
   }
 
-  async sync(): Promise<GithubDiff> {
+  async sync(opts: Partial<{ progress: (type: "pull") => void }> = {}): Promise<GithubDiff> {
+    const { progress } = { progress: () => {}, ...opts };
     const lastSync = await this.findLatestSync();
 
     const prevPullsByNumber = (await asyncToArray(this.findPulls()))
@@ -115,6 +116,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     ) {
       fetchedPulls.push(pull);
       await this.db.pulls.insertOne(pull);
+      await progress("pull");
     }
 
     sync = await this.db.syncs.updateOne(sync, {
