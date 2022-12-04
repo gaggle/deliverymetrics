@@ -2,8 +2,7 @@ import { ensureFile } from "fs";
 import { join } from "path";
 import { writeCSVObjects } from "csv";
 
-import { AloeDatabase } from "../db/mod.ts";
-import { GithubPull, githubPullSchema, ReadonlyAloeGithubClient, syncInfoSchema } from "../github/mod.ts";
+import { getAloeGithubClient, GithubPull, githubPullSchema } from "../github/mod.ts";
 import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
 import { filterIter, inspectIter } from "../utils.ts";
@@ -61,35 +60,13 @@ export async function outputToCsv(
     persistenceRoot: string;
   },
 ) {
-  const gh = new ReadonlyAloeGithubClient({
-    db: {
-      syncs: await AloeDatabase.new({
-        path: join(
-          persistenceRoot,
-          "github",
-          github.owner,
-          github.repo,
-          "syncs.json",
-        ),
-        schema: syncInfoSchema,
-      }),
-      pulls: await AloeDatabase.new({
-        path: join(
-          persistenceRoot,
-          "github",
-          github.owner,
-          github.repo,
-          "pulls.json",
-        ),
-        schema: githubPullSchema,
-      }),
-    },
+  const gh = await getAloeGithubClient({
+    type: "ReadonlyAloeGithubClient",
+    persistenceDir: join(persistenceRoot, "github", github.owner, github.repo),
     owner: github.owner,
     repo: github.repo,
   });
-  console.log(
-    await formatGithubClientStatus(gh, { mostRecent: false, unclosed: false }),
-  );
+  console.log(await formatGithubClientStatus(gh, { mostRecent: false, unclosed: false }));
 
   const pulls = gh.findPulls({ sort: { key: "created_at", order: "asc" } });
 

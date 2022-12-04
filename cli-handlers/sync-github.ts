@@ -1,7 +1,6 @@
 import { join } from "path";
 
-import { AloeDatabase } from "../db/mod.ts";
-import { AloeGithubClient, githubPullSchema, syncInfoSchema } from "../github/mod.ts";
+import { getAloeGithubClient } from "../github/mod.ts";
 
 import { dot, formatGithubClientStatus, formatGithubSyncResult } from "./formatting.ts";
 
@@ -13,19 +12,11 @@ export async function githubSyncHandler(
     persistenceRoot: string;
   },
 ) {
-  const github = new AloeGithubClient({
-    db: {
-      syncs: await AloeDatabase.new({
-        path: join(persistenceRoot, "github", owner, repo, "syncs.json"),
-        schema: syncInfoSchema,
-      }),
-      pulls: await AloeDatabase.new({
-        path: join(persistenceRoot, "github", owner, repo, "pulls.json"),
-        schema: githubPullSchema,
-      }),
-    },
-    owner,
+  const github = await getAloeGithubClient({
+    type: "AloeGithubClient",
+    persistenceDir: join(persistenceRoot, "github", owner, repo),
     repo,
+    owner,
     token,
   });
   console.log(await formatGithubClientStatus(github));
