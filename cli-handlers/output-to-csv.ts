@@ -2,8 +2,6 @@ import { ensureFile } from "fs";
 import { join } from "path";
 import { writeCSVObjects } from "csv";
 
-import { writeAll as streamWriteAll } from "stream-conversion";
-
 import { AloeDatabase } from "../db/mod.ts";
 import { GithubPull, githubPullSchema, ReadonlyAloeGithubClient, syncInfoSchema } from "../github/mod.ts";
 import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
@@ -11,7 +9,7 @@ import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 import { Tail, ToTuple } from "../types.ts";
 import { withFileOpen } from "../path-and-file-utils.ts";
 
-import { formatGithubClientStatus } from "./formatting.ts";
+import { dot, formatGithubClientStatus } from "./formatting.ts";
 
 const prPrimaryHeaders = [
   "number",
@@ -100,11 +98,6 @@ export async function outputToCsv(
   const pulls = gh.findPulls({ sort: { key: "created_at", order: "asc" } });
 
   const latestSync = await gh.findLatestSync();
-
-  function dot() {
-    const text = new TextEncoder().encode(".");
-    streamWriteAll(Deno.stdout, text);
-  }
 
   await Promise.all([
     writeCSVToFile(

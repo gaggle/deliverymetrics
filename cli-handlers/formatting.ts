@@ -1,3 +1,5 @@
+import { writeAll as streamWriteAll } from "stream-conversion";
+
 import { GithubClient, GithubPull, ReadonlyGithubClient } from "../github/mod.ts";
 
 import { asyncToArray, pluralize, stringifyPull, stringifyUpdatedPull } from "../utils.ts";
@@ -76,4 +78,9 @@ export function formatGithubSyncResult(
       `\n  And ${changedStates.length} changed state:\n    ${changedStates.map(stringifyUpdatedPull).join("\n    ")}`,
   });
   return msg;
+}
+
+export async function dot(): Promise<void> {
+  const text = new TextEncoder().encode(".");
+  await streamWriteAll(Deno.stdout, text);
 }
