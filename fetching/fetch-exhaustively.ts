@@ -27,6 +27,7 @@ export async function* fetchExhaustively(
   let currentRequest: Request | undefined = request;
   let pagesConsumed = 1;
 
+  debug(`Fetching ${request.url}`);
   do {
     const resp = await fetchLike(currentRequest);
     if (pagesConsumed > 1) {

@@ -10,7 +10,7 @@ import { GithubPull, githubRestSpec } from "../types/mod.ts";
 
 import { createGithubRequest } from "./create-github-request.ts";
 
-type FetchPullsOpts = { from: Epoch | undefined; retrier: Retrier };
+type FetchPullsOpts = { from?: Epoch; retrier: Retrier };
 
 export async function* fetchPulls(
   owner: string,
@@ -23,15 +23,12 @@ export async function* fetchPulls(
     retrier: new Retrier(),
   }, opts);
 
-  const url = githubRestSpec.pulls.getUrl(owner, repo);
-  url.searchParams.set("state", "all");
-  url.searchParams.set("sort", "updated");
-  url.searchParams.set("direction", "desc");
   const req = createGithubRequest({
     method: "GET",
     token,
-    url: url.toString(),
+    url: githubRestSpec.pulls.getUrl(owner, repo),
   });
+
   for await (
     const resp of fetchExhaustively(req, {
       fetchLike: retrier.fetch.bind(retrier),
@@ -43,19 +40,20 @@ export async function* fetchPulls(
           .text()}`,
       );
     }
-    debug(`Fetched ${resp.url}`);
 
     const data = await resp.json();
     githubRestSpec.pulls.schema.parse(data);
 
     for (const pull of data) {
-      const updatedAtDate = new Date(pull.updated_at);
-      if (from && updatedAtDate.getTime() < from) {
-        const fromDate = new Date(from);
-        debug(
-          `Reached pull not updated since ${fromDate.toLocaleString()}: ${stringifyPull(pull)}`,
-        );
-        return;
+      if (from) {
+        const updatedAtDate = new Date(pull.updated_at);
+        if (updatedAtDate.getTime() < from) {
+          const fromDate = new Date(from);
+          debug(
+            `Reached pull not updated since ${fromDate.toLocaleString()}: ${stringifyPull(pull)}`,
+          );
+          return;
+        }
       }
       yield pull;
     }
