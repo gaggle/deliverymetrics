@@ -31,10 +31,10 @@ help:
 	deno run $(ALLOW) ./mod.ts --help
 
 pull-github:
-	deno run $(ALLOW) ./mod.ts pull github ${GITHUB_REPO} ${GITHUB_TOKEN} --loglevel=DEBUG
+	deno run $(ALLOW) ./mod.ts pull github ${GITHUB_REPO} ${GITHUB_TOKEN} --loglevel=INFO
 
 output-csv:
-	deno run $(ALLOW) ./mod.ts output csv .output/csv ${GITHUB_REPO} --loglevel=DEBUG
+	deno run $(ALLOW) ./mod.ts output csv .output/csv ${GITHUB_REPO} --loglevel=INFO
 
 get-fixtures:
 	deno run $(ALLOW) ./dev-fixtures/mod.ts
