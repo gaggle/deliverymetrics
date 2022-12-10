@@ -16,7 +16,11 @@ import {
   syncInfoSchema,
 } from "./types/mod.ts";
 
-export function getFakePullCommit(partial: DeepPartial<GithubPullCommit> = {}): GithubPullCommit {
+export function getFakePullCommit(partial?: DeepPartial<GithubPullCommit>): GithubPullCommit;
+export function getFakePullCommit(partial?: DeepPartial<BoundGithubPullCommit>): BoundGithubPullCommit;
+export function getFakePullCommit(
+  partial: DeepPartial<GithubPullCommit | BoundGithubPullCommit> = {},
+): GithubPullCommit | BoundGithubPullCommit {
   const base: GithubPullCommit = {
     sha: "de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3",
     node_id: "A_bcDEFGtYwNoAKGU0Yzk4YjIyNTEzMjk3ZjgzYjNmMWYxNzU1MGIyMDBlNzU0YTc2OTc",
@@ -96,7 +100,7 @@ export function getFakePullCommit(partial: DeepPartial<GithubPullCommit> = {}): 
       },
     ],
   };
-  return deepMerge(base, partial as GithubPullCommit);
+  return deepMerge(base, partial as GithubPullCommit | BoundGithubPullCommit);
 }
 
 export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
