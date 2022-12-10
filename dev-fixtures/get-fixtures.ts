@@ -127,7 +127,11 @@ function createGithubRequest(
   });
 }
 
-async function fetchFixture(request: Request, filepath: string): Promise<void> {
+async function fetchFixture(
+  request: Request,
+  filepath: string,
+  { asJson }: Partial<{ asJson: boolean }> = {},
+): Promise<void> {
   if (await fileExists(filepath)) {
     console.log("Skipped fixture", relative(Deno.cwd(), filepath));
     return;
@@ -139,10 +143,14 @@ async function fetchFixture(request: Request, filepath: string): Promise<void> {
 
   let json: JSONValue | undefined;
   let text: string | undefined;
-  try {
-    json = await response.clone().json();
-  } catch (err) {
-    console.warn("\tFailed to parse response body as JSON", err.message);
+  if (asJson) {
+    try {
+      json = await response.clone().json();
+    } catch (err) {
+      console.warn("\tFailed to parse response body as JSON:", err.message);
+      text = await response.clone().text();
+    }
+  } else {
     text = await response.clone().text();
   }
 
