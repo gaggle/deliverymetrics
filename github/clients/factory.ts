@@ -18,6 +18,7 @@ type AloeGithubClientOpts = BaseOpts & {
   type: "AloeGithubClient";
   token: string;
 };
+
 type ReadonlyAloeGithubClientOpts = BaseOpts & {
   type: "ReadonlyAloeGithubClient";
   token?: never;
