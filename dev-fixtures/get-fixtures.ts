@@ -4,7 +4,7 @@ import { ensureDir } from "fs";
 import { getEnv } from "../utils.ts";
 import { JSONValue, RequestMethod } from "../types.ts";
 
-import { FetchSpec } from "./types.ts";
+import { FetchSpec, FetchSpecCommand } from "./types.ts";
 
 const metaDir = dirname(fromFileUrl(import.meta.url));
 
@@ -13,17 +13,15 @@ export async function fetchGithubFixtures(
   { token }: { token: string },
 ): Promise<void> {
   await Promise.all(commands.map((cmd) => {
-    switch (typeof cmd) {
-      case "string":
-        cmd = { url: cmd };
-    }
+    const strictCmd: FetchSpecCommand = typeof cmd === "string" ? { url: cmd } : cmd;
+
     const fixturePath = getFixturePath({
       method: "GET",
-      ...cmd,
+      ...strictCmd,
       prefix: "github",
     });
-    const req = createGithubRequest({ method: "GET", ...cmd, token });
-    return fetchFixture(req, fixturePath);
+    const req = createGithubRequest({ method: "GET", ...strictCmd, token });
+    return fetchFixture(req, fixturePath, { asJson: strictCmd.json !== undefined ? strictCmd.json : true });
   }));
 }
 
