@@ -10,6 +10,7 @@
  *
  * This metric is especially useful for raising questions and start investigations before it’s too late.
  * A good practice is to measure this number over time so that you can spot trends and behaviors more pragmatically.
+ *
  * https://sourcelevel.io/blog/5-metrics-engineering-managers-can-extract-from-pull-requests
  */
 import { GithubPull, ReadonlyGithubClient } from "../github/mod.ts";
