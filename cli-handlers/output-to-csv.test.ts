@@ -85,7 +85,7 @@ Deno.test("outputToCsv", async (t) => {
           base: JSON.stringify({
             label: "Foo:main",
             ref: "main",
-            sha: "de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3",
+            sha: "ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
           }),
           body: "",
           closed_at: "",
