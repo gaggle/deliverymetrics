@@ -57,6 +57,18 @@ class BaseAloeDatabase<Schema extends DatabaseDocument> {
   ): ReturnType<Database<Acceptable<Schema>>["updateOne"]> {
     return this.db.updateOne(...args);
   }
+
+  deleteOne(
+    ...args: Parameters<Database<Acceptable<Schema>>["deleteOne"]>
+  ): ReturnType<Database<Acceptable<Schema>>["deleteOne"]> {
+    return this.db.deleteOne(...args);
+  }
+
+  deleteMany(
+    ...args: Parameters<Database<Acceptable<Schema>>["deleteMany"]>
+  ): ReturnType<Database<Acceptable<Schema>>["deleteMany"]> {
+    return this.db.deleteMany(...args);
+  }
 }
 
 export class AloeDatabase<Schema extends DatabaseDocument> extends BaseAloeDatabase<Schema> {
