@@ -1,3 +1,4 @@
+import { debug } from "log";
 import { equal } from "equal";
 import { groupBy } from "group-by";
 
@@ -135,6 +136,8 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
           _internals.fetchPullCommits({ commits_url: pull.commits_url }, this.token),
         ),
       );
+      await this.db.pullCommits.deleteMany({ pr: pull.number });
+      debug(`Deleted pull commits bound to pr ${pull.number}`);
       await this.db.pullCommits.insertMany(commits.map((commit) => ({ ...commit, pr: pull.number })));
     }
 
