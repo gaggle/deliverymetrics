@@ -161,3 +161,9 @@ export async function withFileOpen(
     f.close();
   }
 }
+
+export async function* yieldDir(path: string) {
+  for await (const dirEntry of Deno.readDir(path)) {
+    yield dirEntry.name;
+  }
+}
