@@ -79,7 +79,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
 
   async findLatestSync(): Promise<{ createdAt: Epoch; updatedAt: Epoch } | undefined> {
     const syncs = await this.db.syncs.findMany();
-    return syncs[0];
+    return syncs[syncs.length - 1];
   }
 }
 

@@ -22,7 +22,7 @@ Deno.test("Github Client shared tests", async (t) => {
     await t.step("should say when it was last updated at", async (t) => {
       for await (
         const client of yieldGithubClient({
-          syncs: [{ createdAt: 0, updatedAt: 10_000 }],
+          syncs: [{ createdAt: 0, updatedAt: 5_000 }, { createdAt: 0, updatedAt: 10_000 }],
         })
       ) {
         await t.step(`for ${client.constructor.name}`, async () => {
