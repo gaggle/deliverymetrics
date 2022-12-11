@@ -9,6 +9,7 @@ import { Epoch } from "../../types.ts";
 
 import { fetchPullCommits } from "../utils/fetch-pull-commits.ts";
 import { fetchPulls } from "../utils/fetch-pulls.ts";
+import { fetchWorkflows } from "../utils/fetch-workflows.ts";
 import { sortPullsByKey } from "../utils/sorting.ts";
 
 import {
@@ -19,12 +20,14 @@ import {
   GithubPullDateKey,
   ReadonlyGithubClient,
   SyncInfo,
+  Workflow,
 } from "../types/mod.ts";
 
 interface AloeGithubClientDb {
   pullCommits: AloeDatabase<BoundGithubPullCommit>;
   pulls: AloeDatabase<GithubPull>;
   syncs: AloeDatabase<{ createdAt: Epoch; updatedAt: Epoch }>;
+  workflows: AloeDatabase<Workflow>;
 }
 
 export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
@@ -103,7 +106,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     this.token = opts.token;
   }
 
-  async sync(opts: Partial<{ progress: (type: "commit" | "pull") => void }> = {}): Promise<GithubDiff> {
+  async sync(opts: Partial<{ progress: (type: "commit" | "pull" | "workflow") => void }> = {}): Promise<GithubDiff> {
     const { progress } = { progress: () => {}, ...opts };
     const lastSync = await this.findLatestSync();
 
@@ -141,6 +144,12 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
       await this.db.pullCommits.insertMany(commits.map((commit) => ({ ...commit, pr: pull.number })));
     }
 
+    for await (const workflow of _internals.fetchWorkflows(this.owner, this.repo, this.token)) {
+      await this.db.workflows.deleteOne({ node_id: workflow.node_id });
+      await this.db.workflows.insertOne(workflow);
+      await progress("workflow");
+    }
+
     sync = await this.db.syncs.updateOne(sync, {
       ...sync,
       updatedAt: Date.now(),
@@ -167,4 +176,5 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 export const _internals = {
   fetchPullCommits,
   fetchPulls,
+  fetchWorkflows,
 };

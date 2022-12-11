@@ -19,7 +19,7 @@ export interface ReadonlyGithubClient {
 }
 
 export interface GithubClient extends ReadonlyGithubClient {
-  sync(opts?: Partial<{ progress: (type: "commit" | "pull") => void }>): Promise<GithubDiff>;
+  sync(opts?: Partial<{ progress: (type: "commit" | "pull" | "workflow") => void }>): Promise<GithubDiff>;
 }
 
 export type Sortable = Partial<{ sort: { key: GithubPullDateKey; order?: "asc" | "desc" } }>;

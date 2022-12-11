@@ -15,6 +15,8 @@ import {
   ReadonlyGithubClient,
   SyncInfo,
   syncInfoSchema,
+  Workflow,
+  workflowSchema,
 } from "./types/mod.ts";
 
 export function getFakePullCommit(partial?: DeepPartial<GithubPullCommit>): GithubPullCommit;
@@ -273,11 +275,28 @@ export function getFakeSyncInfo(partial: DeepPartial<SyncInfo> = {}): SyncInfo {
   return deepMerge(base, partial as SyncInfo);
 }
 
+export function getFakeWorkflow(partial: DeepPartial<Workflow> = {}): Workflow {
+  const base: Workflow = {
+    "id": 161335,
+    "node_id": "MDg6V29ya2Zsb3cxNjEzMzU=",
+    "name": "CI",
+    "path": ".github/workflows/blank.yaml",
+    "state": "active",
+    "created_at": "2020-01-08T23:48:37.000-08:00",
+    "updated_at": "2020-01-08T23:50:21.000-08:00",
+    "url": "https://api.github.com/repos/octo-org/octo-repo/actions/workflows/161335",
+    "html_url": "https://github.com/octo-org/octo-repo/blob/master/.github/workflows/161335",
+    "badge_url": "https://github.com/octo-org/octo-repo/workflows/CI/badge.svg",
+  };
+  return deepMerge(base, partial as Workflow);
+}
+
 export async function createFakeReadonlyGithubClient(
-  { pullCommits, pulls, syncs }: Partial<{
+  { pullCommits, pulls, syncs, workflows }: Partial<{
     pullCommits: Array<BoundGithubPullCommit>;
     pulls: Array<GithubPull>;
     syncs: Array<SyncInfo>;
+    workflows: Array<Workflow>;
   }> = {},
 ): Promise<ReadonlyGithubClient> {
   return new ReadonlyAloeGithubClient({
@@ -296,15 +315,20 @@ export async function createFakeReadonlyGithubClient(
         schema: syncInfoSchema,
         documents: syncs,
       }),
+      workflows: await MockAloeDatabase.new({
+        schema: workflowSchema,
+        documents: workflows,
+      }),
     },
   });
 }
 
 export async function createFakeGithubClient(
-  { pullCommits, pulls, syncs }: Partial<{
+  { pullCommits, pulls, syncs, workflows }: Partial<{
     pullCommits: Array<BoundGithubPullCommit>;
     pulls: Array<GithubPull>;
     syncs: Array<SyncInfo>;
+    workflows: Array<Workflow>;
   }> = {},
 ): Promise<GithubClient> {
   return new AloeGithubClient({
@@ -323,6 +347,10 @@ export async function createFakeGithubClient(
       syncs: await MockAloeDatabase.new({
         schema: syncInfoSchema,
         documents: syncs,
+      }),
+      workflows: await MockAloeDatabase.new({
+        schema: workflowSchema,
+        documents: workflows,
       }),
     },
   });

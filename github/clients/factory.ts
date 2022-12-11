@@ -10,6 +10,7 @@ import {
   githubPullSchema,
   ReadonlyGithubClient,
   syncInfoSchema,
+  workflowSchema,
 } from "../types/mod.ts";
 
 import { AloeGithubClient, ReadonlyAloeGithubClient } from "./aloe-github-client.ts";
@@ -47,6 +48,10 @@ export async function getGithubClient(
     syncs: await AloeDatabase.new({
       path: join(opts.persistenceDir, "syncs.json"),
       schema: syncInfoSchema,
+    }),
+    workflows: await AloeDatabase.new({
+      path: join(opts.persistenceDir, "workflows.json"),
+      schema: workflowSchema,
     }),
   };
 
