@@ -127,6 +127,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
       })
     ) {
       fetchedPulls.push(pull);
+      await this.db.pulls.deleteOne({ number: pull.number });
       await this.db.pulls.insertOne(pull);
       await progress("pull");
     }
