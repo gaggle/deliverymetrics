@@ -111,7 +111,7 @@ export async function outputToCsv(
         dot,
         prLeadTimeAsCsv(
           filterIter(
-            (el) => daysBetween(el.start, new Date(latestSync.updatedAt)) < 30,
+            (el) => latestSync.updatedAt ? daysBetween(el.start, new Date(latestSync.updatedAt)) < 30 : false,
             yieldPullRequestLeadTime(gh, { mode: "daily" }),
           ),
         ),

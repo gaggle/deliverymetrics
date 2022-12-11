@@ -5,7 +5,6 @@ import { groupBy } from "group-by";
 import { AloeDatabase } from "../../db/mod.ts";
 
 import { asyncToArray, first, inspectIter } from "../../utils.ts";
-import { Epoch } from "../../types.ts";
 
 import { fetchPullCommits } from "../utils/fetch-pull-commits.ts";
 import { fetchPulls } from "../utils/fetch-pulls.ts";
@@ -26,7 +25,7 @@ import {
 interface AloeGithubClientDb {
   pullCommits: AloeDatabase<BoundGithubPullCommit>;
   pulls: AloeDatabase<GithubPull>;
-  syncs: AloeDatabase<{ createdAt: Epoch; updatedAt: Epoch }>;
+  syncs: AloeDatabase<SyncInfo>;
   workflows: AloeDatabase<Workflow>;
 }
 
@@ -81,7 +80,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     }
   }
 
-  async findLatestSync(): Promise<{ createdAt: Epoch; updatedAt: Epoch } | undefined> {
+  async findLatestSync(): Promise<SyncInfo | undefined> {
     const syncs = await this.db.syncs.findMany();
     return syncs[syncs.length - 1];
   }
@@ -118,7 +117,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 
     let sync: SyncInfo = await this.db.syncs.insertOne({
       createdAt: Date.now(),
-      updatedAt: Date.now(),
+      updatedAt: undefined,
     });
 
     const fetchedPulls: Array<GithubPull> = [];

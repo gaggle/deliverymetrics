@@ -1,8 +1,7 @@
-import { Epoch } from "../../types.ts";
-
 import { BoundGithubPullCommit } from "./github-pull-commit.ts";
 import { GithubDiff } from "./sync-diff.ts";
 import { GithubPull, GithubPullDateKey } from "./github-pull.ts";
+import { SyncInfo } from "./sync-info.ts";
 
 export interface ReadonlyGithubClient {
   repoHtmlUrl: string;
@@ -15,7 +14,7 @@ export interface ReadonlyGithubClient {
 
   findPullCommits(opts?: Partial<{ pr: number }>): AsyncGenerator<BoundGithubPullCommit>;
 
-  findLatestSync(): Promise<{ createdAt: Epoch; updatedAt: Epoch; diff?: GithubDiff } | undefined>;
+  findLatestSync(): Promise<SyncInfo | undefined>;
 }
 
 export interface GithubClient extends ReadonlyGithubClient {
