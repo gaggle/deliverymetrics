@@ -1,6 +1,6 @@
 import { join } from "path";
 
-import { getAloeGithubClient } from "../github/mod.ts";
+import { getGithubClient } from "../github/mod.ts";
 
 import { dot, formatGithubClientStatus, formatGithubSyncResult } from "./formatting.ts";
 
@@ -12,8 +12,8 @@ export async function githubSyncHandler(
     persistenceRoot: string;
   },
 ) {
-  const github = await getAloeGithubClient({
-    type: "AloeGithubClient",
+  const github = await getGithubClient({
+    type: "GithubClient",
     persistenceDir: join(persistenceRoot, "github", owner, repo),
     repo,
     owner,

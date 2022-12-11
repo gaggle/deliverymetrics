@@ -2,7 +2,7 @@ import { ensureFile } from "fs";
 import { join } from "path";
 import { writeCSVObjects } from "csv";
 
-import { getAloeGithubClient, GithubPull, githubPullSchema } from "../github/mod.ts";
+import { getGithubClient, GithubPull, githubPullSchema } from "../github/mod.ts";
 import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
 import { filterIter, inspectIter } from "../utils.ts";
@@ -60,8 +60,8 @@ export async function outputToCsv(
     persistenceRoot: string;
   },
 ) {
-  const gh = await getAloeGithubClient({
-    type: "ReadonlyAloeGithubClient",
+  const gh = await getGithubClient({
+    type: "ReadonlyGithubClient",
     persistenceDir: join(persistenceRoot, "github", github.owner, github.repo),
     owner: github.owner,
     repo: github.repo,

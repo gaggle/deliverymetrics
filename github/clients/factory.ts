@@ -4,7 +4,13 @@ import { AloeDatabase } from "../../db/mod.ts";
 
 import { assertUnreachable } from "../../utils.ts";
 
-import { boundGithubPullCommit, githubPullSchema, syncInfoSchema } from "../types/mod.ts";
+import {
+  boundGithubPullCommit,
+  GithubClient,
+  githubPullSchema,
+  ReadonlyGithubClient,
+  syncInfoSchema,
+} from "../types/mod.ts";
 
 import { AloeGithubClient, ReadonlyAloeGithubClient } from "./aloe-github-client.ts";
 
@@ -14,21 +20,21 @@ interface BaseOpts {
   repo: string;
 }
 
-type AloeGithubClientOpts = BaseOpts & {
-  type: "AloeGithubClient";
+type GithubClientOpts = BaseOpts & {
+  type: "GithubClient";
   token: string;
 };
 
-type ReadonlyAloeGithubClientOpts = BaseOpts & {
-  type: "ReadonlyAloeGithubClient";
+type ReadonlyGithubClientOpts = BaseOpts & {
+  type: "ReadonlyGithubClient";
   token?: never;
 };
 
-export async function getAloeGithubClient(opts: AloeGithubClientOpts): Promise<AloeGithubClient>;
-export async function getAloeGithubClient(opts: ReadonlyAloeGithubClientOpts): Promise<ReadonlyAloeGithubClient>;
-export async function getAloeGithubClient(
-  opts: AloeGithubClientOpts | ReadonlyAloeGithubClientOpts,
-): Promise<AloeGithubClient | ReadonlyAloeGithubClient> {
+export async function getGithubClient(opts: GithubClientOpts): Promise<GithubClient>;
+export async function getGithubClient(opts: ReadonlyGithubClientOpts): Promise<ReadonlyGithubClient>;
+export async function getGithubClient(
+  opts: GithubClientOpts | ReadonlyGithubClientOpts,
+): Promise<GithubClient | ReadonlyGithubClient> {
   const db: ConstructorParameters<typeof AloeGithubClient>[0]["db"] = {
     pullCommits: await AloeDatabase.new({
       path: join(opts.persistenceDir, "pull-commits.json"),
@@ -46,14 +52,14 @@ export async function getAloeGithubClient(
 
   const { type } = opts;
   switch (type) {
-    case "AloeGithubClient":
+    case "GithubClient":
       return new AloeGithubClient({
         db,
         owner: opts.owner,
         repo: opts.repo,
         token: opts.token,
       });
-    case "ReadonlyAloeGithubClient":
+    case "ReadonlyGithubClient":
       return new ReadonlyAloeGithubClient({
         db,
         owner: opts.owner,
