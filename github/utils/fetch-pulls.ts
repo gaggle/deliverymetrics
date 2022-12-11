@@ -1,3 +1,4 @@
+import * as z from "zod";
 import { debug } from "log";
 import { deepMerge } from "deep-merge";
 
@@ -41,7 +42,7 @@ export async function* fetchPulls(
       );
     }
 
-    const data = await resp.json();
+    const data: z.infer<typeof githubRestSpec.pulls.schema> = await resp.json();
     githubRestSpec.pulls.schema.parse(data);
 
     for (const pull of data) {

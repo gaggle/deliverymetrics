@@ -1,3 +1,4 @@
+import * as z from "zod";
 import { deepMerge } from "deep-merge";
 
 import { Retrier } from "../../fetching/retrier.ts";
@@ -29,7 +30,7 @@ export async function* fetchPullCommits(
       throw new Error(`Could not fetch ${req.url}, got ${resp.status} ${resp.statusText}: ${await resp.text()}`);
     }
 
-    const data = await resp.json();
+    const data: z.infer<typeof githubRestSpec.pullCommits.schema> = await resp.json();
     githubRestSpec.pullCommits.schema.parse(data);
 
     for (const el of data) {
