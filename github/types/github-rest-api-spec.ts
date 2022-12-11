@@ -2,6 +2,7 @@ import * as z from "zod";
 
 import { GithubPull, githubPullSchema } from "./github-pull.ts";
 import { githubPullCommitSchema } from "./github-pull-commit.ts";
+import { workflowSchema } from "./github-workflow.ts";
 
 export const githubRestSpec = {
   /**
@@ -23,5 +24,15 @@ export const githubRestSpec = {
   pullCommits: {
     getUrl: (pull: Pick<GithubPull, "commits_url">) => pull.commits_url,
     schema: z.array(githubPullCommitSchema),
+  },
+  /**
+   * https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28
+   */
+  workflows: {
+    getUrl: (owner: string, repo: string) => {
+      const url = new URL(`https://api.github.com/repos/${owner}/${repo}/actions/workflows`);
+      return url.toString();
+    },
+    schema: z.object({ total_count: z.number().int(), workflows: z.array(workflowSchema) }),
   },
 } as const;
