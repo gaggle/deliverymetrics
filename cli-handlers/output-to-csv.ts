@@ -60,7 +60,7 @@ export async function outputToCsv(
     persistenceRoot: string;
   },
 ) {
-  const gh = await getGithubClient({
+  const gh = await _internals.getGithubClient({
     type: "ReadonlyGithubClient",
     persistenceDir: join(persistenceRoot, "github", github.owner, github.repo),
     owner: github.owner,
@@ -186,3 +186,7 @@ async function writeCSVToFile(
     { write: true, create: true, truncate: true },
   );
 }
+
+export const _internals = {
+  getGithubClient,
+};
