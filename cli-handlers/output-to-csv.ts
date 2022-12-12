@@ -68,8 +68,6 @@ export async function outputToCsv(
   });
   console.log(await formatGithubClientStatus(gh, { mostRecent: false, unclosed: false }));
 
-  const pulls = gh.findPulls({ sort: { key: "created_at", order: "asc" } });
-
   const latestSync = await gh.findLatestSync();
 
   await Promise.all([
@@ -77,7 +75,7 @@ export async function outputToCsv(
       join(outputDir, "all-pull-request-data.csv"),
       inspectIter(
         () => dot(),
-        githubPullsAsCsv(pulls),
+        githubPullsAsCsv(gh.findPulls({ sort: { key: "created_at", order: "asc" } })),
       ),
       { header: prHeaders.slice() as Array<string> },
     ),
