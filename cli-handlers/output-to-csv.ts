@@ -1,3 +1,4 @@
+import { CSVWriteCellOptions, CSVWriterOptions, writeCSVObjects } from "csv";
 import { ensureFile } from "fs";
 import { join } from "path";
 import { writeCSVObjects } from "csv";
@@ -5,9 +6,9 @@ import { writeCSVObjects } from "csv";
 import { getGithubClient, GithubPull, githubPullSchema } from "../github/mod.ts";
 import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
-import { filterIter, inspectIter } from "../utils.ts";
-import { Tail, ToTuple } from "../types.ts";
-import { withFileOpen } from "../path-and-file-utils.ts";
+import { asyncToArray, filterIter, inspectIter } from "../utils.ts";
+import { ToTuple } from "../types.ts";
+import { withFileOpen, withTempFile } from "../path-and-file-utils.ts";
 
 import { dot, formatGithubClientStatus } from "./formatting.ts";
 
@@ -172,17 +173,28 @@ async function* prLeadTimeAsCsv(
 
 async function writeCSVToFile(
   fp: string,
-  ...args: Tail<Parameters<typeof writeCSVObjects>>
+  iter: AsyncIterableIterator<{ [key: string]: string }>,
+  options: Partial<CSVWriterOptions & CSVWriteCellOptions> & { header: string[] },
 ) {
-  const f = fp;
-  await ensureFile(f);
-  await withFileOpen(
-    async (f) => {
-      await writeCSVObjects(f, ...args);
-    },
-    f,
-    { write: true, create: true, truncate: true },
-  );
+  let hasIterated = false;
+  await withTempFile(async (tmpFp) => {
+    await withFileOpen(
+      async (f) => {
+        await writeCSVObjects(
+          f,
+          inspectIter(() => hasIterated = true, iter),
+          options,
+        );
+      },
+      tmpFp,
+      { write: true, create: true, truncate: true },
+    );
+
+    if (hasIterated) {
+      await ensureFile(fp);
+      await Deno.copyFile(tmpFp, fp);
+    }
+  });
 }
 
 export const _internals = {
