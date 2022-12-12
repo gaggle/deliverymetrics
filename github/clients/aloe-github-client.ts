@@ -154,7 +154,9 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
       await progress("actions-workflow");
     }
 
-    for await (const run of _internals.fetchActionRuns(this.owner, this.repo, this.token)) {
+    for await (
+      const run of _internals.fetchActionRuns(this.owner, this.repo, this.token, { from: lastSync?.updatedAt })
+    ) {
       await this.db.actionRuns.deleteOne({ node_id: run.node_id });
       await this.db.actionRuns.insertOne(run);
       await progress("actions-run");

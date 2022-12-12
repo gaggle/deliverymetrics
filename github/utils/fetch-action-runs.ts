@@ -1,13 +1,16 @@
 import * as z from "zod";
+import { debug } from "log";
 import { deepMerge } from "deep-merge";
 
 import { fetchExhaustively, Retrier } from "../../fetching/mod.ts";
+
+import { Epoch } from "../../types.ts";
 
 import { ActionsRun, githubRestSpec } from "../types/mod.ts";
 
 import { createGithubRequest } from "./create-github-request.ts";
 
-type FetchRunsOpts = { retrier: Retrier };
+type FetchRunsOpts = { from?: Epoch; retrier: Retrier };
 
 export async function* fetchActionRuns(
   owner: string,
@@ -15,7 +18,10 @@ export async function* fetchActionRuns(
   token: string,
   opts: Partial<FetchRunsOpts> = {},
 ): AsyncGenerator<ActionsRun> {
-  const { retrier }: FetchRunsOpts = deepMerge({ retrier: new Retrier() }, opts);
+  const { from, retrier }: FetchRunsOpts = deepMerge({
+    from: undefined,
+    retrier: new Retrier(),
+  }, opts);
 
   const req = createGithubRequest({
     method: "GET",
@@ -39,6 +45,16 @@ export async function* fetchActionRuns(
     githubRestSpec.actionRuns.schema.parse(data);
 
     for (const el of data.workflow_runs) {
+      if (from) {
+        const updatedAtDate = new Date(el.updated_at);
+        if (updatedAtDate.getTime() < from) {
+          const fromDate = new Date(from);
+          debug(
+            `Reached run not updated since ${fromDate.toLocaleString()}: ${el.html_url}`,
+          );
+          return;
+        }
+      }
       yield el;
     }
   }
