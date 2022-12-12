@@ -11,7 +11,9 @@ import {
   safeReadTextFile,
   withTempDir,
   withTempFile,
+  yieldDir,
 } from "./path-and-file-utils.ts";
+import { asyncToArray } from "./utils.ts";
 
 const modulePath = fromFileUrl(import.meta.url);
 
@@ -218,6 +220,24 @@ Deno.test("ensureFiles", async (t) => {
         ),
         "foo",
       );
+    });
+  });
+});
+
+Deno.test("yieldDir", async (t) => {
+  await t.step("yields a simple file in a folder", async () => {
+    await withTempDir(async (fp) => {
+      await ensureFiles(fp, [{ file: "foo.txt" }]);
+      const result = await asyncToArray(yieldDir(fp));
+      assertEquals(result, ["foo.txt"]);
+    });
+  });
+
+  await t.step("yields subfolder files", async () => {
+    await withTempDir(async (fp) => {
+      await ensureFiles(fp, [{ file: "foo/bar/baz.txt" }]);
+      const result = await asyncToArray(yieldDir(fp));
+      assertEquals(result, ["foo/bar/baz.txt"]);
     });
   });
 });

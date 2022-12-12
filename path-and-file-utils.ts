@@ -1,6 +1,6 @@
 import * as z from "zod";
 import { dirname, join, relative, resolve } from "path";
-import { ensureDir, ensureFile } from "fs";
+import { ensureDir, ensureFile, walk } from "fs";
 
 import { JSONValue } from "./types.ts";
 
@@ -131,7 +131,7 @@ export function ensureFiles(
   root: string,
   files: Array<{
     file: string;
-    data: string | Record<string, unknown> | Array<Record<string, unknown>>;
+    data?: string | Record<string, unknown> | Array<Record<string, unknown>>;
   }>,
 ): Promise<Array<string>> {
   return Promise.all(files.map(async ({ file, data }) => {
@@ -162,8 +162,10 @@ export async function withFileOpen(
   }
 }
 
-export async function* yieldDir(path: string) {
-  for await (const dirEntry of Deno.readDir(path)) {
-    yield dirEntry.name;
+export async function* yieldDir(path: string): AsyncIterable<string> {
+  for await (const step of walk(path)) {
+    if (step.isFile) {
+      yield relative(path, step.path);
+    }
   }
 }
