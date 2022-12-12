@@ -277,7 +277,7 @@ export function getFakeSyncInfo(partial: DeepPartial<SyncInfo> = {}): SyncInfo {
   return deepMerge(base, partial as SyncInfo);
 }
 
-export function getFakeWorkflow(partial: DeepPartial<Workflow> = {}): Workflow {
+export function getFakeActionWorkflow(partial: DeepPartial<Workflow> = {}): Workflow {
   const base: Workflow = {
     "id": 161335,
     "node_id": "MDg6V29ya2Zsb3cxNjEzMzU=",
@@ -293,7 +293,7 @@ export function getFakeWorkflow(partial: DeepPartial<Workflow> = {}): Workflow {
   return deepMerge(base, partial as Workflow);
 }
 
-export function getFakeActionsRuns(partial: DeepPartial<ActionsRun> = {}): ActionsRun {
+export function getFakeActionRun(partial: DeepPartial<ActionsRun> = {}): ActionsRun {
   const base: ActionsRun = {
     "id": 3648870083,
     "name": "Name",
@@ -558,11 +558,11 @@ export async function createFakeReadonlyGithubClient(
         schema: syncInfoSchema,
         documents: syncs,
       }),
-      workflows: await MockAloeDatabase.new({
+      actionWorkflows: await MockAloeDatabase.new({
         schema: workflowSchema,
         documents: workflows,
       }),
-      actionsRuns: await MockAloeDatabase.new({
+      actionRuns: await MockAloeDatabase.new({
         schema: actionsRunSchema,
         documents: actionsRuns,
       }),
@@ -596,11 +596,11 @@ export async function createFakeGithubClient(
         schema: syncInfoSchema,
         documents: syncs,
       }),
-      workflows: await MockAloeDatabase.new({
+      actionWorkflows: await MockAloeDatabase.new({
         schema: workflowSchema,
         documents: workflows,
       }),
-      actionsRuns: await MockAloeDatabase.new({
+      actionRuns: await MockAloeDatabase.new({
         schema: actionsRunSchema,
         documents: actionsRuns,
       }),

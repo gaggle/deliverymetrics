@@ -9,7 +9,7 @@ import { createGithubRequest } from "./create-github-request.ts";
 
 type FetchRunsOpts = { retrier: Retrier };
 
-export async function* fetchRuns(
+export async function* fetchActionRuns(
   owner: string,
   repo: string,
   token: string,
@@ -20,7 +20,7 @@ export async function* fetchRuns(
   const req = createGithubRequest({
     method: "GET",
     token,
-    url: githubRestSpec.runs.getUrl(owner, repo),
+    url: githubRestSpec.actionRuns.getUrl(owner, repo),
   });
 
   for await (
@@ -35,8 +35,8 @@ export async function* fetchRuns(
       );
     }
 
-    const data: z.infer<typeof githubRestSpec.runs.schema> = await resp.json();
-    githubRestSpec.runs.schema.parse(data);
+    const data: z.infer<typeof githubRestSpec.actionRuns.schema> = await resp.json();
+    githubRestSpec.actionRuns.schema.parse(data);
 
     for (const el of data.workflow_runs) {
       yield el;

@@ -9,7 +9,7 @@ import { createGithubRequest } from "./create-github-request.ts";
 
 type FetchWorkflowsOpts = { retrier: Retrier };
 
-export async function* fetchWorkflows(
+export async function* fetchActionWorkflows(
   owner: string,
   repo: string,
   token: string,
@@ -20,7 +20,7 @@ export async function* fetchWorkflows(
   const req = createGithubRequest({
     method: "GET",
     token,
-    url: githubRestSpec.workflows.getUrl(owner, repo),
+    url: githubRestSpec.actionWorkflows.getUrl(owner, repo),
   });
 
   for await (
@@ -35,10 +35,10 @@ export async function* fetchWorkflows(
       );
     }
 
-    const data: z.infer<typeof githubRestSpec.workflows.schema> = await resp.json();
-    githubRestSpec.workflows.schema.parse(data);
+    const data: z.infer<typeof githubRestSpec.actionWorkflows.schema> = await resp.json();
+    githubRestSpec.actionWorkflows.schema.parse(data);
 
-    for (const el of data.workflows) {
+    for (const el of data.actionWorkflows) {
       yield el;
     }
   }

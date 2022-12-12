@@ -9,10 +9,10 @@ import { withFakeTime, withStubs } from "../../dev-utils.ts";
 
 import {
   createFakeGithubClient,
-  getFakeActionsRuns,
+  getFakeActionRun,
+  getFakeActionWorkflow,
   getFakePull,
   getFakePullCommit,
-  getFakeWorkflow,
 } from "../testing.ts";
 
 import { _internals } from "./aloe-github-client.ts";
@@ -34,7 +34,7 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
       for await (const client of yieldGithubClient()) {
         await t.step(`for ${client.constructor.name}`, async () => {
           await withStubs(
-            async (fetchPullsStub, fetchPullCommitsStub, fetchWorkflowsStub) => {
+            async (fetchPullsStub, fetchPullCommitsStub, fetchActionWorkflowsStub) => {
               await client.sync();
 
               assertSpyCalls(fetchPullsStub, 1);
@@ -50,8 +50,8 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
                 "1": "token",
               });
 
-              assertSpyCalls(fetchWorkflowsStub, 1);
-              assertObjectMatch(fetchWorkflowsStub.calls[0].args, {
+              assertSpyCalls(fetchActionWorkflowsStub, 1);
+              assertObjectMatch(fetchActionWorkflowsStub.calls[0].args, {
                 "0": "owner",
                 "1": "repo",
                 "2": "token",
@@ -69,13 +69,13 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
             ),
             stub(
               _internals,
-              "fetchWorkflows",
-              returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
+              "fetchActionWorkflows",
+              returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
             ),
             stub(
               _internals,
-              "fetchRuns",
-              returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+              "fetchActionRuns",
+              returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
             ),
           );
         });
@@ -112,13 +112,13 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
             ),
             stub(
               _internals,
-              "fetchWorkflows",
-              returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
+              "fetchActionWorkflows",
+              returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
             ),
             stub(
               _internals,
-              "fetchRuns",
-              returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+              "fetchActionRuns",
+              returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
             ),
           );
         });
@@ -149,13 +149,13 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
           ),
           stub(
             _internals,
-            "fetchWorkflows",
-            returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
+            "fetchActionWorkflows",
+            returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
           ),
           stub(
             _internals,
-            "fetchRuns",
-            returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+            "fetchActionRuns",
+            returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
           ),
         );
       });
@@ -186,13 +186,13 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
           ),
           stub(
             _internals,
-            "fetchWorkflows",
-            returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
+            "fetchActionWorkflows",
+            returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
           ),
           stub(
             _internals,
-            "fetchRuns",
-            returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+            "fetchActionRuns",
+            returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
           ),
         );
       });
@@ -218,13 +218,13 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
             ),
             stub(
               _internals,
-              "fetchWorkflows",
-              returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
+              "fetchActionWorkflows",
+              returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
             ),
             stub(
               _internals,
-              "fetchRuns",
-              returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+              "fetchActionRuns",
+              returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
             ),
           );
         }, new FakeTime(10_000));
@@ -248,13 +248,13 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
             ),
             stub(
               _internals,
-              "fetchWorkflows",
-              returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
+              "fetchActionWorkflows",
+              returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
             ),
             stub(
               _internals,
-              "fetchRuns",
-              returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+              "fetchActionRuns",
+              returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
             ),
           );
         }, new FakeTime(10_000));
@@ -287,13 +287,13 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
           ),
           stub(
             _internals,
-            "fetchWorkflows",
-            returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
+            "fetchActionWorkflows",
+            returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
           ),
           stub(
             _internals,
-            "fetchRuns",
-            returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+            "fetchActionRuns",
+            returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
           ),
         );
       });
@@ -321,13 +321,13 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
           ),
           stub(
             _internals,
-            "fetchWorkflows",
-            returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
+            "fetchActionWorkflows",
+            returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
           ),
           stub(
             _internals,
-            "fetchRuns",
-            returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+            "fetchActionRuns",
+            returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
           ),
         );
       });

@@ -8,8 +8,8 @@ import { asyncToArray, first, inspectIter } from "../../utils.ts";
 
 import { fetchPullCommits } from "../utils/fetch-pull-commits.ts";
 import { fetchPulls } from "../utils/fetch-pulls.ts";
-import { fetchRuns } from "../utils/fetch-runs.ts";
-import { fetchWorkflows } from "../utils/fetch-workflows.ts";
+import { fetchActionRuns } from "../utils/fetch-action-runs.ts";
+import { fetchActionWorkflows } from "../utils/fetch-action-workflows.ts";
 import { sortPullsByKey } from "../utils/sorting.ts";
 
 import {
@@ -29,8 +29,8 @@ interface AloeGithubClientDb {
   pullCommits: AloeDatabase<BoundGithubPullCommit>;
   pulls: AloeDatabase<GithubPull>;
   syncs: AloeDatabase<SyncInfo>;
-  workflows: AloeDatabase<Workflow>;
-  actionsRuns: AloeDatabase<ActionsRun>;
+  actionWorkflows: AloeDatabase<Workflow>;
+  actionRuns: AloeDatabase<ActionsRun>;
 }
 
 export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
@@ -148,15 +148,15 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
       await this.db.pullCommits.insertMany(commits.map((commit) => ({ ...commit, pr: pull.number })));
     }
 
-    for await (const workflow of _internals.fetchWorkflows(this.owner, this.repo, this.token)) {
-      await this.db.workflows.deleteOne({ node_id: workflow.node_id });
-      await this.db.workflows.insertOne(workflow);
+    for await (const workflow of _internals.fetchActionWorkflows(this.owner, this.repo, this.token)) {
+      await this.db.actionWorkflows.deleteOne({ node_id: workflow.node_id });
+      await this.db.actionWorkflows.insertOne(workflow);
       await progress("actions-workflow");
     }
 
-    for await (const run of _internals.fetchRuns(this.owner, this.repo, this.token)) {
-      await this.db.actionsRuns.deleteOne({ node_id: run.node_id });
-      await this.db.actionsRuns.insertOne(run);
+    for await (const run of _internals.fetchActionRuns(this.owner, this.repo, this.token)) {
+      await this.db.actionRuns.deleteOne({ node_id: run.node_id });
+      await this.db.actionRuns.insertOne(run);
       await progress("actions-run");
     }
 
@@ -186,6 +186,6 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 export const _internals = {
   fetchPullCommits,
   fetchPulls,
-  fetchRuns,
-  fetchWorkflows,
+  fetchActionRuns,
+  fetchActionWorkflows,
 };
