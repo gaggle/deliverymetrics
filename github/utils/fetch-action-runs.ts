@@ -32,6 +32,8 @@ export async function* fetchActionRuns(
   for await (
     const resp of fetchExhaustively(req, {
       fetchLike: retrier.fetch.bind(retrier),
+      maxPages: 10_000,
+      // ↑ There are often many, MANY, runs
     })
   ) {
     if (!resp.ok) {

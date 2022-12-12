@@ -10,8 +10,11 @@ export const githubRestSpec = {
    * https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#list-workflow-runs-for-a-repository
    */
   actionRuns: {
-    getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/actions/runs`).toString(),
+    getUrl: (owner: string, repo: string) => {
+      const url = new URL(`https://api.github.com/repos/${owner}/${repo}/actions/runs`);
+      url.searchParams.set("per_page", "100");
+      return url.toString();
+    },
     schema: z.object({ total_count: z.number().int(), workflow_runs: z.array(actionRunSchema) }),
   },
   /**
