@@ -13,7 +13,8 @@ import { fetchActionWorkflows } from "../utils/fetch-action-workflows.ts";
 import { sortPullsByKey } from "../utils/sorting.ts";
 
 import {
-  ActionsRun,
+  ActionRun,
+  ActionWorkflow,
   BoundGithubPullCommit,
   GithubClient,
   GithubDiff,
@@ -22,15 +23,14 @@ import {
   ReadonlyGithubClient,
   SyncInfo,
   SyncProgressParams,
-  Workflow,
 } from "../types/mod.ts";
 
 interface AloeGithubClientDb {
   pullCommits: AloeDatabase<BoundGithubPullCommit>;
   pulls: AloeDatabase<GithubPull>;
   syncs: AloeDatabase<SyncInfo>;
-  actionWorkflows: AloeDatabase<Workflow>;
-  actionRuns: AloeDatabase<ActionsRun>;
+  actionWorkflows: AloeDatabase<ActionWorkflow>;
+  actionRuns: AloeDatabase<ActionRun>;
 }
 
 export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
@@ -125,42 +125,57 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     });
 
     const fetchedPulls: Array<GithubPull> = [];
-    for await (
-      const pull of _internals.fetchPulls(this.owner, this.repo, this.token, {
-        from: lastSync?.updatedAt,
-      })
-    ) {
-      fetchedPulls.push(pull);
-      await this.db.pulls.deleteOne({ number: pull.number });
-      await this.db.pulls.insertOne(pull);
-      await progress("pull");
-    }
 
-    for (const pull of fetchedPulls) {
-      const commits = await asyncToArray(
-        inspectIter(
-          () => progress("commit"),
-          _internals.fetchPullCommits({ commits_url: pull.commits_url }, this.token),
-        ),
-      );
-      await this.db.pullCommits.deleteMany({ pr: pull.number });
-      debug(`Deleted pull commits bound to pr ${pull.number}`);
-      await this.db.pullCommits.insertMany(commits.map((commit) => ({ ...commit, pr: pull.number })));
-    }
+    const handlePulls = async () => {
+      for await (
+        const pull of _internals.fetchPulls(this.owner, this.repo, this.token, {
+          from: lastSync?.updatedAt,
+        })
+      ) {
+        fetchedPulls.push(pull);
+        await this.db.pulls.deleteOne({ number: pull.number });
+        await this.db.pulls.insertOne(pull);
+        await progress("pull");
+      }
+    };
 
-    for await (const workflow of _internals.fetchActionWorkflows(this.owner, this.repo, this.token)) {
-      await this.db.actionWorkflows.deleteOne({ node_id: workflow.node_id });
-      await this.db.actionWorkflows.insertOne(workflow);
-      await progress("actions-workflow");
-    }
+    const handlePullCommits = async () => {
+      for (const pull of fetchedPulls) {
+        const commits = await asyncToArray(
+          inspectIter(
+            () => progress("commit"),
+            _internals.fetchPullCommits({ commits_url: pull.commits_url }, this.token),
+          ),
+        );
+        await this.db.pullCommits.deleteMany({ pr: pull.number });
+        debug(`Deleted pull commits bound to pr ${pull.number}`);
+        await this.db.pullCommits.insertMany(commits.map((commit) => ({ ...commit, pr: pull.number })));
+      }
+    };
 
-    for await (
-      const run of _internals.fetchActionRuns(this.owner, this.repo, this.token, { from: lastSync?.updatedAt })
-    ) {
-      await this.db.actionRuns.deleteOne({ node_id: run.node_id });
-      await this.db.actionRuns.insertOne(run);
-      await progress("actions-run");
-    }
+    const handleWorkflows = async () => {
+      for await (const workflow of _internals.fetchActionWorkflows(this.owner, this.repo, this.token)) {
+        await this.db.actionWorkflows.deleteOne({ node_id: workflow.node_id });
+        await this.db.actionWorkflows.insertOne(workflow);
+        await progress("actions-workflow");
+      }
+    };
+
+    const handleRuns = async () => {
+      for await (
+        const run of _internals.fetchActionRuns(this.owner, this.repo, this.token, { from: lastSync?.updatedAt })
+      ) {
+        await this.db.actionRuns.deleteOne({ node_id: run.node_id });
+        await this.db.actionRuns.insertOne(run);
+        await progress("actions-run");
+      }
+    };
+
+    await Promise.all([
+      handlePulls().then(() => handlePullCommits()),
+      handleWorkflows(),
+      handleRuns(),
+    ]);
 
     sync = await this.db.syncs.updateOne(sync, {
       ...sync,

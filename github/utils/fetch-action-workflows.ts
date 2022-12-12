@@ -3,7 +3,7 @@ import { deepMerge } from "deep-merge";
 
 import { fetchExhaustively, Retrier } from "../../fetching/mod.ts";
 
-import { githubRestSpec, Workflow } from "../types/mod.ts";
+import { ActionWorkflow, githubRestSpec } from "../types/mod.ts";
 
 import { createGithubRequest } from "./create-github-request.ts";
 
@@ -14,7 +14,7 @@ export async function* fetchActionWorkflows(
   repo: string,
   token: string,
   opts: Partial<FetchWorkflowsOpts> = {},
-): AsyncGenerator<Workflow> {
+): AsyncGenerator<ActionWorkflow> {
   const { retrier }: FetchWorkflowsOpts = deepMerge({ retrier: new Retrier() }, opts);
 
   const req = createGithubRequest({

@@ -6,8 +6,10 @@ import { DeepPartial } from "../types.ts";
 
 import { AloeGithubClient, ReadonlyAloeGithubClient } from "./clients/aloe-github-client.ts";
 import {
-  ActionsRun,
-  actionsRunSchema,
+  ActionRun,
+  actionRunSchema,
+  ActionWorkflow,
+  actionWorkflowSchema,
   BoundGithubPullCommit,
   boundGithubPullCommit,
   GithubClient,
@@ -17,8 +19,6 @@ import {
   ReadonlyGithubClient,
   SyncInfo,
   syncInfoSchema,
-  Workflow,
-  workflowSchema,
 } from "./types/mod.ts";
 
 export function getFakePullCommit(partial?: DeepPartial<GithubPullCommit>): GithubPullCommit;
@@ -277,8 +277,8 @@ export function getFakeSyncInfo(partial: DeepPartial<SyncInfo> = {}): SyncInfo {
   return deepMerge(base, partial as SyncInfo);
 }
 
-export function getFakeActionWorkflow(partial: DeepPartial<Workflow> = {}): Workflow {
-  const base: Workflow = {
+export function getFakeActionWorkflow(partial: DeepPartial<ActionWorkflow> = {}): ActionWorkflow {
+  const base: ActionWorkflow = {
     "id": 161335,
     "node_id": "MDg6V29ya2Zsb3cxNjEzMzU=",
     "name": "CI",
@@ -290,11 +290,11 @@ export function getFakeActionWorkflow(partial: DeepPartial<Workflow> = {}): Work
     "html_url": "https://github.com/octo-org/octo-repo/blob/master/.github/workflows/161335",
     "badge_url": "https://github.com/octo-org/octo-repo/workflows/CI/badge.svg",
   };
-  return deepMerge(base, partial as Workflow);
+  return deepMerge(base, partial as ActionWorkflow);
 }
 
-export function getFakeActionRun(partial: DeepPartial<ActionsRun> = {}): ActionsRun {
-  const base: ActionsRun = {
+export function getFakeActionRun(partial: DeepPartial<ActionRun> = {}): ActionRun {
+  const base: ActionRun = {
     "id": 3648870083,
     "name": "Name",
     "node_id": "ABC_deFOGOtYwM7ZfVbD",
@@ -530,7 +530,7 @@ export function getFakeActionRun(partial: DeepPartial<ActionsRun> = {}): Actions
       "deployments_url": "https://api.github.com/repos/owner/repo/deployments",
     },
   };
-  return deepMerge(base, partial as ActionsRun);
+  return deepMerge(base, partial as ActionRun);
 }
 
 export async function createFakeReadonlyGithubClient(
@@ -538,8 +538,8 @@ export async function createFakeReadonlyGithubClient(
     pullCommits: Array<BoundGithubPullCommit>;
     pulls: Array<GithubPull>;
     syncs: Array<SyncInfo>;
-    workflows: Array<Workflow>;
-    actionsRuns: Array<ActionsRun>;
+    workflows: Array<ActionWorkflow>;
+    actionsRuns: Array<ActionRun>;
   }> = {},
 ): Promise<ReadonlyGithubClient> {
   return new ReadonlyAloeGithubClient({
@@ -559,11 +559,11 @@ export async function createFakeReadonlyGithubClient(
         documents: syncs,
       }),
       actionWorkflows: await MockAloeDatabase.new({
-        schema: workflowSchema,
+        schema: actionWorkflowSchema,
         documents: workflows,
       }),
       actionRuns: await MockAloeDatabase.new({
-        schema: actionsRunSchema,
+        schema: actionRunSchema,
         documents: actionsRuns,
       }),
     },
@@ -575,8 +575,8 @@ export async function createFakeGithubClient(
     pullCommits: Array<BoundGithubPullCommit>;
     pulls: Array<GithubPull>;
     syncs: Array<SyncInfo>;
-    workflows: Array<Workflow>;
-    actionsRuns: Array<ActionsRun>;
+    workflows: Array<ActionWorkflow>;
+    actionsRuns: Array<ActionRun>;
   }> = {},
 ): Promise<GithubClient> {
   return new AloeGithubClient({
@@ -597,11 +597,11 @@ export async function createFakeGithubClient(
         documents: syncs,
       }),
       actionWorkflows: await MockAloeDatabase.new({
-        schema: workflowSchema,
+        schema: actionWorkflowSchema,
         documents: workflows,
       }),
       actionRuns: await MockAloeDatabase.new({
-        schema: actionsRunSchema,
+        schema: actionRunSchema,
         documents: actionsRuns,
       }),
     },

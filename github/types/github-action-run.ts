@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const actionsRunSchema = z.object({
+export const actionRunSchema = z.object({
   id: z.number().int().describe("The ID of the workflow run."),
   name: z
     .union([
@@ -503,4 +503,4 @@ export const actionsRunSchema = z.object({
     ),
 });
 
-export type ActionsRun = z.infer<typeof actionsRunSchema>;
+export type ActionRun = z.infer<typeof actionRunSchema>;

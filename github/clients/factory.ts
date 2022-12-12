@@ -5,13 +5,13 @@ import { AloeDatabase } from "../../db/mod.ts";
 import { assertUnreachable } from "../../utils.ts";
 
 import {
-  actionsRunSchema,
+  actionRunSchema,
+  actionWorkflowSchema,
   boundGithubPullCommit,
   GithubClient,
   githubPullSchema,
   ReadonlyGithubClient,
   syncInfoSchema,
-  workflowSchema,
 } from "../types/mod.ts";
 
 import { AloeGithubClient, ReadonlyAloeGithubClient } from "./aloe-github-client.ts";
@@ -52,11 +52,11 @@ export async function getGithubClient(
     }),
     actionWorkflows: await AloeDatabase.new({
       path: join(opts.persistenceDir, "action-workflows.json"),
-      schema: workflowSchema,
+      schema: actionWorkflowSchema,
     }),
     actionRuns: await AloeDatabase.new({
       path: join(opts.persistenceDir, "action-runs.json"),
-      schema: actionsRunSchema,
+      schema: actionRunSchema,
     }),
   };
 

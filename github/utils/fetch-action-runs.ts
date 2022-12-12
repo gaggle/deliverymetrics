@@ -6,7 +6,7 @@ import { fetchExhaustively, Retrier } from "../../fetching/mod.ts";
 
 import { Epoch } from "../../types.ts";
 
-import { ActionsRun, githubRestSpec } from "../types/mod.ts";
+import { ActionRun, githubRestSpec } from "../types/mod.ts";
 
 import { createGithubRequest } from "./create-github-request.ts";
 
@@ -17,7 +17,7 @@ export async function* fetchActionRuns(
   repo: string,
   token: string,
   opts: Partial<FetchRunsOpts> = {},
-): AsyncGenerator<ActionsRun> {
+): AsyncGenerator<ActionRun> {
   const { from, retrier }: FetchRunsOpts = deepMerge({
     from: undefined,
     retrier: new Retrier(),

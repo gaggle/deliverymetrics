@@ -1,9 +1,9 @@
 import * as z from "zod";
 
-import { actionsRunSchema } from "./github-actions-run.ts";
+import { actionRunSchema } from "./github-action-run.ts";
 import { GithubPull, githubPullSchema } from "./github-pull.ts";
 import { githubPullCommitSchema } from "./github-pull-commit.ts";
-import { workflowSchema } from "./github-workflow.ts";
+import { actionWorkflowSchema } from "./github-action-workflow.ts";
 
 export const githubRestSpec = {
   /**
@@ -12,7 +12,7 @@ export const githubRestSpec = {
   actionRuns: {
     getUrl: (owner: string, repo: string) =>
       new URL(`https://api.github.com/repos/${owner}/${repo}/actions/runs`).toString(),
-    schema: z.object({ total_count: z.number().int(), workflow_runs: z.array(actionsRunSchema) }),
+    schema: z.object({ total_count: z.number().int(), workflow_runs: z.array(actionRunSchema) }),
   },
   /**
    * https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28
@@ -20,7 +20,7 @@ export const githubRestSpec = {
   actionWorkflows: {
     getUrl: (owner: string, repo: string) =>
       new URL(`https://api.github.com/repos/${owner}/${repo}/actions/workflows`).toString(),
-    schema: z.object({ total_count: z.number().int(), actionWorkflows: z.array(workflowSchema) }),
+    schema: z.object({ total_count: z.number().int(), actionWorkflows: z.array(actionWorkflowSchema) }),
   },
   /**
    * https://docs.github.com/en/rest/pulls/pulls#list-commits-on-a-pull-request
