@@ -38,7 +38,7 @@ export async function* fetchActionWorkflows(
     const data: z.infer<typeof githubRestSpec.actionWorkflows.schema> = await resp.json();
     githubRestSpec.actionWorkflows.schema.parse(data);
 
-    for (const el of data.actionWorkflows) {
+    for (const el of data.workflows) {
       yield el;
     }
   }

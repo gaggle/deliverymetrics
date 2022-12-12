@@ -20,7 +20,7 @@ export const githubRestSpec = {
   actionWorkflows: {
     getUrl: (owner: string, repo: string) =>
       new URL(`https://api.github.com/repos/${owner}/${repo}/actions/workflows`).toString(),
-    schema: z.object({ total_count: z.number().int(), actionWorkflows: z.array(actionWorkflowSchema) }),
+    schema: z.object({ total_count: z.number().int(), workflows: z.array(actionWorkflowSchema) }),
   },
   /**
    * https://docs.github.com/en/rest/pulls/pulls#list-commits-on-a-pull-request
