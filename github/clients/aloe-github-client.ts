@@ -155,9 +155,12 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 
     const handleWorkflows = async () => {
       for await (const workflow of _internals.fetchActionWorkflows(this.owner, this.repo, this.token)) {
-        await this.db.actionWorkflows.deleteOne({ node_id: workflow.node_id });
-        await this.db.actionWorkflows.insertOne(workflow);
-        await progress("actions-workflow");
+        const current = await this.db.actionWorkflows.findOne({ node_id: workflow.node_id });
+        if (JSON.stringify(current) !== JSON.stringify(workflow)) {
+          await this.db.actionWorkflows.deleteOne({ node_id: workflow.node_id });
+          await this.db.actionWorkflows.insertOne(workflow);
+          await progress("actions-workflow");
+        }
       }
     };
 
