@@ -17,8 +17,14 @@ export interface ReadonlyGithubClient {
   findLatestSync(): Promise<SyncInfo | undefined>;
 }
 
+export type SyncProgressParams =
+  | "actions-run"
+  | "actions-workflow"
+  | "commit"
+  | "pull";
+
 export interface GithubClient extends ReadonlyGithubClient {
-  sync(opts?: Partial<{ progress: (type: "commit" | "pull" | "workflow") => void }>): Promise<GithubDiff>;
+  sync(opts?: Partial<{ progress: (type: SyncProgressParams) => void }>): Promise<GithubDiff>;
 }
 
 export type Sortable = Partial<{ sort: { key: GithubPullDateKey; order?: "asc" | "desc" } }>;

@@ -8,10 +8,12 @@ import { asyncToArray, first, inspectIter } from "../../utils.ts";
 
 import { fetchPullCommits } from "../utils/fetch-pull-commits.ts";
 import { fetchPulls } from "../utils/fetch-pulls.ts";
+import { fetchRuns } from "../utils/fetch-runs.ts";
 import { fetchWorkflows } from "../utils/fetch-workflows.ts";
 import { sortPullsByKey } from "../utils/sorting.ts";
 
 import {
+  ActionsRun,
   BoundGithubPullCommit,
   GithubClient,
   GithubDiff,
@@ -19,6 +21,7 @@ import {
   GithubPullDateKey,
   ReadonlyGithubClient,
   SyncInfo,
+  SyncProgressParams,
   Workflow,
 } from "../types/mod.ts";
 
@@ -27,6 +30,7 @@ interface AloeGithubClientDb {
   pulls: AloeDatabase<GithubPull>;
   syncs: AloeDatabase<SyncInfo>;
   workflows: AloeDatabase<Workflow>;
+  actionsRuns: AloeDatabase<ActionsRun>;
 }
 
 export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
@@ -105,7 +109,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     this.token = opts.token;
   }
 
-  async sync(opts: Partial<{ progress: (type: "commit" | "pull" | "workflow") => void }> = {}): Promise<GithubDiff> {
+  async sync(opts: Partial<{ progress: (type: SyncProgressParams) => void }> = {}): Promise<GithubDiff> {
     const { progress } = { progress: () => {}, ...opts };
     const lastSync = await this.findLatestSync();
 
@@ -147,7 +151,13 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     for await (const workflow of _internals.fetchWorkflows(this.owner, this.repo, this.token)) {
       await this.db.workflows.deleteOne({ node_id: workflow.node_id });
       await this.db.workflows.insertOne(workflow);
-      await progress("workflow");
+      await progress("actions-workflow");
+    }
+
+    for await (const run of _internals.fetchRuns(this.owner, this.repo, this.token)) {
+      await this.db.actionsRuns.deleteOne({ node_id: run.node_id });
+      await this.db.actionsRuns.insertOne(run);
+      await progress("actions-run");
     }
 
     sync = await this.db.syncs.updateOne(sync, {
@@ -176,5 +186,6 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 export const _internals = {
   fetchPullCommits,
   fetchPulls,
+  fetchRuns,
   fetchWorkflows,
 };

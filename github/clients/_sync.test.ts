@@ -7,7 +7,13 @@ import { BoundGithubPullCommit, GithubClient, GithubPull, SyncInfo } from "../ty
 import { arrayToAsyncGenerator, asyncToArray } from "../../utils.ts";
 import { withFakeTime, withStubs } from "../../dev-utils.ts";
 
-import { createFakeGithubClient, getFakePull, getFakePullCommit, getFakeWorkflow } from "../testing.ts";
+import {
+  createFakeGithubClient,
+  getFakeActionsRuns,
+  getFakePull,
+  getFakePullCommit,
+  getFakeWorkflow,
+} from "../testing.ts";
 
 import { _internals } from "./aloe-github-client.ts";
 
@@ -66,6 +72,11 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
               "fetchWorkflows",
               returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
             ),
+            stub(
+              _internals,
+              "fetchRuns",
+              returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+            ),
           );
         });
       }
@@ -104,6 +115,11 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
               "fetchWorkflows",
               returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
             ),
+            stub(
+              _internals,
+              "fetchRuns",
+              returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+            ),
           );
         });
       }
@@ -135,6 +151,11 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
             _internals,
             "fetchWorkflows",
             returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
+          ),
+          stub(
+            _internals,
+            "fetchRuns",
+            returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
           ),
         );
       });
@@ -168,6 +189,11 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
             "fetchWorkflows",
             returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
           ),
+          stub(
+            _internals,
+            "fetchRuns",
+            returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+          ),
         );
       });
     }
@@ -195,6 +221,11 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
               "fetchWorkflows",
               returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
             ),
+            stub(
+              _internals,
+              "fetchRuns",
+              returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+            ),
           );
         }, new FakeTime(10_000));
       });
@@ -219,6 +250,11 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
               _internals,
               "fetchWorkflows",
               returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
+            ),
+            stub(
+              _internals,
+              "fetchRuns",
+              returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
             ),
           );
         }, new FakeTime(10_000));
@@ -254,6 +290,11 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
             "fetchWorkflows",
             returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
           ),
+          stub(
+            _internals,
+            "fetchRuns",
+            returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
+          ),
         );
       });
     }
@@ -282,6 +323,11 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
             _internals,
             "fetchWorkflows",
             returnsNext([arrayToAsyncGenerator([getFakeWorkflow()])]),
+          ),
+          stub(
+            _internals,
+            "fetchRuns",
+            returnsNext([arrayToAsyncGenerator([getFakeActionsRuns()])]),
           ),
         );
       });
