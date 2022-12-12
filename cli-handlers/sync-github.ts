@@ -3,6 +3,7 @@ import { join } from "path";
 import { getGithubClient } from "../github/mod.ts";
 
 import { dot, formatGithubClientStatus, formatGithubSyncResult } from "./formatting.ts";
+import { assertUnreachable } from "../utils.ts";
 
 export async function githubSyncHandler(
   { owner, repo, token, persistenceRoot }: {
@@ -21,7 +22,22 @@ export async function githubSyncHandler(
   });
   console.log(await formatGithubClientStatus(github));
 
-  const syncResult = await github.sync({ progress: dot });
+  const syncResult = await github.sync({
+    progress: (type) => {
+      switch (type) {
+        case "actions-run":
+          return dot("r");
+        case "actions-workflow":
+          return dot("w");
+        case "commit":
+          return dot("c");
+        case "pull":
+          return dot("p");
+        default:
+          return assertUnreachable(type);
+      }
+    },
+  });
   console.log(""); // End the dot progress
 
   console.log(formatGithubSyncResult(syncResult));

@@ -80,7 +80,7 @@ export function formatGithubSyncResult(
   return msg;
 }
 
-export async function dot(): Promise<void> {
-  const text = new TextEncoder().encode(".");
+export async function dot(char = "."): Promise<void> {
+  const text = new TextEncoder().encode(char);
   await streamWriteAll(Deno.stdout, text);
 }

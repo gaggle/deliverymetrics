@@ -51,11 +51,11 @@ export async function getGithubClient(
       schema: syncInfoSchema,
     }),
     actionWorkflows: await AloeDatabase.new({
-      path: join(opts.persistenceDir, "actionsWorkflows.json"),
+      path: join(opts.persistenceDir, "action-workflows.json"),
       schema: workflowSchema,
     }),
     actionRuns: await AloeDatabase.new({
-      path: join(opts.persistenceDir, "actionsRuns.json"),
+      path: join(opts.persistenceDir, "action-runs.json"),
       schema: actionsRunSchema,
     }),
   };

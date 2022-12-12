@@ -76,7 +76,7 @@ export async function outputToCsv(
     writeCSVToFile(
       join(outputDir, "all-pull-request-data.csv"),
       inspectIter(
-        dot,
+        () => dot(),
         githubPullsAsCsv(pulls),
       ),
       { header: prHeaders.slice() as Array<string> },
@@ -84,7 +84,7 @@ export async function outputToCsv(
     writeCSVToFile(
       join(outputDir, "pull-request-lead-times-daily.csv"),
       inspectIter(
-        dot,
+        () => dot(),
         prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "daily" })),
       ),
       { header: leadTimeHeaders.slice() },
@@ -92,7 +92,7 @@ export async function outputToCsv(
     writeCSVToFile(
       join(outputDir, "pull-request-lead-times-weekly.csv"),
       inspectIter(
-        dot,
+        () => dot(),
         prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "weekly" })),
       ),
       { header: leadTimeHeaders.slice() },
@@ -100,7 +100,7 @@ export async function outputToCsv(
     writeCSVToFile(
       join(outputDir, "pull-request-lead-times-monthly.csv"),
       inspectIter(
-        dot,
+        () => dot(),
         prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "monthly" })),
       ),
       { header: leadTimeHeaders.slice() },
@@ -108,7 +108,7 @@ export async function outputToCsv(
     latestSync && writeCSVToFile(
       join(outputDir, "pull-request-lead-times-30d.csv"),
       inspectIter(
-        dot,
+        () => dot(),
         prLeadTimeAsCsv(
           filterIter(
             (el) => latestSync.updatedAt ? daysBetween(el.start, new Date(latestSync.updatedAt)) < 30 : false,
