@@ -39,7 +39,7 @@ export async function outputToCsv(
         inspectIter(
           () => dot(),
           actionsRunAsCsv(
-            yieldActionRunHistogram(gh, { mode: "daily", workflow }),
+            yieldActionRunHistogram(gh, { mode: "daily", branch: "main", conclusion: "success", workflow }),
             workflow,
           ),
         ),
