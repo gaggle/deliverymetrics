@@ -35,7 +35,7 @@ export async function outputToCsv(
   await Promise.all([
     ...((await asyncToArray(gh.findActionWorkflows())).map((workflow) => {
       return writeCSVToFile(
-        join(outputDir, "workflows", workflow.name, "histogram-daily.txt"),
+        join(outputDir, "workflows", workflow.name, "histogram-daily.csv"),
         inspectIter(
           () => dot(),
           actionsRunAsCsv(
@@ -189,6 +189,7 @@ const actionsRunHeaders = [
   "Name",
   "Path",
   "Invocations",
+  "Conclusions",
   "Run IDs",
   "Run URLs",
 ];
@@ -205,6 +206,7 @@ async function* actionsRunAsCsv(
       "Name": workflow.name,
       "Path": workflow.path,
       "Invocations": el.count.toString(),
+      "Conclusions": el.conclusions.join("; "),
       "Run IDs": el.ids.join("; "),
       "Run URLs": el.htmlUrls.join("; "),
     };

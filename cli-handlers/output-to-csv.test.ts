@@ -219,10 +219,11 @@ Deno.test("outputToCsv", async (t) => {
           "Name": "Name",
           "Path": "path.yml",
           "Invocations": "1",
+          "Conclusions": "success",
           "Run IDs": "1",
           "Run URLs": "https://example.com/1",
         });
-      }, join(outputDir, "workflows/Name/histogram-daily.txt"));
+      }, join(outputDir, "workflows/Name/histogram-daily.csv"));
     });
   }, {
     githubClientData: {
@@ -237,7 +238,7 @@ Deno.test("outputToCsv", async (t) => {
         html_url: "https://example.com/1",
       })],
     },
-    expectedFiles: ["workflows/Name/histogram-daily.txt"],
+    expectedFiles: ["workflows/Name/histogram-daily.csv"],
   });
 });
 
