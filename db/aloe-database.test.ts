@@ -24,6 +24,16 @@ Deno.test("AloeDatabase", async (t) => {
     assertEquals(result, { name: "bar" });
   });
 
+  await t.step("#findMany", async () => {
+    const db = await AloeDatabase.new({
+      path: undefined,
+      schema: z.object({ name: z.string() }),
+    });
+    await db.insertMany([{ name: "foo" }, { name: "bar" }]);
+    const result = await db.findMany({ name: /foo|bar/ });
+    assertEquals(result, [{ name: "foo" }, { name: "bar" }]);
+  });
+
   await t.step("#insertOne", async () => {
     const db = await AloeDatabase.new({
       path: undefined,
