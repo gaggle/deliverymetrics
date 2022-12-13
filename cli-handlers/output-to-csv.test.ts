@@ -214,8 +214,8 @@ Deno.test("outputToCsv", async (t) => {
         assertEquals(content.length, 1);
 
         assertEquals(content[0], {
-          "Period Start": "1984-01-03T00:00:00.000Z",
-          "Period End": "1984-01-03T23:59:59.999Z",
+          "Period Start": "1984/01/03 00.00.00",
+          "Period End": "1984/01/03 23.59.59",
           "Name": "Name",
           "Path": "path.yml",
           "Invocations": "1",

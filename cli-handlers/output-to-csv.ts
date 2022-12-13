@@ -201,8 +201,8 @@ async function* actionsRunAsCsv(
 ): AsyncIterableIterator<ActionsRunRow> {
   for await (const el of iter) {
     yield {
-      "Period Start": el.start.toISOString(),
-      "Period End": el.end.toISOString(),
+      "Period Start": toExcelDate(el.start),
+      "Period End": toExcelDate(el.end),
       "Name": workflow.name,
       "Path": workflow.path,
       "Invocations": el.count.toString(),
@@ -237,6 +237,20 @@ async function writeCSVToFile(
       await Deno.copyFile(tmpFp, fp);
     }
   });
+}
+
+/**
+ * 29/03/2022  00.00.00
+ */
+function toExcelDate(date: Date): string {
+  const dd = date.getUTCDate().toString().padStart(2, "0");
+  const mm = (date.getUTCMonth() + 1).toString().padStart(2, "0");
+  const yyyy = date.getUTCFullYear();
+
+  const hr = date.getUTCHours().toString().padStart(2, "0");
+  const min = date.getUTCMinutes().toString().padStart(2, "0");
+  const sec = date.getUTCSeconds().toString().padStart(2, "0");
+  return `${yyyy}/${mm}/${dd} ${hr}.${min}.${sec}`;
 }
 
 export const _internals = {
