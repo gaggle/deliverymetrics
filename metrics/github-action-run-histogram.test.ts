@@ -17,6 +17,8 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             path: "foo.yml",
             created_at: "2022-01-01T09:00:00Z",
             updated_at: "2022-01-01T10:00:00Z",
+            head_branch: "main",
+            conclusion: "success",
           }),
           getFakeActionRun({
             id: 2,
@@ -24,6 +26,8 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             path: "foo.yml",
             created_at: "2022-01-01T19:00:00Z",
             updated_at: "2022-01-01T20:00:00Z",
+            head_branch: "main",
+            conclusion: "failure",
           }),
         ],
       });
@@ -31,6 +35,8 @@ Deno.test("yieldActionRunHistogram", async (t) => {
       assertEquals(
         await asyncToArray(yieldActionRunHistogram(github, {
           mode: "daily",
+          branch: "main",
+          conclusion: /failure|success/,
           workflow: { path: "foo.yml" },
         })),
         [{
@@ -39,6 +45,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
           count: 2,
           ids: [1, 2],
           htmlUrls: ["example.org/1", "example.org/2"],
+          conclusions: ["failure", "success"],
         }],
       );
     });
@@ -52,6 +59,8 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             path: "foo.yml",
             created_at: "2022-01-01T23:00:00Z",
             updated_at: "2022-01-01T23:59:59Z",
+            head_branch: "main",
+            conclusion: "success",
           }),
           getFakeActionRun({
             id: 2,
@@ -59,6 +68,8 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             path: "foo.yml",
             created_at: "2022-01-02T00:00:00Z",
             updated_at: "2022-01-02T00:00:01Z",
+            head_branch: "main",
+            conclusion: "success",
           }),
         ],
       });
@@ -66,6 +77,8 @@ Deno.test("yieldActionRunHistogram", async (t) => {
       assertEquals(
         await asyncToArray(yieldActionRunHistogram(github, {
           mode: "daily",
+          branch: "main",
+          conclusion: "success",
           workflow: { path: "foo.yml" },
         })),
         [
@@ -75,6 +88,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             count: 1,
             ids: [1],
             htmlUrls: ["example.org/1"],
+            conclusions: ["success"],
           },
           {
             start: new Date("2022-01-02T00:00:00.000Z"),
@@ -82,6 +96,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             count: 1,
             ids: [2],
             htmlUrls: ["example.org/2"],
+            conclusions: ["success"],
           },
         ],
       );
@@ -98,6 +113,8 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             path: "foo.yml",
             created_at: "2022-01-03T00:00:00Z",
             updated_at: "2022-01-03T00:00:00Z",
+            head_branch: "main",
+            conclusion: "success",
           }),
           getFakeActionRun({
             id: 2,
@@ -105,6 +122,8 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             path: "foo.yml",
             created_at: "2022-01-04T00:00:00Z",
             updated_at: "2022-01-04T00:00:00Z",
+            head_branch: "main",
+            conclusion: "success",
           }),
         ],
       });
@@ -112,6 +131,8 @@ Deno.test("yieldActionRunHistogram", async (t) => {
       assertEquals(
         await asyncToArray(yieldActionRunHistogram(github, {
           mode: "weekly",
+          branch: "main",
+          conclusion: "success",
           workflow: { path: "foo.yml" },
         })),
         [{
@@ -120,6 +141,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
           count: 2,
           ids: [1, 2],
           htmlUrls: ["example.org/1", "example.org/2"],
+          conclusions: ["success"],
         }],
       );
     });
@@ -135,6 +157,8 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             path: "foo.yml",
             created_at: "2022-01-03T00:00:00Z",
             updated_at: "2022-01-03T00:00:00Z",
+            head_branch: "main",
+            conclusion: "success",
           }),
           getFakeActionRun({
             id: 2,
@@ -142,6 +166,8 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             path: "foo.yml",
             created_at: "2022-01-31T00:00:00Z",
             updated_at: "2022-01-31T00:00:00Z",
+            head_branch: "main",
+            conclusion: "success",
           }),
         ],
       });
@@ -149,6 +175,8 @@ Deno.test("yieldActionRunHistogram", async (t) => {
       assertEquals(
         await asyncToArray(yieldActionRunHistogram(github, {
           mode: "monthly",
+          branch: "main",
+          conclusion: "success",
           workflow: { path: "foo.yml" },
         })),
         [{
@@ -157,6 +185,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
           count: 2,
           ids: [1, 2],
           htmlUrls: ["example.org/1", "example.org/2"],
+          conclusions: ["success"],
         }],
       );
     });

@@ -12,7 +12,7 @@ import { ActionRun, ActionWorkflow, ReadonlyGithubClient } from "../github/mod.t
 
 import { assertUnreachable } from "../utils.ts";
 
-import { dateEnd, dayStart, monthEnd, monthStart, nextDate, weekEnd, weekStart } from "./date-utils.ts";
+import { dateEnd, dayStart, monthEnd, monthStart, weekEnd, weekStart } from "./date-utils.ts";
 
 type ActionRunHistogram = {
   start: Date;
@@ -20,11 +20,17 @@ type ActionRunHistogram = {
   count: number;
   ids: Array<number>;
   htmlUrls: Array<string>;
+  conclusions: Array<string>;
 };
 
 export async function* yieldActionRunHistogram(
   gh: ReadonlyGithubClient,
-  { mode, workflow }: { mode: "daily" | "weekly" | "monthly"; workflow: { path: ActionWorkflow["path"] } },
+  { branch, conclusion, mode, workflow }: {
+    branch: string;
+    conclusion: string | RegExp;
+    mode: "daily" | "weekly" | "monthly";
+    workflow: { path: ActionWorkflow["path"] };
+  },
 ): AsyncGenerator<ActionRunHistogram> {
   let periodConf: {
     ceil: (d: Date) => Date;
@@ -63,13 +69,18 @@ export async function* yieldActionRunHistogram(
       count: accumulator.length,
       ids: accumulator.map((el) => el.id),
       htmlUrls: accumulator.map((el) => el.html_url),
+      conclusions: accumulator
+        .map((el) => el.conclusion)
+        .filter((el) => !!el) // Remove nulls
+        .filter((v, i, a) => a.indexOf(v) === i) // Make unique
+        .sort() as Array<string>,
     };
   }
 
   for await (
     const run of gh.findActionRuns({
-      branch: "main",
-      conclusion: "success",
+      branch,
+      conclusion,
       path: workflow.path,
       sort: { key: "updated_at", order: "asc" },
     })
