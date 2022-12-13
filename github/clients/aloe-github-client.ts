@@ -1,6 +1,7 @@
 import { debug } from "log";
 import { equal } from "equal";
 import { groupBy } from "group-by";
+import { Query } from "aloedb";
 
 import { AloeDatabase } from "../../db/mod.ts";
 
@@ -10,7 +11,7 @@ import { fetchPullCommits } from "../utils/fetch-pull-commits.ts";
 import { fetchPulls } from "../utils/fetch-pulls.ts";
 import { fetchActionRuns } from "../utils/fetch-action-runs.ts";
 import { fetchActionWorkflows } from "../utils/fetch-action-workflows.ts";
-import { sortPullsByKey } from "../utils/sorting.ts";
+import { sortActionRunsKey, sortPullsByKey } from "../utils/sorting.ts";
 
 import {
   ActionRun,
@@ -87,6 +88,40 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
   async findLatestSync(): Promise<SyncInfo | undefined> {
     const syncs = await this.db.syncs.findMany();
     return syncs[syncs.length - 1];
+  }
+
+  async *findActionRuns(
+    opts?: Partial<{
+      branch: string;
+      conclusion: string;
+      path: string;
+      sort: { key: "created_at" | "updated_at"; order?: "asc" | "desc" };
+    }>,
+  ): AsyncGenerator<ActionRun> {
+    const query: Query<ActionRun> = {};
+    if (opts?.branch) query.head_branch = opts.branch;
+    if (opts?.conclusion) query.conclusion = opts.conclusion;
+    if (opts?.path) query.path = opts.path;
+    const runs = await this.db.actionRuns.findMany(query);
+
+    const sorted = sortActionRunsKey(
+      runs,
+      opts?.sort?.key ?? "updated_at",
+    );
+    if (opts?.sort?.order === "desc") {
+      sorted.reverse();
+    }
+
+    for (const el of sorted) {
+      yield el;
+    }
+  }
+
+  async *findActionWorkflows(): AsyncGenerator<ActionWorkflow> {
+    const workflows = await this.db.actionWorkflows.findMany();
+    for (const wf of workflows) {
+      yield wf;
+    }
   }
 }
 
