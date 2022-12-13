@@ -21,9 +21,9 @@ export interface ReadonlyGithubClient {
   findActionRuns(
     opts?:
       & Partial<{
-        branch: string;
-        conclusion: string;
-        path: string;
+        branch: string | RegExp;
+        conclusion: string | RegExp;
+        path: string | RegExp;
       }>
       & Sortable<"created_at" | "updated_at">,
   ): AsyncGenerator<ActionRun>;

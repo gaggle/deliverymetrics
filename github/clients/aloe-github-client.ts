@@ -92,9 +92,9 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
 
   async *findActionRuns(
     opts?: Partial<{
-      branch: string;
-      conclusion: string;
-      path: string;
+      branch: string | RegExp;
+      conclusion: string | RegExp;
+      path: string | RegExp;
       sort: { key: "created_at" | "updated_at"; order?: "asc" | "desc" };
     }>,
   ): AsyncGenerator<ActionRun> {
