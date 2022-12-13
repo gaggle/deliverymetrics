@@ -146,7 +146,7 @@ async function* githubPullsAsCsv(
       created_at: pull.created_at,
       draft: pull.draft.toString(),
       html_url: pull.html_url,
-      labels: pull.labels.map((el) => el.name).join(", "),
+      labels: pull.labels.map((el) => el.name).join("; "),
       locked: pull.locked.toString(),
       merge_commit_sha: pull.merge_commit_sha,
       merged_at: pull.merged_at || "",
@@ -205,8 +205,8 @@ async function* actionsRunAsCsv(
       "Name": workflow.name,
       "Path": workflow.path,
       "Invocations": el.count.toString(),
-      "Run IDs": el.ids.join(", "),
-      "Run URLs": el.htmlUrls.join(", "),
+      "Run IDs": el.ids.join("; "),
+      "Run URLs": el.htmlUrls.join("; "),
     };
   }
 }
