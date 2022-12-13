@@ -3,7 +3,12 @@ import { join } from "path";
 import { readCSVObjects } from "csv";
 import { stub } from "dev:mock";
 
-import { createFakeReadonlyGithubClient, getFakePull } from "../github/testing.ts";
+import {
+  createFakeReadonlyGithubClient,
+  getFakeActionRun,
+  getFakeActionWorkflow,
+  getFakePull,
+} from "../github/testing.ts";
 
 import { asyncToArray } from "../utils.ts";
 import { withFileOpen, withTempDir, yieldDir } from "../path-and-file-utils.ts";
@@ -110,7 +115,7 @@ Deno.test("outputToCsv", async (t) => {
         getFakePull({ number: 1, created_at: "1981-01-01T00:00:00Z" }),
       ],
     },
-    expectedFiles: pullOutputNames,
+    expectedFiles: ["all-pull-request-data.csv"],
   });
 
   await withOutputToCsv(t, "with a multi-line body", async ({ outputDir, t }) => {
@@ -127,7 +132,7 @@ Deno.test("outputToCsv", async (t) => {
         getFakePull({ number: 1, body: "multiline\nbody" }),
       ],
     },
-    expectedFiles: pullOutputNames,
+    expectedFiles: ["all-pull-request-data.csv"],
   });
 
   await withOutputToCsv(t, "with a pull that's closed but not merged", async ({ outputDir, t }) => {
@@ -149,7 +154,7 @@ Deno.test("outputToCsv", async (t) => {
         }),
       ],
     },
-    expectedFiles: pullOutputNames,
+    expectedFiles: ["all-pull-request-data.csv"],
   });
 
   await withOutputToCsv(t, "with two closed pulls", async ({ outputDir, t }) => {
@@ -201,6 +206,38 @@ Deno.test("outputToCsv", async (t) => {
       ],
     },
     expectedFiles: pullOutputNames,
+  });
+
+  await withOutputToCsv(t, "with a simple action run", async ({ outputDir, t }) => {
+    await t.step("formats workflow histogram as expected", async () => {
+      await withCsvContent((content) => {
+        assertEquals(content.length, 1);
+
+        assertEquals(content[0], {
+          "Period Start": "1984-01-03T00:00:00.000Z",
+          "Period End": "1984-01-03T23:59:59.999Z",
+          "Name": "Name",
+          "Path": "path.yml",
+          "Invocations": "1",
+          "Run IDs": "1",
+          "Run URLs": "https://example.com/1",
+        });
+      }, join(outputDir, "workflows/Name/histogram-daily.txt"));
+    });
+  }, {
+    githubClientData: {
+      workflows: [getFakeActionWorkflow({ path: "path.yml", name: "Name" })],
+      actionsRuns: [getFakeActionRun({
+        id: 1,
+        created_at: "1984-01-03T00:00:00Z",
+        updated_at: "1984-01-03T01:00:00Z",
+        path: "path.yml",
+        name: "Name",
+        conclusion: "success",
+        html_url: "https://example.com/1",
+      })],
+    },
+    expectedFiles: ["workflows/Name/histogram-daily.txt"],
   });
 });
 

@@ -1,54 +1,15 @@
 import { CSVWriteCellOptions, CSVWriterOptions, writeCSVObjects } from "csv";
 import { ensureFile } from "fs";
 import { join } from "path";
-import { writeCSVObjects } from "csv";
 
-import { getGithubClient, GithubPull, githubPullSchema } from "../github/mod.ts";
-import { yieldPullRequestLeadTime } from "../metrics/mod.ts";
+import { ActionWorkflow, getGithubClient, GithubPull, githubPullSchema } from "../github/mod.ts";
+import { yieldActionRunHistogram, yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
 import { asyncToArray, filterIter, inspectIter } from "../utils.ts";
 import { ToTuple } from "../types.ts";
 import { withFileOpen, withTempFile } from "../path-and-file-utils.ts";
 
 import { dot, formatGithubClientStatus } from "./formatting.ts";
-
-const prPrimaryHeaders = [
-  "number",
-  "created_at",
-  "merged_at",
-  "updated_at",
-  "was_cancelled",
-] as const;
-const prIgnoreHeaders = [
-  "comments_url",
-  "commits_url",
-  "head",
-  "id",
-  "node_id",
-  "review_comment_url",
-  "review_comments_url",
-  "statuses_url",
-  "url",
-] as const;
-
-const prRemainingHeaders = Object.keys(githubPullSchema.shape)
-  .filter((n) => !(prPrimaryHeaders.slice() as string[]).includes(n))
-  .filter((n) => !(prIgnoreHeaders.slice() as string[]).includes(n)) as unknown as PrRemainingHeaders;
-type PrRemainingHeaders = Readonly<
-  ToTuple<keyof Omit<GithubPull, typeof prPrimaryHeaders[number] | typeof prIgnoreHeaders[number]>>
->;
-
-const prHeaders = [...prPrimaryHeaders, ...prRemainingHeaders] as const;
-export type PrRow = Record<typeof prHeaders[number], string>;
-
-const leadTimeHeaders = [
-  "Period Start",
-  "Period End",
-  "Lead Time (in days)",
-  "# of PRs Merged",
-  "Merged PRs",
-];
-type LeadTimeRow = Record<typeof leadTimeHeaders[number], string>;
 
 export async function outputToCsv(
   {
@@ -72,6 +33,19 @@ export async function outputToCsv(
   const latestSync = await gh.findLatestSync();
 
   await Promise.all([
+    ...((await asyncToArray(gh.findActionWorkflows())).map((workflow) => {
+      return writeCSVToFile(
+        join(outputDir, "workflows", workflow.name, "histogram-daily.txt"),
+        inspectIter(
+          () => dot(),
+          actionsRunAsCsv(
+            yieldActionRunHistogram(gh, { mode: "daily", workflow }),
+            workflow,
+          ),
+        ),
+        { header: actionsRunHeaders.slice() as Array<string> },
+      );
+    })),
     writeCSVToFile(
       join(outputDir, "all-pull-request-data.csv"),
       inspectIter(
@@ -131,6 +105,35 @@ function daysBetween(then: Date, now: Date): number {
   //                       hour min  sec  ms
 }
 
+const prPrimaryHeaders = [
+  "number",
+  "created_at",
+  "merged_at",
+  "updated_at",
+  "was_cancelled",
+] as const;
+const prIgnoreHeaders = [
+  "comments_url",
+  "commits_url",
+  "head",
+  "id",
+  "node_id",
+  "review_comment_url",
+  "review_comments_url",
+  "statuses_url",
+  "url",
+] as const;
+
+const prRemainingHeaders = Object.keys(githubPullSchema.shape)
+  .filter((n) => !(prPrimaryHeaders.slice() as string[]).includes(n))
+  .filter((n) => !(prIgnoreHeaders.slice() as string[]).includes(n)) as unknown as PrRemainingHeaders;
+type PrRemainingHeaders = Readonly<
+  ToTuple<keyof Omit<GithubPull, typeof prPrimaryHeaders[number] | typeof prIgnoreHeaders[number]>>
+>;
+
+const prHeaders = [...prPrimaryHeaders, ...prRemainingHeaders] as const;
+export type PrRow = Record<typeof prHeaders[number], string>;
+
 async function* githubPullsAsCsv(
   pulls: AsyncIterableIterator<GithubPull>,
 ): AsyncIterableIterator<PrRow> {
@@ -157,6 +160,15 @@ async function* githubPullsAsCsv(
   }
 }
 
+const leadTimeHeaders = [
+  "Period Start",
+  "Period End",
+  "Lead Time (in days)",
+  "# of PRs Merged",
+  "Merged PRs",
+];
+type LeadTimeRow = Record<typeof leadTimeHeaders[number], string>;
+
 async function* prLeadTimeAsCsv(
   iter: ReturnType<typeof yieldPullRequestLeadTime>,
 ): AsyncIterableIterator<LeadTimeRow> {
@@ -167,6 +179,34 @@ async function* prLeadTimeAsCsv(
       "Lead Time (in days)": toDays(el.leadTime).toPrecision(2),
       "# of PRs Merged": el.mergedPRs.length.toString(),
       "Merged PRs": el.mergedPRs.toString(),
+    };
+  }
+}
+
+const actionsRunHeaders = [
+  "Period Start",
+  "Period End",
+  "Name",
+  "Path",
+  "Invocations",
+  "Run IDs",
+  "Run URLs",
+];
+type ActionsRunRow = Record<typeof actionsRunHeaders[number], string>;
+
+async function* actionsRunAsCsv(
+  iter: ReturnType<typeof yieldActionRunHistogram>,
+  workflow: ActionWorkflow,
+): AsyncIterableIterator<ActionsRunRow> {
+  for await (const el of iter) {
+    yield {
+      "Period Start": el.start.toISOString(),
+      "Period End": el.end.toISOString(),
+      "Name": workflow.name,
+      "Path": workflow.path,
+      "Invocations": el.count.toString(),
+      "Run IDs": el.ids.join(", "),
+      "Run URLs": el.htmlUrls.join(", "),
     };
   }
 }
