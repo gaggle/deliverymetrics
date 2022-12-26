@@ -15,6 +15,7 @@
     "node-url": "https://deno.land/std@0.166.0/node/url.ts",
     "parse-link-header": "https://cdn.jsdelivr.net/gh/bryik/deno-parse-link-header@v0.1.1/parseLinkHeader.ts",
     "path": "https://deno.land/std@0.166.0/path/mod.ts",
+    "progress": "https://deno.land/x/progress@v1.3.4/mod.ts",
     "stream-conversion": "https://deno.land/std@0.166.0/streams/conversion.ts",
     "yaml-encoding": "https://deno.land/std@0.166.0/encoding/yaml.ts",
     "yargs": "./yargs.ts",
