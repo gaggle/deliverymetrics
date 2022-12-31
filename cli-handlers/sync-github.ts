@@ -44,7 +44,6 @@ export async function githubSyncHandler(
     },
   });
   console.log(""); // End the dot progress
-
   console.log(formatGithubSyncResult(syncResult));
 }
 
