@@ -8,7 +8,7 @@ export async function formatGithubClientStatus(
   github: ReadonlyGithubClient,
   opts: Partial<{ mostRecent: boolean; unclosed: boolean }> = {},
 ): Promise<string> {
-  let msg = `Github client cache report:`;
+  let msg = `ℹ Github client cache report:`;
 
   const lastSynced = (await github.findLatestSync() || {}).updatedAt;
   msg += `\n  Last synced: ${lastSynced ? new Date(lastSynced).toLocaleString() : "never"}`;
