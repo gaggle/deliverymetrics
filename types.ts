@@ -40,3 +40,7 @@ export type Tail<T extends unknown[]> = T extends [infer Head, ...infer Tail] ? 
   : never;
 
 export type RequestMethod = "GET" | "POST";
+
+export type WithRequired<T extends Record<string, unknown>, K extends keyof T> = Omit<T, K> & { [P in K]-?: T[P] };
+
+export type WithOptional<T extends Record<string, unknown>, K extends keyof T> = Omit<T, K> & { [P in K]+?: T[P] };

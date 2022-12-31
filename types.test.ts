@@ -1,6 +1,6 @@
 import { assert, IsExact } from "dev:conditional-type-checks";
 
-import { Tail, ToTuple } from "./types.ts";
+import { Tail, ToTuple, WithOptional, WithRequired } from "./types.ts";
 
 Deno.test("ToTuple", async (t) => {
   await t.step("extracts an object's keys into a constant array type", () => {
@@ -18,5 +18,17 @@ Deno.test("Tail", async (t) => {
     assert<IsExact<Tail<["foo"]>, []>>(true);
     assert<IsExact<Tail<["foo", "bar"]>, ["bar"]>>(true);
     assert<IsExact<Tail<["foo", "bar", "baz"]>, ["bar", "baz"]>>(true);
+  });
+});
+
+Deno.test("WithRequired", async (t) => {
+  await t.step("requires a specified property", () => {
+    assert<IsExact<WithRequired<{ foo?: "foo"; bar?: "bar" }, "foo">, { foo: "foo"; bar?: "bar" }>>(true);
+  });
+});
+
+Deno.test("WithOptional", async (t) => {
+  await t.step("makes a specified property optional", () => {
+    assert<IsExact<WithOptional<{ foo: "foo"; bar: "bar" }, "foo">, { foo?: "foo"; bar: "bar" }>>(true);
   });
 });
