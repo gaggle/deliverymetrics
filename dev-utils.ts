@@ -12,6 +12,7 @@ export async function withMockedFetch(
     mockFetchUninstall();
   }
 }
+
 export async function withStubs(
   callable: (...stubs: Array<Stub>) => Promise<void>,
   ...stubs: Array<Stub>
@@ -24,6 +25,7 @@ export async function withStubs(
     }
   }
 }
+
 export async function withFakeTime(
   callable: (t: FakeTime) => Promise<void>,
   fakeTime: FakeTime,
