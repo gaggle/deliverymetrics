@@ -17,7 +17,7 @@ export async function githubSyncHandler(
 ) {
   let github: GithubClient;
   await withSpinner(async () => {
-    github = await getGithubClient({
+    github = await _internals.getGithubClient({
       type: "GithubClient",
       persistenceDir: join(persistenceRoot, "github", owner, repo),
       repo,
@@ -47,3 +47,7 @@ export async function githubSyncHandler(
 
   console.log(formatGithubSyncResult(syncResult));
 }
+
+export const _internals = {
+  getGithubClient,
+};
