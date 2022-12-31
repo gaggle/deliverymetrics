@@ -1,9 +1,11 @@
 import { join } from "path";
 
-import { getGithubClient } from "../github/mod.ts";
+import { getGithubClient, GithubClient } from "../github/mod.ts";
+import { withSpinner } from "../cli-gui/mod.ts";
+
+import { assertUnreachable } from "../utils.ts";
 
 import { dot, formatGithubClientStatus, formatGithubSyncResult } from "./formatting.ts";
-import { assertUnreachable } from "../utils.ts";
 
 export async function githubSyncHandler(
   { owner, repo, token, persistenceRoot }: {
@@ -13,16 +15,19 @@ export async function githubSyncHandler(
     persistenceRoot: string;
   },
 ) {
-  const github = await getGithubClient({
-    type: "GithubClient",
-    persistenceDir: join(persistenceRoot, "github", owner, repo),
-    repo,
-    owner,
-    token,
-  });
-  console.log(await formatGithubClientStatus(github));
+  let github: GithubClient;
+  await withSpinner(async () => {
+    github = await getGithubClient({
+      type: "GithubClient",
+      persistenceDir: join(persistenceRoot, "github", owner, repo),
+      repo,
+      owner,
+      token,
+    });
+  }, { start: "Initializing...", succeed: "Initialized", delayFor: 100 });
+  console.log(await formatGithubClientStatus(github!));
 
-  const syncResult = await github.sync({
+  const syncResult = await github!.sync({
     progress: (type) => {
       switch (type) {
         case "actions-run":
