@@ -21,7 +21,7 @@ async function* yieldGithubClient(
   opts?: {
     pullCommits?: Array<BoundGithubPullCommit>;
     pulls?: Array<GithubPull>;
-    syncs?: Array<SyncInfo>;
+    syncInfos?: Array<SyncInfo>;
   },
 ): AsyncGenerator<GithubClient> {
   yield createFakeGithubClient(opts);
@@ -88,7 +88,7 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
     async (t) => {
       for await (
         const client of yieldGithubClient({
-          syncs: [{ createdAt: 9_000, updatedAt: 10_000 }],
+          syncInfos: [{ createdAt: 9_000, updatedAt: 10_000 }],
         })
       ) {
         await t.step(`for ${client.constructor.name}`, async () => {

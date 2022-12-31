@@ -534,10 +534,10 @@ export function getFakeActionRun(partial: DeepPartial<ActionRun> = {}): ActionRu
 }
 
 export async function createFakeReadonlyGithubClient(
-  { pullCommits, pulls, syncs, workflows, actionsRuns }: Partial<{
+  { pullCommits, pulls, syncInfos, workflows, actionsRuns }: Partial<{
     pullCommits: Array<BoundGithubPullCommit>;
     pulls: Array<GithubPull>;
-    syncs: Array<SyncInfo>;
+    syncInfos: Array<SyncInfo>;
     workflows: Array<ActionWorkflow>;
     actionsRuns: Array<ActionRun>;
   }> = {},
@@ -556,7 +556,7 @@ export async function createFakeReadonlyGithubClient(
       }),
       syncs: await MockAloeDatabase.new({
         schema: syncInfoSchema,
-        documents: syncs,
+        documents: syncInfos,
       }),
       actionWorkflows: await MockAloeDatabase.new({
         schema: actionWorkflowSchema,
@@ -571,10 +571,10 @@ export async function createFakeReadonlyGithubClient(
 }
 
 export async function createFakeGithubClient(
-  { pullCommits, pulls, syncs, workflows, actionsRuns }: Partial<{
+  { pullCommits, pulls, syncInfos, workflows, actionsRuns }: Partial<{
     pullCommits: Array<BoundGithubPullCommit>;
     pulls: Array<GithubPull>;
-    syncs: Array<SyncInfo>;
+    syncInfos: Array<SyncInfo>;
     workflows: Array<ActionWorkflow>;
     actionsRuns: Array<ActionRun>;
   }> = {},
@@ -594,7 +594,7 @@ export async function createFakeGithubClient(
       }),
       syncs: await MockAloeDatabase.new({
         schema: syncInfoSchema,
-        documents: syncs,
+        documents: syncInfos,
       }),
       actionWorkflows: await MockAloeDatabase.new({
         schema: actionWorkflowSchema,
