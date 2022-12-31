@@ -3,7 +3,7 @@ import { install as mockFetchInstall, mock as mockFetch, uninstall as mockFetchU
 import { Stub } from "dev:mock";
 
 export async function withMockedFetch(
-  callback: (mf: typeof mockFetch) => Promise<void>,
+  callback: (mf: typeof mockFetch) => Promise<void> | void,
 ) {
   mockFetchInstall();
   try {
@@ -14,7 +14,7 @@ export async function withMockedFetch(
 }
 
 export async function withStubs(
-  callable: (...stubs: Array<Stub>) => Promise<void>,
+  callable: (...stubs: Array<Stub>) => Promise<void> | void,
   ...stubs: Array<Stub>
 ): Promise<void> {
   try {
@@ -27,7 +27,7 @@ export async function withStubs(
 }
 
 export async function withFakeTime(
-  callable: (t: FakeTime) => Promise<void>,
+  callable: (t: FakeTime) => Promise<void> | void,
   fakeTime: FakeTime,
 ): Promise<void> {
   try {
