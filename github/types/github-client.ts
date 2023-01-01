@@ -1,6 +1,6 @@
 import { ActionRun } from "./github-action-run.ts";
 import { ActionWorkflow } from "./github-action-workflow.ts";
-import { BoundGithubPullCommit } from "./github-pull-commit.ts";
+import { BoundGithubPullCommit, GithubPullCommit } from "./github-pull-commit.ts";
 import { GithubDiff } from "./sync-diff.ts";
 import { GithubPull, GithubPullDateKey } from "./github-pull.ts";
 import { SyncInfo } from "./sync-info.ts";
@@ -32,10 +32,10 @@ export interface ReadonlyGithubClient {
 }
 
 export type SyncProgressParams =
-  | "actions-run"
-  | "actions-workflow"
-  | "commit"
-  | "pull";
+  | { type: "actions-workflow"; workflow: ActionWorkflow }
+  | { type: "actions-run"; run: ActionRun }
+  | { type: "commits"; commits: Array<GithubPullCommit | BoundGithubPullCommit>; pr: number }
+  | { type: "pull"; pull: GithubPull };
 
 export interface GithubClient extends ReadonlyGithubClient {
   sync(opts?: Partial<{ progress: (type: SyncProgressParams) => void }>): Promise<GithubDiff>;
