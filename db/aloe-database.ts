@@ -1,4 +1,5 @@
 import { Acceptable, Database, Document } from "aloedb";
+import { debug } from "std:log";
 import { dirname } from "std:path";
 import { ensureDir } from "std:fs";
 import { Schema as ZodSchema } from "zod";
@@ -8,8 +9,8 @@ import type { Filepath } from "../types.ts";
 type DatabaseDocument = Document & { _id?: never };
 
 class BaseAloeDatabase<Schema extends DatabaseDocument> {
-  protected db: Database<Acceptable<Schema>>;
   protected isLoaded = false;
+  protected readonly db: Database<Acceptable<Schema>>;
 
   protected constructor(
     { path: fp, schema }: {
@@ -21,10 +22,18 @@ class BaseAloeDatabase<Schema extends DatabaseDocument> {
       path: fp,
       validator: schema.parse,
       autoload: false,
+      autosave: false,
+      optimize: false,
     });
+    debug(`Created new database: ${fp}`);
   }
 
-  protected async ensureLoaded(): Promise<void> {
+  async save(): Promise<void> {
+    await this.load();
+    return this.db.save();
+  }
+
+  protected async load(): Promise<void> {
     if (this.isLoaded === false) {
       await this.db.load();
       this.isLoaded = true;
@@ -34,56 +43,56 @@ class BaseAloeDatabase<Schema extends DatabaseDocument> {
   async count(
     ...args: Parameters<Database<Acceptable<Schema>>["count"]>
   ): ReturnType<Database<Acceptable<Schema>>["count"]> {
-    await this.ensureLoaded();
+    await this.load();
     return this.db.count(...args);
   }
 
   async findOne(
     ...args: Parameters<Database<Acceptable<Schema>>["findOne"]>
   ): ReturnType<Database<Acceptable<Schema>>["findOne"]> {
-    await this.ensureLoaded();
+    await this.load();
     return this.db.findOne(...args);
   }
 
   async findMany(
     ...args: Parameters<Database<Acceptable<Schema>>["findMany"]>
   ): ReturnType<Database<Acceptable<Schema>>["findMany"]> {
-    await this.ensureLoaded();
+    await this.load();
     return this.db.findMany(...args);
   }
 
   async insertOne(
     ...args: Parameters<Database<Acceptable<Schema>>["insertOne"]>
   ): ReturnType<Database<Acceptable<Schema>>["insertOne"]> {
-    await this.ensureLoaded();
+    await this.load();
     return this.db.insertOne(...args);
   }
 
   async insertMany(
     ...args: Parameters<Database<Acceptable<Schema>>["insertMany"]>
   ): ReturnType<Database<Acceptable<Schema>>["insertMany"]> {
-    await this.ensureLoaded();
+    await this.load();
     return this.db.insertMany(...args);
   }
 
   async updateOne(
     ...args: Parameters<Database<Acceptable<Schema>>["updateOne"]>
   ): ReturnType<Database<Acceptable<Schema>>["updateOne"]> {
-    await this.ensureLoaded();
+    await this.load();
     return this.db.updateOne(...args);
   }
 
   async deleteOne(
     ...args: Parameters<Database<Acceptable<Schema>>["deleteOne"]>
   ): ReturnType<Database<Acceptable<Schema>>["deleteOne"]> {
-    await this.ensureLoaded();
+    await this.load();
     return this.db.deleteOne(...args);
   }
 
   async deleteMany(
     ...args: Parameters<Database<Acceptable<Schema>>["deleteMany"]>
   ): ReturnType<Database<Acceptable<Schema>>["deleteMany"]> {
-    await this.ensureLoaded();
+    await this.load();
     return this.db.deleteMany(...args);
   }
 }
@@ -114,7 +123,7 @@ export class MockAloeDatabase<Schema extends DatabaseDocument> extends BaseAloeD
     },
   ): Promise<MockAloeDatabase<Schema>> {
     const db = new MockAloeDatabase<Schema>(schema);
-    await db.ensureLoaded();
+    await db.load();
     await db.insertMany(documents);
     return db;
   }
