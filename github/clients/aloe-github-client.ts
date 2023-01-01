@@ -1,11 +1,11 @@
 import { debug } from "std:log";
 import { equal } from "equal";
-import { groupBy } from "std:group-by";
 import { exists, Query } from "aloedb";
+import { groupBy } from "std:group-by";
 
 import { AloeDatabase } from "../../db/mod.ts";
 
-import { asyncToArray, first, inspectIter } from "../../utils.ts";
+import { asyncToArray, first } from "../../utils.ts";
 
 import { fetchPullCommits } from "../utils/fetch-pull-commits.ts";
 import { fetchPulls } from "../utils/fetch-pulls.ts";
@@ -146,19 +146,20 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 
   async sync(opts: Partial<{ progress: (type: SyncProgressParams) => void }> = {}): Promise<GithubDiff> {
     const { progress } = { progress: () => {}, ...opts };
-    const lastSync = await this.findLatestSync();
 
-    const prevPullsByNumber = (await asyncToArray(this.findPulls()))
-      .reduce(function (acc, curr) {
-        acc[curr.number] = curr;
-        return acc;
-      }, {} as Record<number, GithubPull>);
+    const lastSync = await this.findLatestSync();
 
     let sync: SyncInfo = await this.db.syncs.insertOne({
       createdAt: Date.now(),
       updatedAt: undefined,
     });
     await this.db.syncs.save();
+
+    const prevPullsByNumber = (await asyncToArray(this.findPulls()))
+      .reduce(function (acc, curr) {
+        acc[curr.number] = curr;
+        return acc;
+      }, {} as Record<number, GithubPull>);
 
     const fetchedPulls: Array<GithubPull> = [];
 
@@ -171,22 +172,22 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
         fetchedPulls.push(pull);
         await this.db.pulls.deleteOne({ number: pull.number });
         await this.db.pulls.insertOne(pull);
-        await progress("pull");
+        await progress({ type: "pull", pull });
       }
       await this.db.pulls.save();
     };
 
     const handlePullCommits = async () => {
       for (const pull of fetchedPulls) {
-        const commits = await asyncToArray(
-          inspectIter(
-            () => progress("commit"),
-            _internals.fetchPullCommits({ commits_url: pull.commits_url }, this.token),
-          ),
-        );
+        const commits = await asyncToArray(_internals.fetchPullCommits({ commits_url: pull.commits_url }, this.token));
         await this.db.pullCommits.deleteMany({ pr: pull.number });
         debug(`Deleted pull commits bound to pr ${pull.number}`);
         await this.db.pullCommits.insertMany(commits.map((commit) => ({ ...commit, pr: pull.number })));
+        await progress({
+          type: "commits",
+          commits,
+          pr: pull.number,
+        });
       }
       await this.db.pullCommits.save();
     };
@@ -194,10 +195,10 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     const handleWorkflows = async () => {
       for await (const workflow of _internals.fetchActionWorkflows(this.owner, this.repo, this.token)) {
         const current = await this.db.actionWorkflows.findOne({ node_id: workflow.node_id });
+        await progress({ type: "actions-workflow", workflow });
         if (JSON.stringify(current) !== JSON.stringify(workflow)) {
           await this.db.actionWorkflows.deleteOne({ node_id: workflow.node_id });
           await this.db.actionWorkflows.insertOne(workflow);
-          await progress("actions-workflow");
         }
       }
       await this.db.actionWorkflows.save();
@@ -209,7 +210,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
       ) {
         await this.db.actionRuns.deleteOne({ node_id: run.node_id });
         await this.db.actionRuns.insertOne(run);
-        await progress("actions-run");
+        await progress({ type: "actions-run", run });
       }
       await this.db.actionRuns.save();
     };
@@ -235,11 +236,8 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
       syncedAt: sync.createdAt,
       newPulls: sortPullsByKey(bucket.newPulls || []),
       updatedPulls: sortPullsByKey(bucket.updatedPulls || [])
-        .filter((updated) => !equal(updated, prevPullsByNumber[updated.number]))
-        .map((updated) => ({
-          prev: prevPullsByNumber[updated.number],
-          updated,
-        })),
+        .map((updated) => ({ prev: prevPullsByNumber[updated.number], updated }))
+        .filter((el) => !equal(el.prev, el.updated)),
     };
   }
 }
