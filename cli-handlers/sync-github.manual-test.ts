@@ -1,6 +1,13 @@
 import { resolvesNext, stub } from "dev:mock";
 
-import { createFakeGithubClient, getFakePull, getFakeSyncInfo } from "../github/testing.ts";
+import {
+  createFakeGithubClient,
+  getFakeActionRun,
+  getFakeActionWorkflow,
+  getFakePull,
+  getFakePullCommit,
+  getFakeSyncInfo,
+} from "../github/testing.ts";
 
 import { sleep } from "../utils.ts";
 import { withStubs } from "../dev-utils.ts";
@@ -24,24 +31,28 @@ async function successScenario() {
     const progress = args?.progress;
     if (progress) {
       await Promise.all([
-        recurse(async () => {
+        recurse(async (idx) => {
           await sleep(300);
-          progress("actions-workflow");
+          progress({ type: "actions-workflow", workflow: getFakeActionWorkflow({ name: `Name ${idx}` }) });
         }, 2)
           .then(() =>
-            recurse(async () => {
+            recurse(async (idx) => {
               await sleep(300);
-              progress("actions-run");
+              progress({ type: "actions-run", run: getFakeActionRun({ run_number: idx }) });
             }, 40)
           ),
-        recurse(async () => {
+        recurse(async (idx) => {
           await sleep(300);
-          progress("pull");
+          progress({ type: "pull", pull: getFakePull({ number: idx }) });
         }, 20)
           .then(() =>
-            recurse(async () => {
+            recurse(async (idx) => {
               await sleep(300);
-              progress("commit");
+              progress({
+                type: "commits",
+                commits: [getFakePullCommit(), getFakePullCommit(), getFakePullCommit()],
+                pr: idx,
+              });
             }, 10)
           ),
       ]);
