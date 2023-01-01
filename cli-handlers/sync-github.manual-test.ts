@@ -24,28 +24,26 @@ async function successScenario() {
     const progress = args?.progress;
     if (progress) {
       await Promise.all([
-        sleep(100)
-          .then(() => progress("actions-workflow"))
-          .then(() => sleep(100))
-          .then(() => progress("actions-workflow"))
-          .then(() => sleep(100))
-          .then(() => progress("actions-run"))
-          .then(() => sleep(100))
-          .then(() => progress("actions-run"))
-          .then(() => sleep(100))
-          .then(() => progress("actions-run")),
-        sleep(100)
-          .then(() => progress("pull"))
-          .then(() => sleep(100))
-          .then(() => progress("pull"))
-          .then(() => sleep(100))
-          .then(() => progress("pull"))
-          .then(() => sleep(100))
-          .then(() => progress("commit"))
-          .then(() => sleep(100))
-          .then(() => progress("commit"))
-          .then(() => sleep(100))
-          .then(() => progress("commit")),
+        recurse(async () => {
+          await sleep(300);
+          progress("actions-workflow");
+        }, 2)
+          .then(() =>
+            recurse(async () => {
+              await sleep(300);
+              progress("actions-run");
+            }, 40)
+          ),
+        recurse(async () => {
+          await sleep(300);
+          progress("pull");
+        }, 20)
+          .then(() =>
+            recurse(async () => {
+              await sleep(300);
+              progress("commit");
+            }, 10)
+          ),
       ]);
     }
     return Promise.resolve({
@@ -70,6 +68,14 @@ async function successScenario() {
       resolvesNext([fakeGithubClient]),
     ),
   );
+}
+
+async function recurse(callable: (iter: number) => Promise<void>, count: number) {
+  let iter = 0;
+  while (iter <= count) {
+    await callable(iter);
+    iter++;
+  }
 }
 
 await successScenario();
