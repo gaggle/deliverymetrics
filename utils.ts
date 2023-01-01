@@ -13,7 +13,7 @@ export async function asyncToArray<T>(
   return arr;
 }
 
-export async function * limit<T>(
+export async function* limit<T>(
   iter: AsyncIterable<T>,
   maxItems: number,
 ): AsyncIterable<T> {
@@ -42,7 +42,7 @@ export async function last<T>(iter: AsyncIterable<T>): Promise<T | undefined> {
   return lastEl;
 }
 
-export async function * arrayToAsyncGenerator<T>(
+export async function* arrayToAsyncGenerator<T>(
   array: Array<T>,
 ): AsyncGenerator<T> {
   for (const el of array) {
@@ -115,7 +115,7 @@ export function assertUnreachable(_: never): never {
   throw new Error("Unreachable");
 }
 
-export async function * inspectIter<T>(
+export async function* inspectIter<T>(
   callback: (el: T, index: number) => void,
   iter: AsyncIterableIterator<T>,
 ): AsyncIterableIterator<T> {
@@ -126,7 +126,7 @@ export async function * inspectIter<T>(
   }
 }
 
-export async function * filterIter<T>(
+export async function* filterIter<T>(
   predicate: (value: T, index: number) => boolean,
   iter: AsyncGenerator<T>,
 ): AsyncGenerator<T> {
