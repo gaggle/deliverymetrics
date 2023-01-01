@@ -138,3 +138,73 @@ export async function* filterIter<T>(
     yield el;
   }
 }
+
+/**
+ * A throttled function that will only be invoked at most once per
+ * every `wait` milliseconds.
+ */
+export interface ThrottledFunction<Args extends Array<unknown>> {
+  (...args: Args): void;
+}
+
+/**
+ * Creates a throttled function that only invokes at most once per
+ * every `wait` milliseconds. That is, the function will not execute
+ * more than once every X milliseconds, even if called repeatedly.
+ *
+ * @param fn    The function to throttle.
+ * @param wait  The time in milliseconds to delay the function.
+ */
+// deno-lint-ignore no-explicit-any
+export function throttle<Args extends Array<any>>(
+  fn: (this: ThrottledFunction<Args>, ...args: Args) => void,
+  wait: number,
+) {
+  let timeout: ReturnType<typeof setTimeout> | undefined = undefined;
+  let lastTime: number;
+
+  function isNotThrottled(): boolean {
+    if (lastTime === undefined) {
+      return true;
+    }
+    return Date.now() - lastTime >= wait;
+  }
+
+  function timeUntilNotThrottled(): number {
+    return Math.max(wait - (Date.now() - lastTime), 0);
+  }
+
+  function invoke(...args: Args) {
+    fn.call(throttled, ...args);
+    lastTime = Date.now();
+  }
+
+  const throttled: ThrottledFunction<Args> = (...args: Args) => {
+    debug({
+      now: Date.now(),
+      lastTime,
+      wait,
+      timeout,
+      isNotThrottled: isNotThrottled(),
+      timeUntilNotThrottled: timeUntilNotThrottled(),
+    });
+
+    // If not throttled, clear any timeouts and invoke
+    if (isNotThrottled()) {
+      clearTimeout(timeout);
+      timeout = undefined;
+      invoke(...args);
+      return;
+    }
+
+    // If throttled, scheduled an invocation when throttling expires
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      if (isNotThrottled()) {
+        invoke(...args);
+      }
+    }, timeUntilNotThrottled());
+  };
+
+  return throttled;
+}

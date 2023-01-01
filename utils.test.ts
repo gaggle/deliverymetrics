@@ -1,8 +1,20 @@
 import { assertEquals, assertThrows } from "dev:asserts";
+import { FakeTime } from "dev:time";
 
 import { getFakePull } from "./github/testing.ts";
 
-import { asyncToArray, first, getEnv, last, limit, pluralize, stringifyPull, stringifyUpdatedPull } from "./utils.ts";
+import {
+  asyncToArray,
+  first,
+  getEnv,
+  last,
+  limit,
+  pluralize,
+  stringifyPull,
+  stringifyUpdatedPull,
+  throttle,
+} from "./utils.ts";
+import { withFakeTime } from "./dev-utils.ts";
 
 Deno.test("asyncToArray", async (t) => {
   await t.step("converts AsyncGenerator", async () => {
@@ -202,4 +214,72 @@ Deno.test("stringifyUpdatedPull", async (t) => {
     }),
     "#1 (open -> draft) https://url",
   );
+});
+
+Deno.test("throttle", async (t) => {
+  await t.step("invokes function on leading edge", async () => {
+    let count = 0;
+    const wrappedFn = throttle(() => count++, 50);
+
+    await withFakeTime(async (fakeTime) => {
+      await wrappedFn();
+      await fakeTime.tickAsync(1);
+    }, new FakeTime(0));
+
+    assertEquals(count, 1);
+  });
+
+  await t.step("drops call within `wait` window", async () => {
+    let count = 0;
+    const wrappedFn = throttle(() => count++, 50);
+
+    await withFakeTime(async (fakeTime) => {
+      await wrappedFn();
+      await fakeTime.tickAsync(48);
+      await wrappedFn();
+      await fakeTime.tickAsync(1);
+      await wrappedFn();
+      await fakeTime.tickAsync(1);
+    }, new FakeTime(0));
+
+    assertEquals(count, 2);
+  });
+
+  await t.step("invokes if called after `wait` window", async () => {
+    let count = 0;
+    const wrappedFn = throttle(() => count++, 50);
+
+    await withFakeTime(async (fakeTime) => {
+      await wrappedFn();
+      await fakeTime.tickAsync(50);
+      await wrappedFn();
+      await fakeTime.tickAsync(1000);
+    }, new FakeTime(0));
+
+    assertEquals(count, 2);
+  });
+
+  await t.step("calls at most every `wait` delay", async () => {
+    const actual: Array<number> = [];
+    const wrappedFn = throttle(() => {
+      actual.push(Date.now());
+    }, 50);
+
+    await withFakeTime(async (fakeTime) => {
+      await wrappedFn();
+      await fakeTime.tickAsync(25);
+      await wrappedFn();
+      await fakeTime.tickAsync(25);
+      await wrappedFn();
+      await fakeTime.tickAsync(25);
+      await wrappedFn();
+      await fakeTime.tickAsync(25);
+      await wrappedFn();
+      await fakeTime.tickAsync(25);
+      await wrappedFn();
+      await fakeTime.tickAsync(1000);
+    }, new FakeTime(0));
+
+    assertEquals(actual, [0, 50, 100, 150]);
+  });
 });
