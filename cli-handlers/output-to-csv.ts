@@ -1,6 +1,6 @@
 import { CSVWriteCellOptions, CSVWriterOptions, writeCSVObjects } from "csv";
-import { ensureFile } from "fs";
-import { join } from "path";
+import { ensureFile } from "std:fs";
+import { join } from "std:path";
 
 import { ActionWorkflow, getGithubClient, GithubPull, githubPullSchema } from "../github/mod.ts";
 import { yieldActionRunHistogram, yieldPullRequestLeadTime } from "../metrics/mod.ts";

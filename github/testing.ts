@@ -1,4 +1,4 @@
-import { deepMerge } from "deep-merge";
+import { deepMerge } from "std:deep-merge";
 
 import { MockAloeDatabase } from "../db/mod.ts";
 

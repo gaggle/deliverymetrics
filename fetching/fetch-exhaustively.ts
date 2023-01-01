@@ -1,4 +1,4 @@
-import { debug } from "log";
+import { debug } from "std:log";
 
 /**
  * Copied from https://github.com/SamVerschueren/github-parse-link/blob/master/index.js

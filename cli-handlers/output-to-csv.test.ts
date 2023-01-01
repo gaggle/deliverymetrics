@@ -1,5 +1,5 @@
 import { assertEquals } from "dev:asserts";
-import { join } from "path";
+import { join } from "std:path";
 import { readCSVObjects } from "csv";
 import { stub } from "dev:mock";
 

@@ -1,6 +1,6 @@
 import * as z from "zod";
-import { debug } from "log";
-import { deepMerge } from "deep-merge";
+import { debug } from "std:log";
+import { deepMerge } from "std:deep-merge";
 
 import { fetchExhaustively, Retrier } from "../../fetching/mod.ts";
 

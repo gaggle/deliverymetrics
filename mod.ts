@@ -1,6 +1,6 @@
-import { ensureDir } from "fs";
-import { handlers, setup as logSetup } from "log";
-import { join, normalize, resolve } from "path";
+import { ensureDir } from "std:fs";
+import { handlers, setup as logSetup } from "std:log";
+import { join, normalize, resolve } from "std:path";
 import { yargs, YargsArguments, YargsInstance } from "yargs";
 
 import { githubSyncHandler, outputToCsv } from "./cli-handlers/mod.ts";

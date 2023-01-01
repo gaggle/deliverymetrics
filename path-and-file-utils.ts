@@ -1,6 +1,6 @@
 import * as z from "zod";
-import { dirname, join, relative, resolve } from "path";
-import { ensureDir, ensureFile, walk } from "fs";
+import { dirname, join, relative, resolve } from "std:path";
+import { ensureDir, ensureFile, walk } from "std:fs";
 
 import { JSONValue } from "./types.ts";
 

@@ -1,4 +1,4 @@
-import { URL } from "node-url";
+import { URL } from "std:node-url";
 
 export function parseGithubUrl(id: string): { owner: string; repo: string } {
   const simpleMatch = /^([\w-.]+)\/([\w-.]+)$/.exec(id);

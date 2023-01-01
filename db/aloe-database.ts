@@ -1,6 +1,6 @@
 import { Acceptable, Database, Document } from "aloedb";
-import { dirname } from "path";
-import { ensureDir } from "fs";
+import { dirname } from "std:path";
+import { ensureDir } from "std:fs";
 import { Schema as ZodSchema } from "zod";
 
 import type { Filepath } from "../types.ts";

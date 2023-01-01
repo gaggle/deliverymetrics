@@ -1,4 +1,4 @@
-import { join } from "path";
+import { join } from "std:path";
 
 import { getGithubClient, GithubClient } from "../github/mod.ts";
 import { withSpinner } from "../cli-gui/mod.ts";

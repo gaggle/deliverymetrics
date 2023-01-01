@@ -1,6 +1,6 @@
-import { debug } from "log";
+import { debug } from "std:log";
 import { equal } from "equal";
-import { groupBy } from "group-by";
+import { groupBy } from "std:group-by";
 import { Query } from "aloedb";
 
 import { AloeDatabase } from "../../db/mod.ts";

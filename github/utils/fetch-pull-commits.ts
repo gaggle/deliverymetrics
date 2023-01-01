@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { deepMerge } from "deep-merge";
+import { deepMerge } from "std:deep-merge";
 
 import { Retrier } from "../../fetching/retrier.ts";
 import { fetchExhaustively } from "../../fetching/fetch-exhaustively.ts";
