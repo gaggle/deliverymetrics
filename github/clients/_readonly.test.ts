@@ -22,13 +22,28 @@ Deno.test("Github Client shared tests", async (t) => {
     await t.step("should say when it was last updated at", async (t) => {
       for await (
         const client of yieldGithubClient({
-          syncInfos: [{ createdAt: 0, updatedAt: 5_000 }, { createdAt: 0, updatedAt: 10_000 }],
+          syncInfos: [{ createdAt: 0, updatedAt: 5_000 }, { createdAt: 10_000, updatedAt: 15_000 }],
         })
       ) {
         await t.step(`for ${client.constructor.name}`, async () => {
           assertEquals(
             (await client.findLatestSync() || {}).updatedAt,
-            10_000,
+            15_000,
+          );
+        });
+      }
+    });
+
+    await t.step("should only find latest completed sync", async (t) => {
+      for await (
+        const client of yieldGithubClient({
+          syncInfos: [{ createdAt: 0, updatedAt: 5_000 }, { createdAt: 10_000 }],
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          assertEquals(
+            (await client.findLatestSync() || {}).updatedAt,
+            5_000,
           );
         });
       }

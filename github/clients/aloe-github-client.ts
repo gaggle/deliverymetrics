@@ -1,7 +1,7 @@
 import { debug } from "std:log";
 import { equal } from "equal";
 import { groupBy } from "std:group-by";
-import { Query } from "aloedb";
+import { exists, Query } from "aloedb";
 
 import { AloeDatabase } from "../../db/mod.ts";
 
@@ -86,7 +86,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
   }
 
   async findLatestSync(): Promise<SyncInfo | undefined> {
-    const syncs = await this.db.syncs.findMany();
+    const syncs = await this.db.syncs.findMany({ updatedAt: exists() });
     return syncs[syncs.length - 1];
   }
 
