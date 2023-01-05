@@ -49,7 +49,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
    *
    * Default sort is by `updated_at`
    */
-  async * findPulls(
+  async *findPulls(
     { sort }: Partial<{ sort: { key: GithubPullDateKey; order?: "asc" | "desc" } }> = {},
   ): AsyncGenerator<GithubPull> {
     const sortedPulls = sortPullsByKey(
@@ -64,10 +64,10 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     }
   }
 
-  async * findUnclosedPulls(): AsyncGenerator<GithubPull> {
+  async *findUnclosedPulls(): AsyncGenerator<GithubPull> {
     for (
       const el of (await asyncToArray(this.findPulls())).filter((pull) => pull.state !== "closed")
-      ) {
+    ) {
       yield el;
     }
   }
@@ -78,7 +78,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     );
   }
 
-  async * findPullCommits(opts?: Partial<{ pr: number }>): AsyncGenerator<BoundGithubPullCommit> {
+  async *findPullCommits(opts?: Partial<{ pr: number }>): AsyncGenerator<BoundGithubPullCommit> {
     const pullCommits = await this.db.pullCommits.findMany(opts?.pr ? { pr: opts.pr } : undefined);
     for (const el of pullCommits) {
       yield el;
@@ -90,7 +90,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     return syncs[syncs.length - 1];
   }
 
-  async * findActionRuns(
+  async *findActionRuns(
     opts?: Partial<{
       branch: string | RegExp;
       conclusion: string | RegExp;
@@ -117,7 +117,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     }
   }
 
-  async * findActionWorkflows(): AsyncGenerator<ActionWorkflow> {
+  async *findActionWorkflows(): AsyncGenerator<ActionWorkflow> {
     const workflows = await this.db.actionWorkflows.findMany();
     for (const wf of workflows) {
       yield wf;
@@ -158,16 +158,16 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
       createdAt: Date.now(),
       updatedAt: undefined,
     });
-    await this.db.syncs.save()
+    await this.db.syncs.save();
 
     const fetchedPulls: Array<GithubPull> = [];
 
     const handlePulls = async () => {
       for await (
         const pull of _internals.fetchPulls(this.owner, this.repo, this.token, {
-        from: lastSync?.updatedAt,
-      })
-        ) {
+          from: lastSync?.updatedAt,
+        })
+      ) {
         fetchedPulls.push(pull);
         await this.db.pulls.deleteOne({ number: pull.number });
         await this.db.pulls.insertOne(pull);
@@ -206,7 +206,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     const handleRuns = async () => {
       for await (
         const run of _internals.fetchActionRuns(this.owner, this.repo, this.token, { from: lastSync?.updatedAt })
-        ) {
+      ) {
         await this.db.actionRuns.deleteOne({ node_id: run.node_id });
         await this.db.actionRuns.insertOne(run);
         await progress("actions-run");
