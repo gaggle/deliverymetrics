@@ -105,17 +105,18 @@ yargs(Deno.args)
       inst.positional("repo-id", {
         describe: "Repository identifier, e.g: octokit/octokit.js",
         type: "string",
+        coerce: (repoId: string) => parseGithubUrl(repoId),
       });
     },
     async (
       argv: YargsArguments & {
         format: string;
         outputDir: string;
-        repoId: string;
+        repoId: ReturnType<typeof parseGithubUrl>;
       },
     ) => {
       await outputToCsv({
-        github: parseGithubUrl(argv.repoId),
+        github: argv.repoId,
         outputDir: argv.outputDir,
         persistenceRoot,
       });
