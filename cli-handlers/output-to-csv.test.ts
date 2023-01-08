@@ -35,11 +35,13 @@ async function withOutputToCsv(
     await withTempDir(async (outputDir) => {
       await withStubs(
         async () => {
-          await outputToCsv({
-            github: { owner: "owner", repo: "repo" },
-            outputDir,
-            persistenceRoot: "persistenceRoot",
-          });
+          await t.step("runs outputToCsv without error", async () => {
+            await outputToCsv({
+              github: { owner: "owner", repo: "repo" },
+              outputDir,
+              persistenceRoot: "persistenceRoot",
+            });
+          })
 
           if (expectedFiles) {
             await t.step("outputs the expected files", async () => {
