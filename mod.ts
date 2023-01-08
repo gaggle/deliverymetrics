@@ -104,4 +104,5 @@ yargs(Deno.args)
   )
   .strictCommands()
   .demandCommand(1)
+  .wrap(120)
   .parse();
