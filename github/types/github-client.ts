@@ -38,7 +38,9 @@ export type SyncProgressParams =
   | { type: "pull"; pull: GithubPull };
 
 export interface GithubClient extends ReadonlyGithubClient {
-  sync(opts?: Partial<{ progress: (type: SyncProgressParams) => void }>): Promise<GithubDiff>;
+  sync(
+    opts?: Partial<{ syncFromIfUnsynced: number; progress: (type: SyncProgressParams) => void }>,
+  ): Promise<GithubDiff>;
 }
 
 export type Sortable<T> = Partial<{ sort: { key: T; order?: "asc" | "desc" } }>;

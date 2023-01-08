@@ -144,10 +144,13 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     this.token = opts.token;
   }
 
-  async sync(opts: Partial<{ progress: (type: SyncProgressParams) => void }> = {}): Promise<GithubDiff> {
-    const { progress } = { progress: () => {}, ...opts };
+  async sync(
+    opts: Partial<{ syncFromIfUnsynced: number; progress: (type: SyncProgressParams) => void }> = {},
+  ): Promise<GithubDiff> {
+    const { progress, syncFromIfUnsynced } = { progress: () => {}, ...opts };
 
     const lastSync = await this.findLatestSync();
+    const from = lastSync?.updatedAt || syncFromIfUnsynced;
 
     let sync: SyncInfo = await this.db.syncs.insertOne({
       createdAt: Date.now(),
@@ -165,9 +168,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 
     const handlePulls = async () => {
       for await (
-        const pull of _internals.fetchPulls(this.owner, this.repo, this.token, {
-          from: lastSync?.updatedAt,
-        })
+        const pull of _internals.fetchPulls(this.owner, this.repo, this.token, { from })
       ) {
         fetchedPulls.push(pull);
         await this.db.pulls.deleteOne({ number: pull.number });
@@ -206,7 +207,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 
     const handleRuns = async () => {
       for await (
-        const run of _internals.fetchActionRuns(this.owner, this.repo, this.token, { from: lastSync?.updatedAt })
+        const run of _internals.fetchActionRuns(this.owner, this.repo, this.token, { from })
       ) {
         await this.db.actionRuns.deleteOne({ node_id: run.node_id });
         await this.db.actionRuns.insertOne(run);

@@ -1,3 +1,5 @@
+import { debug } from "std:log";
+import { difference } from "std:datetime";
 import { join } from "std:path";
 
 import { getGithubClient, GithubClient, GithubDiff } from "../github/mod.ts";
@@ -7,12 +9,16 @@ import { assertUnreachable, stringifyPull } from "../utils.ts";
 
 import { formatGithubClientStatus, formatGithubSyncResult } from "./formatting.ts";
 
+const dayInMs = 24 * 60 * 60 * 1000;
+//              hour min  sec  ms
+
 export async function githubSyncHandler(
-  { owner, repo, token, persistenceRoot }: {
+  { owner, repo, token, persistenceRoot, maxDays }: {
     owner: string;
     repo: string;
     token: string;
     persistenceRoot: string;
+    maxDays: number;
   },
 ) {
   let github: GithubClient;
@@ -27,9 +33,17 @@ export async function githubSyncHandler(
   }, { start: "Initializing...", succeed: "Initialized", delayFor: 100 });
   console.log(await formatGithubClientStatus(github!));
 
+  const maxSyncFromIfUnsynced = Date.now() - dayInMs * maxDays;
+  debug("maxSyncFromIfUnsynced", {
+    now: new Date(),
+    maxSyncFromIfUnsynced: new Date(maxSyncFromIfUnsynced),
+    diff: difference(new Date(), new Date(maxSyncFromIfUnsynced), { units: ["days"] }),
+  });
+
   let syncResult: GithubDiff;
   await withProgress(async (progress) => {
     syncResult = await github!.sync({
+      syncFromIfUnsynced: maxSyncFromIfUnsynced,
       progress: (el) => {
         const type = el.type;
         switch (type) {

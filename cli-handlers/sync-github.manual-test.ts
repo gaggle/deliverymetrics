@@ -68,9 +68,10 @@ async function successScenario() {
     async () => {
       await githubSyncHandler({
         owner: "owner",
-        persistenceRoot: "persistenceRoot",
         repo: "repo",
         token: "token",
+        persistenceRoot: "persistenceRoot",
+        maxDays: 90,
       });
     },
     stub(

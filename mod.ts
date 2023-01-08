@@ -39,7 +39,7 @@ yargs(Deno.args)
     return loglevel;
   })
   .command(
-    "pull github <repo-id> <token>",
+    "pull github <repo-id> <token> [--max-days]",
     "Pull data from Github",
     (inst: YargsInstance) => {
       inst.positional("repo-id", {
@@ -51,11 +51,29 @@ yargs(Deno.args)
         describe: "GitHub Personal Access Token, one can be created at https://github.com/settings/tokens",
         type: "string",
       });
+      inst.option("max-days", {
+        default: 90,
+        describe: "Max number of days back to sync for the initial sync",
+        type: "number",
+        coerce: (maxDays: number) => {
+          if (isNaN(maxDays)) {
+            throw new Error(`--max-days must be a number, got: ${maxDays}`);
+          }
+          return maxDays;
+        },
+      });
     },
-    async (argv: YargsArguments & { repoId: ReturnType<typeof parseGithubUrl>; token: string }) => {
+    async (
+      argv: YargsArguments & {
+        repoId: ReturnType<typeof parseGithubUrl>;
+        token: string;
+        maxDays: number;
+      },
+    ) => {
       await githubSyncHandler({
         ...argv.repoId,
         token: argv.token,
+        maxDays: argv.maxDays,
         persistenceRoot,
       });
     },

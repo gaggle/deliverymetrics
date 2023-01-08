@@ -126,6 +126,39 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
     },
   );
 
+  await t.step(
+    "should pull only until max number of days ago is reached",
+    async (t) => {
+      for await (
+        const client of yieldGithubClient({
+          syncInfos: [],
+          // ↑ never synced
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withStubs(
+            async (fetchPullsStub, fetchActionRunsStub) => {
+              await client.sync({ syncFromIfUnsynced: 10 });
+              assertSpyCalls(fetchPullsStub, 1);
+              assertObjectMatch(fetchPullsStub.calls[0].args, {
+                "3": { from: 10 },
+              });
+
+              assertSpyCalls(fetchActionRunsStub, 1);
+              assertObjectMatch(fetchActionRunsStub.calls[0].args, {
+                "3": { from: 10 },
+              });
+            },
+            stub(_internals, "fetchPulls", returnsNext([arrayToAsyncGenerator([])])),
+            stub(_internals, "fetchActionRuns", returnsNext([arrayToAsyncGenerator([])])),
+            stub(_internals, "fetchPullCommits", returnsNext([arrayToAsyncGenerator([])])),
+            stub(_internals, "fetchActionWorkflows", returnsNext([arrayToAsyncGenerator([])])),
+          );
+        });
+      }
+    },
+  );
+
   await t.step("should add fetched pulls to cache", async (t) => {
     for await (const client of yieldGithubClient()) {
       const fakePull = getFakePull();
