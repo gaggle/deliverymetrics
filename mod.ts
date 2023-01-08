@@ -45,15 +45,16 @@ yargs(Deno.args)
       inst.positional("repo-id", {
         describe: "Repository identifier, e.g: octokit/octokit.js",
         type: "string",
+        coerce: (repoId: string) => parseGithubUrl(repoId),
       });
       inst.positional("token", {
         describe: "GitHub Personal Access Token, one can be created at https://github.com/settings/tokens",
         type: "string",
       });
     },
-    async (argv: YargsArguments & { repoId: string; token: string }) => {
+    async (argv: YargsArguments & { repoId: ReturnType<typeof parseGithubUrl>; token: string }) => {
       await githubSyncHandler({
-        ...(parseGithubUrl(argv.repoId)),
+        ...argv.repoId,
         token: argv.token,
         persistenceRoot,
       });
