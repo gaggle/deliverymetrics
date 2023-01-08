@@ -6,7 +6,7 @@ import { makeRunWithLimit as makeLimit } from "run-with-limit";
 import { ActionWorkflow, getGithubClient, GithubPull, GithubPullCommit, githubPullSchema } from "../github/mod.ts";
 import { yieldActionRunHistogram, yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
-import { filterIter, inspectIter } from "../utils.ts";
+import { filterIter, inspectIter, sleep } from "../utils.ts";
 import { ToTuple } from "../types.ts";
 import { withFileOpen, withTempFile } from "../path-and-file-utils.ts";
 
@@ -135,6 +135,10 @@ export async function outputToCsv(
         }));
       }
     }
+
+    jobs.push(sleep(200))
+    // ↑ Through trial-and-error I found this hack where a small delay helps the tests pass reliably,
+    //   presumably because the progress bar gets a bit of time to resolve itself? (or the underlying throttle)
 
     await Promise.all(jobs);
   }, {
