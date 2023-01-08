@@ -15,7 +15,9 @@ export async function* yieldPullRequestData(
 
   for await (
     const el of filterIter(
-      (el) => daysBetween(new Date(el.created_at), new Date(latestSync.updatedAt!)) < (maxDays || Infinity),
+      (el) =>
+        el.draft === false &&
+        daysBetween(new Date(el.created_at), new Date(latestSync.updatedAt!)) < (maxDays || Infinity),
       gh.findPulls({ sort: { key: "created_at", order: "asc" } }),
     )
   ) {
