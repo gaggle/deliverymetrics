@@ -117,8 +117,8 @@ export function assertUnreachable(_: never): never {
 
 export async function* inspectIter<T>(
   callback: (el: T, index: number) => void,
-  iter: AsyncIterableIterator<T>,
-): AsyncIterableIterator<T> {
+  iter: AsyncGenerator<T>,
+): AsyncGenerator<T> {
   let idx = 0;
   for await (const el of iter) {
     callback(el, idx++);

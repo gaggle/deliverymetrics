@@ -150,8 +150,8 @@ const prHeaders = [...prPrimaryHeaders, ...prRemainingHeaders] as const;
 export type PrRow = Record<typeof prHeaders[number], string>;
 
 async function* githubPullsAsCsv(
-  pulls: AsyncIterableIterator<GithubPull>,
-): AsyncIterableIterator<PrRow> {
+  pulls: AsyncGenerator<GithubPull>,
+): AsyncGenerator<PrRow> {
   for await (const pull of pulls) {
     yield {
       _links: JSON.stringify(pull._links),
@@ -186,7 +186,7 @@ type LeadTimeRow = Record<typeof leadTimeHeaders[number], string>;
 
 async function* prLeadTimeAsCsv(
   iter: ReturnType<typeof yieldPullRequestLeadTime>,
-): AsyncIterableIterator<LeadTimeRow> {
+): AsyncGenerator<LeadTimeRow> {
   for await (const el of iter) {
     yield {
       "Period Start": el.start.toISOString(),
@@ -213,7 +213,7 @@ type ActionsRunRow = Record<typeof actionsRunHeaders[number], string>;
 async function* actionsRunAsCsv(
   iter: ReturnType<typeof yieldActionRunHistogram>,
   workflow: ActionWorkflow,
-): AsyncIterableIterator<ActionsRunRow> {
+): AsyncGenerator<ActionsRunRow> {
   for await (const el of iter) {
     yield {
       "Period Start": toExcelDate(el.start),
@@ -230,7 +230,7 @@ async function* actionsRunAsCsv(
 
 async function writeCSVToFile(
   fp: string,
-  iter: AsyncIterableIterator<{ [key: string]: string }>,
+  iter: AsyncGenerator<{ [key: string]: string }>,
   options: Partial<CSVWriterOptions & CSVWriteCellOptions> & { header: string[] },
 ) {
   let hasIterated = false;
