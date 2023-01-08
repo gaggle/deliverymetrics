@@ -43,9 +43,12 @@ export async function outputToCsv(
   const { runWithLimit: limit } = makeLimit(2);
 
   await withProgress(async (progress) => {
-    const jobs = [];
+    const jobs: Array<Promise<unknown>> = [];
     const increment = (name: string) =>
-      progress.increment(name, { text: `Processing ${name}`, total: Number.MAX_SAFE_INTEGER });
+      progress.increment(name, {
+        text: `Processing ${name}`,
+        total: Number.MAX_SAFE_INTEGER,
+      });
 
     for await (const workflow of gh.findActionWorkflows()) {
       for (const mode of getModes()) {
