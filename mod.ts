@@ -31,7 +31,7 @@ yargs(Deno.args)
   .scriptName("dm")
   .option("loglevel").describe(
     "loglevel",
-    `one of ${logLevels.join(", ")}, defaults to ${defaultLogLevel}`,
+    `One of ${logLevels.join(", ")}, defaults to ${defaultLogLevel}`,
   )
   .choices("loglevel", logLevels).default("loglevel", defaultLogLevel)
   .coerce("loglevel", (loglevel: LogLevel) => {
