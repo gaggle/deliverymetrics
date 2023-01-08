@@ -21,10 +21,10 @@ lint-fix:
 	deno fmt
 
 compile:
-	deno compile --output dm-x86-gnu --target=x86_64-unknown-linux-gnu $(ALLOW) ./mod.ts
-	deno compile --output dm-x86-win --target=x86_64-pc-windows-msvc   $(ALLOW) ./mod.ts
-	deno compile --output dm-x86-mac --target=x86_64-apple-darwin      $(ALLOW) ./mod.ts
-	deno compile --output dm-a64-mac --target=aarch64-apple-darwin     $(ALLOW) ./mod.ts
+	deno compile --output dm-x86-gnu --target=x86_64-unknown-linux-gnu --import-map=import_map.json $(ALLOW) ./mod.ts
+	deno compile --output dm-x86-win --target=x86_64-pc-windows-msvc   --import-map=import_map.json $(ALLOW) ./mod.ts
+	deno compile --output dm-x86-mac --target=x86_64-apple-darwin      --import-map=import_map.json $(ALLOW) ./mod.ts
+	deno compile --output dm-a64-mac --target=aarch64-apple-darwin     --import-map=import_map.json $(ALLOW) ./mod.ts
 
 ### CLI Commands
 help:
