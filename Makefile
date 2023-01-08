@@ -4,7 +4,7 @@ ALLOW_TEST = --allow-read --allow-write --allow-env
 
 ### Dev
 test-watch:
-	deno test --watch --cached-only $(ALLOW_TEST) .
+	nice -20 deno test --watch --cached-only $(ALLOW_TEST) .
 
 test:
 	rm -rf .coverage
