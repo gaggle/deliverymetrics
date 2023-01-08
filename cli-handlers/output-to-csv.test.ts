@@ -89,19 +89,6 @@ Deno.test({
           assertEquals(content.length, 1);
 
           assertEquals(content[0], {
-            _links: JSON.stringify({
-              html: { href: "https://url" },
-              self: { href: "https://url" },
-              commits: { href: `https://api.github.com/repos/owner/repo/pulls/1/commits` },
-              statuses: {
-                href: "https://api.github.com/repos/owner/repo/statuses/da39a3ee5e6b4b0d3255bfef95601890afd80709",
-              },
-            }),
-            base: JSON.stringify({
-              label: "Foo:main",
-              ref: "main",
-              sha: "ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
-            }),
             closed_at: "",
             commits_authors: "",
             commits_committers: "",

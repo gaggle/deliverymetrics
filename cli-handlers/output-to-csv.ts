@@ -159,6 +159,8 @@ const prPrimaryHeaders = [
   "commits_committers",
 ] as const;
 const prIgnoreHeaders = [
+  "_links",
+  "base",
   "body",
   "comments_url",
   "commits_url",
@@ -193,8 +195,6 @@ async function* githubPullsAsCsv(
       commits_committers: el.commits.map((el) => el.committer_name)
         .filter((v, i, a) => a.indexOf(v) === i) // Make unique
         .join(", "),
-      _links: JSON.stringify(el._links),
-      base: JSON.stringify({ ...el.base, repo: undefined }),
       closed_at: el.closed_at || "",
       created_at: el.created_at,
       draft: el.draft.toString(),
