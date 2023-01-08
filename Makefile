@@ -8,7 +8,7 @@ test-watch:
 
 test:
 	rm -rf .coverage
-	deno test --check --coverage=.coverage --parallel --cached-only $(ALLOW_TEST)
+	deno test --check --coverage=.coverage --parallel $(ALLOW_TEST)
 	$(MAKE) coverage
 
 coverage:
