@@ -43,7 +43,9 @@ async function withOutputToCsv(
 
           if (expectedFiles) {
             await t.step("outputs the expected files", async () => {
-              assertEquals(await asyncToArray(yieldDir(outputDir)), Array.from(expectedFiles));
+              const actual = await asyncToArray(yieldDir(outputDir));
+              const expected = Array.from(expectedFiles);
+              assertEquals(actual.sort(), expected.sort());
             });
           }
 
