@@ -38,3 +38,14 @@ export function monthEnd(...args: ConstructorParameters<typeof Date>): Date {
   const d = new Date(...args);
   return dateEnd(new Date(d.getUTCFullYear(), d.getUTCMonth() + 1, 1));
 }
+
+export function toDays(duration: number): number {
+  return Math.ceil(duration / (24 * 60 * 60 * 1000));
+  //                           hour min  sec  ms;
+}
+
+export function daysBetween(then: Date, now: Date): number {
+  const msBetweenDates = Math.abs(then.getTime() - now.getTime());
+  return msBetweenDates / (24 * 60 * 60 * 1000);
+  //                       hour min  sec  ms
+}

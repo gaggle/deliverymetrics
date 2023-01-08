@@ -4,14 +4,15 @@ import { join } from "std:path";
 import { makeRunWithLimit as makeLimit } from "run-with-limit";
 
 import { ActionWorkflow, getGithubClient, GithubPull, GithubPullCommit, githubPullSchema } from "../github/mod.ts";
-import { yieldActionRunHistogram, yieldPullRequestLeadTime } from "../metrics/mod.ts";
+import { daysBetween, toDays } from "../metrics/date-utils.ts";
+import { withProgress } from "../cli-gui/mod.ts";
+import { yieldActionRunHistogram, yieldPullRequestData, yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
 import { filterIter, inspectIter, sleep } from "../utils.ts";
 import { ToTuple } from "../types.ts";
 import { withFileOpen, withTempFile } from "../path-and-file-utils.ts";
 
 import { formatGithubClientStatus } from "./formatting.ts";
-import { withProgress } from "../cli-gui/with-progress.ts";
 
 function* getModes() {
   yield "daily";
@@ -146,17 +147,6 @@ export async function outputToCsv(
     display: ":text [Row: :completed]",
     bars: { foo: {} },
   });
-}
-
-function toDays(duration: number): number {
-  return Math.ceil(duration / (24 * 60 * 60 * 1000));
-  //                           hour min  sec  ms;
-}
-
-function daysBetween(then: Date, now: Date): number {
-  const msBetweenDates = Math.abs(then.getTime() - now.getTime());
-  return msBetweenDates / (24 * 60 * 60 * 1000);
-  //                       hour min  sec  ms
 }
 
 const prPrimaryHeaders = [
