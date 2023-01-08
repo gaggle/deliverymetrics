@@ -128,6 +128,7 @@ const prPrimaryHeaders = [
   "was_cancelled",
 ] as const;
 const prIgnoreHeaders = [
+  "body",
   "comments_url",
   "commits_url",
   "head",
@@ -156,7 +157,6 @@ async function* githubPullsAsCsv(
     yield {
       _links: JSON.stringify(pull._links),
       base: JSON.stringify({ ...pull.base, repo: undefined }),
-      body: pull.body ? JSON.stringify(pull.body) : "",
       closed_at: pull.closed_at || "",
       created_at: pull.created_at,
       draft: pull.draft.toString(),
