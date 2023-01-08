@@ -63,11 +63,12 @@ export async function withProgress(
   };
 
   render();
+
   try {
     await callable(progress);
+    barGroup.end();
   } catch (err: unknown) {
     barGroup.end();
     throw err;
   }
-  barGroup.end();
 }

@@ -136,7 +136,7 @@ export async function outputToCsv(
       }
     }
 
-    jobs.push(sleep(200))
+    jobs.push(sleep(200));
     // ↑ Through trial-and-error I found this hack where a small delay helps the tests pass reliably,
     //   presumably because the progress bar gets a bit of time to resolve itself? (or the underlying throttle)
 

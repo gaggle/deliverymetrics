@@ -41,7 +41,7 @@ async function withOutputToCsv(
               outputDir,
               persistenceRoot: "persistenceRoot",
             });
-          })
+          });
 
           if (expectedFiles) {
             await t.step("outputs the expected files", async () => {
@@ -151,10 +151,10 @@ Deno.test({
             merged_at: null,
           }),
         ],
-        syncInfos:[getFakeSyncInfo({
+        syncInfos: [getFakeSyncInfo({
           createdAt: new Date("1983-01-01T00:00:00Z").getTime(),
           updatedAt: new Date("1983-01-01T00:00:00Z").getTime(),
-        })]
+        })],
       },
       expectedFiles: ["pull-request-data-90d.csv"],
     });
@@ -206,12 +206,12 @@ Deno.test({
         pulls: [
           getFakePull({ number: 4, created_at: "1984-01-01T00:00:00Z", merged_at: "1984-01-05T00:00:00Z" }),
         ],
-        syncInfos:[
+        syncInfos: [
           getFakeSyncInfo({
             createdAt: new Date("1984-01-01T00:00:00Z").getTime(),
             updatedAt: new Date("1984-01-01T00:00:00Z").getTime(),
-          })
-        ]
+          }),
+        ],
       },
       expectedFiles: pullOutputNames,
     });
