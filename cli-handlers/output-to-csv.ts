@@ -6,11 +6,18 @@ import { makeRunWithLimit as makeLimit } from "run-with-limit";
 import { ActionWorkflow, getGithubClient, GithubPull, githubPullSchema } from "../github/mod.ts";
 import { yieldActionRunHistogram, yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
-import { asyncToArray, filterIter, inspectIter } from "../utils.ts";
+import { filterIter, inspectIter } from "../utils.ts";
 import { ToTuple } from "../types.ts";
 import { withFileOpen, withTempFile } from "../path-and-file-utils.ts";
 
-import { dot, formatGithubClientStatus } from "./formatting.ts";
+import { formatGithubClientStatus } from "./formatting.ts";
+import { withProgress } from "../cli-gui/with-progress.ts";
+
+function* getModes() {
+  yield "daily";
+  yield "weekly";
+  yield "monthly";
+}
 
 export async function outputToCsv(
   {
@@ -35,78 +42,84 @@ export async function outputToCsv(
 
   const { runWithLimit: limit } = makeLimit(2);
 
-  await Promise.all([
-    ...((await asyncToArray(gh.findActionWorkflows())).map((workflow) =>
-      limit(() =>
-        writeCSVToFile(
-          join(outputDir, "workflows", workflow.name, "histogram-daily.csv"),
-          inspectIter(
-            () => dot(),
+  await withProgress(async (progress) => {
+    const jobs = [];
+    const increment = (name: string) =>
+      progress.increment(name, { text: `Processing ${name}`, total: Number.MAX_SAFE_INTEGER });
+
+    for await (const workflow of gh.findActionWorkflows()) {
+      for (const mode of getModes()) {
+        const name = join("workflows", workflow.name, `histogram-${mode}.csv`);
+        jobs.push(limit(() =>
+          writeCSVToFile(
+            join(outputDir, name),
             actionsRunAsCsv(
-              yieldActionRunHistogram(gh, { mode: "daily", branch: "main", conclusion: "success", workflow }),
+              inspectIter(
+                () => increment(name),
+                yieldActionRunHistogram(gh, { mode, branch: "main", conclusion: "success", workflow }),
+              ),
               workflow,
             ),
-          ),
-          { header: actionsRunHeaders.slice() as Array<string> },
-        )
-      )
-    )),
-    limit(() =>
-      writeCSVToFile(
-        join(outputDir, "all-pull-request-data.csv"),
-        inspectIter(
-          () => dot(),
-          githubPullsAsCsv(gh.findPulls({ sort: { key: "created_at", order: "asc" } })),
-        ),
-        { header: prHeaders.slice() as Array<string> },
-      )
-    ),
-    limit(() =>
-      writeCSVToFile(
-        join(outputDir, "pull-request-lead-times-daily.csv"),
-        inspectIter(
-          () => dot(),
-          prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "daily" })),
-        ),
-        { header: leadTimeHeaders.slice() },
-      )
-    ),
-    limit(() =>
-      writeCSVToFile(
-        join(outputDir, "pull-request-lead-times-weekly.csv"),
-        inspectIter(
-          () => dot(),
-          prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "weekly" })),
-        ),
-        { header: leadTimeHeaders.slice() },
-      )
-    ),
-    limit(() =>
-      writeCSVToFile(
-        join(outputDir, "pull-request-lead-times-monthly.csv"),
-        inspectIter(
-          () => dot(),
-          prLeadTimeAsCsv(yieldPullRequestLeadTime(gh, { mode: "monthly" })),
-        ),
-        { header: leadTimeHeaders.slice() },
-      )
-    ),
-    latestSync && limit(() =>
-      writeCSVToFile(
-        join(outputDir, "pull-request-lead-times-30d.csv"),
-        inspectIter(
-          () => dot(),
-          prLeadTimeAsCsv(
+            { header: actionsRunHeaders.slice() as Array<string> },
+          )
+        ));
+      }
+    }
+
+    if (latestSync) {
+      jobs.push(limit(() => {
+        const name = "pull-request-data-90d.csv";
+        return writeCSVToFile(
+          join(outputDir, name),
+          githubPullsAsCsv(inspectIter(
+            () => increment(name),
             filterIter(
-              (el) => latestSync.updatedAt ? daysBetween(el.start, new Date(latestSync.updatedAt)) < 30 : false,
-              yieldPullRequestLeadTime(gh, { mode: "daily" }),
+              (el) => daysBetween(new Date(el.created_at), new Date(latestSync.updatedAt!)) < 90,
+              gh.findPulls({ sort: { key: "created_at", order: "asc" } }),
+            ),
+          )),
+          { header: prHeaders.slice() as Array<string> },
+        );
+      }));
+
+      jobs.push(limit(() => {
+        const name = "pull-request-lead-times-30d.csv";
+        return writeCSVToFile(
+          join(outputDir, name),
+          prLeadTimeAsCsv(
+            inspectIter(
+              () => increment(name),
+              filterIter(
+                (el) => daysBetween(el.start, new Date(latestSync.updatedAt!)) < 30,
+                yieldPullRequestLeadTime(gh, { mode: "daily" }),
+              ),
             ),
           ),
-        ),
-        { header: leadTimeHeaders.slice() },
-      )
-    ),
-  ]);
+          { header: leadTimeHeaders.slice() },
+        );
+      }));
+
+      for (const mode of getModes()) {
+        jobs.push(limit(() => {
+          const name = `pull-request-lead-times-${mode}.csv`;
+          return writeCSVToFile(
+            join(outputDir, name),
+            prLeadTimeAsCsv(inspectIter(
+              () => increment(name),
+              yieldPullRequestLeadTime(gh, { mode }),
+            )),
+            { header: leadTimeHeaders.slice() },
+          );
+        }));
+      }
+    }
+
+    await Promise.all(jobs);
+  }, {
+    title: "Outputting data",
+    display: ":text [Row: :completed]",
+    bars: { foo: {} },
+  });
 }
 
 function toDays(duration: number): number {
