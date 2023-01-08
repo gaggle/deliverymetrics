@@ -94,13 +94,12 @@ export async function outputToCsv(
         const name = "pull-request-data-90d.csv";
         return writeCSVToFile(
           join(outputDir, name),
-          githubPullsAsCsv(inspectIter(
-            () => increment(name),
-            filterIter(
-              (el) => daysBetween(new Date(el.created_at), new Date(latestSync.updatedAt!)) < 90,
-              gh.findPulls({ sort: { key: "created_at", order: "asc" } }),
+          githubPullsAsCsv(
+            inspectIter(
+              () => increment(name),
+              yieldPullRequestData(gh, { maxDays: 90 }),
             ),
-          )),
+          ),
           { header: prHeaders.slice() as Array<string> },
         );
       }));
@@ -155,6 +154,9 @@ const prPrimaryHeaders = [
   "merged_at",
   "updated_at",
   "was_cancelled",
+  "commits_count",
+  "commits_authors",
+  "commits_committers",
 ] as const;
 const prIgnoreHeaders = [
   "body",
@@ -180,26 +182,32 @@ const prHeaders = [...prPrimaryHeaders, ...prRemainingHeaders] as const;
 export type PrRow = Record<typeof prHeaders[number], string>;
 
 async function* githubPullsAsCsv(
-  pulls: AsyncGenerator<GithubPull>,
+  iter: ReturnType<typeof yieldPullRequestData>,
 ): AsyncGenerator<PrRow> {
-  for await (const pull of pulls) {
+  for await (const el of iter) {
     yield {
-      _links: JSON.stringify(pull._links),
-      base: JSON.stringify({ ...pull.base, repo: undefined }),
-      closed_at: pull.closed_at || "",
-      created_at: pull.created_at,
-      draft: pull.draft.toString(),
-      html_url: pull.html_url,
-      labels: pull.labels.map((el) => el.name).join("; "),
-      locked: pull.locked.toString(),
-      merge_commit_sha: pull.merge_commit_sha,
-      merged_at: pull.merged_at || "",
-      number: pull.number.toString(),
-      state: pull.state,
-      title: JSON.stringify(pull.title),
-      updated_at: pull.updated_at,
-      was_cancelled: Boolean(pull.closed_at && pull.merged_at === null)
-        .toString(),
+      commits_count: el.commits.length.toString(),
+      commits_authors: el.commits.map((el) => el.author_name)
+        .filter((v, i, a) => a.indexOf(v) === i) // Make unique
+        .join(", "),
+      commits_committers: el.commits.map((el) => el.committer_name)
+        .filter((v, i, a) => a.indexOf(v) === i) // Make unique
+        .join(", "),
+      _links: JSON.stringify(el._links),
+      base: JSON.stringify({ ...el.base, repo: undefined }),
+      closed_at: el.closed_at || "",
+      created_at: el.created_at,
+      draft: el.draft.toString(),
+      html_url: el.html_url,
+      labels: el.labels.map((el) => el.name).join("; "),
+      locked: el.locked.toString(),
+      merge_commit_sha: el.merge_commit_sha,
+      merged_at: el.merged_at || "",
+      number: el.number.toString(),
+      state: el.state,
+      title: JSON.stringify(el.title),
+      updated_at: el.updated_at,
+      was_cancelled: Boolean(el.closed_at && el.merged_at === null).toString(),
     };
   }
 }
