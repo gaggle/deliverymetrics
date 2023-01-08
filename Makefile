@@ -27,14 +27,14 @@ compile:
 	deno compile -q --output dm-a64-mac --target=aarch64-apple-darwin     --import-map=import_map.json $(ALLOW) ./mod.ts
 
 ### CLI Commands
-help:
-	deno run $(ALLOW) ./mod.ts --help
+help: compile
+	./dm-a64-mac --help
 
-pull-github:
-	deno run $(ALLOW) ./mod.ts pull github ${GITHUB_REPO} ${GITHUB_TOKEN} --loglevel=INFO
+pull-github: compile
+	./dm-a64-mac pull github ${GITHUB_REPO} ${GITHUB_TOKEN} --loglevel=INFO
 
-output-csv:
-	deno run $(ALLOW) ./mod.ts output csv .output/csv ${GITHUB_REPO} --loglevel=INFO
+output-csv: compile
+	./dm-a64-mac output csv ${GITHUB_REPO} --loglevel=INFO
 
 get-fixtures:
 	deno run $(ALLOW) ./dev-fixtures/mod.ts
