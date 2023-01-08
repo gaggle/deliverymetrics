@@ -3,7 +3,7 @@ import { ensureFile } from "std:fs";
 import { join } from "std:path";
 import { makeRunWithLimit as makeLimit } from "run-with-limit";
 
-import { ActionWorkflow, getGithubClient, GithubPull, githubPullSchema } from "../github/mod.ts";
+import { ActionWorkflow, getGithubClient, GithubPull, GithubPullCommit, githubPullSchema } from "../github/mod.ts";
 import { yieldActionRunHistogram, yieldPullRequestLeadTime } from "../metrics/mod.ts";
 
 import { filterIter, inspectIter } from "../utils.ts";
@@ -67,6 +67,25 @@ export async function outputToCsv(
     }
 
     if (latestSync) {
+      for await (
+        const pull of filterIter(
+          (el) => daysBetween(new Date(el.created_at), new Date(latestSync.updatedAt!)) < 90,
+          gh.findPulls({ sort: { key: "created_at", order: "asc" } }),
+        )
+      ) {
+        const name = join("commits", `pull-request-${pull.number}-data.csv`);
+        jobs.push(limit(() => {
+          return writeCSVToFile(
+            join(outputDir, name),
+            githubPullCommitsAsCsv(inspectIter(
+              () => increment(name),
+              gh.findPullCommits({ pr: pull.number }),
+            )),
+            { header: prCommitHeaders.slice() as Array<string> },
+          );
+        }));
+      }
+
       jobs.push(limit(() => {
         const name = "pull-request-data-90d.csv";
         return writeCSVToFile(
@@ -184,6 +203,34 @@ async function* githubPullsAsCsv(
       updated_at: pull.updated_at,
       was_cancelled: Boolean(pull.closed_at && pull.merged_at === null)
         .toString(),
+    };
+  }
+}
+
+const prCommitHeaders = [
+  "Author Date",
+  "Author Name",
+  "Author Email",
+  "Committer Date",
+  "Committer Name",
+  "Committer Email",
+  "HTML Url",
+];
+
+type PrCommitRow = Record<typeof prCommitHeaders[number], string>;
+
+async function* githubPullCommitsAsCsv(
+  commits: AsyncGenerator<GithubPullCommit>,
+): AsyncGenerator<PrCommitRow> {
+  for await (const commit of commits) {
+    yield {
+      "Author Date": commit.commit.author?.date || "",
+      "Author Name": commit.commit.author?.name || "",
+      "Author Email": commit.commit.author?.email || "",
+      "Committer Date": commit.commit.committer?.date || "",
+      "Committer Name": commit.commit.committer?.name || "",
+      "Committer Email": commit.commit.committer?.email || "",
+      "HTML Url": commit.html_url,
     };
   }
 }
