@@ -104,15 +104,16 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     if (opts?.path) query.path = opts.path;
     const runs = await this.db.actionRuns.findMany(query);
 
-    const sorted = sortActionRunsKey(
+    sortActionRunsKey(
       runs,
       opts?.sort?.key ?? "updated_at",
     );
+
     if (opts?.sort?.order === "desc") {
-      sorted.reverse();
+      runs.reverse();
     }
 
-    for (const el of sorted) {
+    for (const el of runs) {
       yield el;
     }
   }
