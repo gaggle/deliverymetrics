@@ -34,7 +34,7 @@ pull-github: compile
 	./dm-a64-mac pull github ${GITHUB_REPO} ${GITHUB_TOKEN} --loglevel=INFO
 
 output-csv: compile
-	./dm-a64-mac output csv ${GITHUB_REPO} --loglevel=INFO
+	./dm-a64-mac output csv .output ${GITHUB_REPO} --loglevel=INFO
 
 get-fixtures:
 	deno run $(ALLOW) ./dev-fixtures/mod.ts
