@@ -1,5 +1,5 @@
-import { dirname, fromFileUrl, join } from "path";
-import { parse as yamlParse } from "yaml-encoding";
+import { dirname, fromFileUrl, join } from "std:path";
+import { parse as yamlParse } from "std:yaml-encoding";
 
 import { getEnv } from "../utils.ts";
 

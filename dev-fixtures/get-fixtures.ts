@@ -1,5 +1,5 @@
-import { dirname, fromFileUrl, join, relative } from "path";
-import { ensureDir } from "fs";
+import { dirname, fromFileUrl, join, relative } from "std:path";
+import { ensureDir } from "std:fs";
 
 import { getEnv } from "../utils.ts";
 import { JSONValue, RequestMethod } from "../types.ts";
