@@ -107,18 +107,29 @@ yargs(Deno.args)
         type: "string",
         coerce: (repoId: string) => parseGithubUrl(repoId),
       });
+      inst.option("ignore-label", {
+        describe:
+          'Pull-request label to ignore, e.g. "CI". Supports regex. Can be repeated, e.g. --ignore-label=CI --ignore-label=Foo',
+        type: "array",
+        coerce: (values: Array<string>) => {
+          if (values.length === 0) return undefined;
+          return values.map((el) => /^\/.*\/$/.test(el) ? new RegExp(el.slice(1, -1)) : el);
+        },
+      });
     },
     async (
       argv: YargsArguments & {
         format: string;
         outputDir: string;
         repoId: ReturnType<typeof parseGithubUrl>;
+        ignoreLabel?: Array<string | RegExp>;
       },
     ) => {
       await outputToCsv({
         github: argv.repoId,
         outputDir: argv.outputDir,
         persistenceRoot,
+        excludeLabels: argv.ignoreLabel,
       });
     },
   )

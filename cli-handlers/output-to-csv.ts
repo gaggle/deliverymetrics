@@ -25,10 +25,12 @@ export async function outputToCsv(
     github,
     outputDir,
     persistenceRoot,
+    excludeLabels,
   }: {
     github: { owner: string; repo: string };
     outputDir: string;
     persistenceRoot: string;
+    excludeLabels?: Array<string | RegExp>;
   },
 ) {
   const gh = await _internals.getGithubClient({
@@ -113,7 +115,7 @@ export async function outputToCsv(
               () => increment(name),
               filterIter(
                 (el) => daysBetween(el.start, new Date(latestSync.updatedAt!)) < 90,
-                yieldPullRequestLeadTime(gh, { mode }),
+                yieldPullRequestLeadTime(gh, { mode, excludeLabels }),
               ),
             )),
             { header: leadTimeHeaders.slice() },
