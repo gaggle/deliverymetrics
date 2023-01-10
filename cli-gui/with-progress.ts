@@ -1,8 +1,8 @@
+import { debug, getLogger } from "std:log";
 import { MultiProgressBar } from "progress";
 
 import { throttle } from "../utils.ts";
 import { WithOptional } from "../types.ts";
-import { debug } from "std:log";
 
 /**
  * progress doesn't expose its `renderOptions` type, so we have to dig around a bit to infer it
@@ -20,6 +20,8 @@ export async function withProgress(
     { title: string; display: string; width: number; bars: Record<string, Partial<ProgressRenderOptions>> }
   >,
 ) {
+  const logger = getLogger();
+
   /**
    * Initialize data structure mapping specific bars to their render options
    */
@@ -42,6 +44,10 @@ export async function withProgress(
       return { completed: count, ...rest };
     });
     debug(bars);
+    if (logger.level <= 10) {
+      // Don't render if DEBUG is enabled, the progress bars interfere with logging
+      return;
+    }
     barGroup.render(bars);
   }, 16);
 
@@ -49,14 +55,14 @@ export async function withProgress(
     increment: (name, opts): void => {
       const newBarData = { ...barsData[name] || { count: 0 }, ...opts };
       newBarData.count += 1;
-      debug("inc", name, { oldBarData: barsData[name], newBarData });
+      // debug("inc", name, { oldBarData: barsData[name], newBarData });
       barsData[name] = newBarData;
       render();
     },
     render: (name, opts): void => {
       const { completed, ...rest }: ProgressRenderOptions = { completed: 0, ...opts };
       const newBarData = { ...barsData[name] || { count: completed }, ...rest };
-      debug("rnd", name, { oldBarData: barsData[name], newBarData });
+      // debug("rnd", name, { oldBarData: barsData[name], newBarData });
       barsData[name] = newBarData;
       render();
     },
