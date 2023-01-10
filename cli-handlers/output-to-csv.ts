@@ -191,10 +191,10 @@ async function* githubPullsAsCsv(
       commits_count: el.commits.length.toString(),
       commits_authors: el.commits.map((el) => el.author_name)
         .filter((v, i, a) => a.indexOf(v) === i) // Make unique
-        .join(", "),
+        .join("; "),
       commits_committers: el.commits.map((el) => el.committer_name)
         .filter((v, i, a) => a.indexOf(v) === i) // Make unique
-        .join(", "),
+        .join("; "),
       closed_at: el.closed_at || "",
       created_at: el.created_at,
       draft: el.draft.toString(),
@@ -258,7 +258,7 @@ async function* prLeadTimeAsCsv(
       "Period End": el.end.toISOString(),
       "Lead Time (in days)": toDays(el.leadTime).toPrecision(2),
       "# of PRs Merged": el.mergedPRs.length.toString(),
-      "Merged PRs": el.mergedPRs.toString(),
+      "Merged PRs": el.mergedPRs.join("; "),
     };
   }
 }
