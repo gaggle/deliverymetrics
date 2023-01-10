@@ -208,3 +208,48 @@ export function throttle<Args extends Array<any>>(
 
   return throttled;
 }
+
+export function regexIntersect(
+  originalHead: readonly string[],
+  ...rest: Array<(readonly (string | RegExp)[])>
+): string[] {
+  const head = [...new Set(originalHead)];
+  const tailSets = rest.map((it) => new Set(it));
+
+  for (const tail of tailSets) {
+    filterInPlace(head, (headEl): boolean => {
+      for (const tailEl of tail.values()) {
+        if (tailEl instanceof RegExp ? tailEl.test(headEl) : tailEl === headEl) {
+          return true;
+        }
+      }
+      return false;
+    });
+    if (head.length === 0) return head;
+  }
+
+  return head;
+}
+
+/**
+ * From https/deno.land/std@0.171.0/collections/_utils.ts
+ */
+function filterInPlace<T>(
+  array: Array<T>,
+  predicate: (el: T) => boolean,
+): Array<T> {
+  let outputIndex = 0;
+
+  for (const cur of array) {
+    if (!predicate(cur)) {
+      continue;
+    }
+
+    array[outputIndex] = cur;
+    outputIndex += 1;
+  }
+
+  array.splice(outputIndex);
+
+  return array;
+}

@@ -10,6 +10,7 @@ import {
   last,
   limit,
   pluralize,
+  regexIntersect,
   stringifyPull,
   stringifyUpdatedPull,
   throttle,
@@ -281,5 +282,26 @@ Deno.test("throttle", async (t) => {
     }, new FakeTime(0));
 
     assertEquals(actual, [0, 50, 100, 150]);
+  });
+});
+
+Deno.test("regexIntersect", async (t) => {
+  await t.step("finds simple intersection", () => {
+    assertEquals(regexIntersect(["foo", "bar", "baz"], ["foo"]), ["foo"]);
+  });
+
+  await t.step("finds intersection from strings", () => {
+    assertEquals(regexIntersect(["foo", "bar", "baz"], ["foo", "baz"], ["baz"]), ["baz"]);
+  });
+
+  const regexes = [/foo/, /fo.$/];
+  for (const r of regexes) {
+    await t.step(`finds intersection from regex ${r}`, () => {
+      assertEquals(regexIntersect(["foo", "bar"], [r]), ["foo"]);
+    });
+  }
+
+  await t.step("finds intersection from a mix", () => {
+    assertEquals(regexIntersect(["foo", "bar", "baz"], ["foo", /baz/]), ["foo", "baz"]);
   });
 });
