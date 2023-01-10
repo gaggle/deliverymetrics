@@ -15,7 +15,7 @@
  */
 import { GithubPull, ReadonlyGithubClient } from "../github/mod.ts";
 
-import { assertUnreachable } from "../utils.ts";
+import { assertUnreachable, regexIntersect } from "../utils.ts";
 
 import { dateEnd, dayStart, monthEnd, monthStart, nextDate, weekEnd, weekStart } from "./date-utils.ts";
 
@@ -28,7 +28,13 @@ type PullRequestLeadTime = {
 
 export async function* yieldPullRequestLeadTime(
   gh: ReadonlyGithubClient,
-  { mode }: { mode: "daily" | "weekly" | "monthly" },
+  { mode, includeLabels, excludeLabels, excludeBranches, includeBranches }: {
+    mode: "daily" | "weekly" | "monthly";
+    includeBranches?: Array<string | RegExp>;
+    excludeBranches?: Array<string | RegExp>;
+    includeLabels?: Array<string | RegExp>;
+    excludeLabels?: Array<string | RegExp>;
+  },
 ): AsyncGenerator<PullRequestLeadTime> {
   let leadTimes: Array<{ leadTime: number; number: GithubPull["number"] }> = [];
   let prevPeriod: Date | undefined;
@@ -76,6 +82,35 @@ export async function* yieldPullRequestLeadTime(
     if (!pull.merged_at) {
       continue;
     }
+
+    if (
+      excludeBranches !== undefined &&
+      regexIntersect([pull.head.ref], excludeBranches).length > 0
+    ) {
+      continue;
+    }
+
+    if (
+      includeBranches !== undefined &&
+      regexIntersect([pull.head.ref], includeBranches).length === 0
+    ) {
+      continue;
+    }
+
+    if (
+      excludeLabels !== undefined &&
+      regexIntersect(pull.labels.map((lbl) => lbl.name), excludeLabels).length > 0
+    ) {
+      continue;
+    }
+
+    if (
+      includeLabels !== undefined &&
+      regexIntersect(pull.labels.map((lbl) => lbl.name), includeLabels).length === 0
+    ) {
+      continue;
+    }
+
     const currentPeriod = periodConf.floor(new Date(pull.merged_at));
 
     if (prevPeriod && prevPeriod.getTime() !== currentPeriod.getTime()) {
