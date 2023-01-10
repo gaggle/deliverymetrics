@@ -206,17 +206,7 @@ export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
     closed_at: null,
     merged_at: null,
     merge_commit_sha: "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12",
-    labels: [
-      {
-        id: 1234567890,
-        node_id: "AB_cd",
-        url: "https://api.github.com/repos/owner/repo/labels/Ham",
-        name: "Ham",
-        color: "9CD54A",
-        default: false,
-        description: "description",
-      },
-    ],
+    labels: [],
     commits_url: `https://api.github.com/repos/owner/repo/pulls/${partial.number || 1}/commits`,
     review_comments_url: `https://api.github.com/repos/owner/repo/pulls/${partial.number || 1}/comments`,
     review_comment_url: "https://api.github.com/repos/owner/repo/pulls/comments{/number}",

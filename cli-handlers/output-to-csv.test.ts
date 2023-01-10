@@ -96,7 +96,7 @@ Deno.test({
             created_at: "1981-01-01T00:00:00Z",
             draft: "false",
             html_url: "https://url",
-            labels: "Ham",
+            labels: "",
             locked: "false",
             merge_commit_sha: "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12",
             merged_at: "",
