@@ -104,31 +104,17 @@ export async function outputToCsv(
         );
       }));
 
-      jobs.push(limit(() => {
-        const name = "pull-request-lead-times-30d.csv";
-        return writeCSVToFile(
-          join(outputDir, name),
-          prLeadTimeAsCsv(
-            inspectIter(
-              () => increment(name),
-              filterIter(
-                (el) => daysBetween(el.start, new Date(latestSync.updatedAt!)) < 30,
-                yieldPullRequestLeadTime(gh, { mode: "daily" }),
-              ),
-            ),
-          ),
-          { header: leadTimeHeaders.slice() },
-        );
-      }));
-
       for (const mode of getModes()) {
         jobs.push(limit(() => {
-          const name = `pull-request-lead-times-${mode}.csv`;
+          const name = `pull-request-lead-times-${mode}-90d.csv`;
           return writeCSVToFile(
             join(outputDir, name),
             prLeadTimeAsCsv(inspectIter(
               () => increment(name),
-              yieldPullRequestLeadTime(gh, { mode }),
+              filterIter(
+                (el) => daysBetween(el.start, new Date(latestSync.updatedAt!)) < 90,
+                yieldPullRequestLeadTime(gh, { mode }),
+              ),
             )),
             { header: leadTimeHeaders.slice() },
           );

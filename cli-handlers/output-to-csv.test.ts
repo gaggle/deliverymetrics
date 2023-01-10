@@ -65,10 +65,9 @@ async function withOutputToCsv(
 
 const pullOutputNames = [
   "pull-request-data-90d.csv",
-  "pull-request-lead-times-30d.csv",
-  "pull-request-lead-times-daily.csv",
-  "pull-request-lead-times-monthly.csv",
-  "pull-request-lead-times-weekly.csv",
+  "pull-request-lead-times-daily-90d.csv",
+  "pull-request-lead-times-monthly-90d.csv",
+  "pull-request-lead-times-weekly-90d.csv",
 ] as const;
 
 type PullOutputName = typeof pullOutputNames[number];
@@ -161,7 +160,7 @@ Deno.test({
             "Merged PRs": "4",
             "Lead Time (in days)": "5.0",
           });
-        }, join(outputDir, getPullOutputName("pull-request-lead-times-daily.csv")));
+        }, join(outputDir, getPullOutputName("pull-request-lead-times-daily-90d.csv")));
       });
 
       await t.step("formats weekly pull-request lead times as expected", async () => {
@@ -175,7 +174,7 @@ Deno.test({
             "Merged PRs": "4",
             "Lead Time (in days)": "5.0",
           });
-        }, join(outputDir, getPullOutputName("pull-request-lead-times-weekly.csv")));
+        }, join(outputDir, getPullOutputName("pull-request-lead-times-weekly-90d.csv")));
       });
 
       await t.step("formats monthly pull-request lead times as expected", async () => {
@@ -189,7 +188,7 @@ Deno.test({
             "Merged PRs": "4",
             "Lead Time (in days)": "5.0",
           });
-        }, join(outputDir, getPullOutputName("pull-request-lead-times-monthly.csv")));
+        }, join(outputDir, getPullOutputName("pull-request-lead-times-monthly-90d.csv")));
       });
     }, {
       githubClientData: {
