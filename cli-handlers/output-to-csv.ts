@@ -143,6 +143,7 @@ const prPrimaryHeaders = [
   "commits_count",
   "commits_authors",
   "commits_committers",
+  "head_ref",
 ] as const;
 const prIgnoreHeaders = [
   "_links",
@@ -184,6 +185,7 @@ async function* githubPullsAsCsv(
       closed_at: el.closed_at || "",
       created_at: el.created_at,
       draft: el.draft.toString(),
+      head_ref: el.head.ref,
       html_url: el.html_url,
       labels: el.labels.map((el) => el.name).join("; "),
       locked: el.locked.toString(),

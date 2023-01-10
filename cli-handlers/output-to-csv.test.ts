@@ -94,6 +94,7 @@ Deno.test({
             commits_count: "0",
             created_at: "1981-01-01T00:00:00Z",
             draft: "false",
+            head_ref: "fix/FOO-01",
             html_url: "https://url",
             labels: "",
             locked: "false",
