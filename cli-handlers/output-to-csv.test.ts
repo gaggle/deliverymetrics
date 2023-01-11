@@ -104,7 +104,8 @@ Deno.test({
             state: "open",
             title: '"title"',
             updated_at: "1981-01-01T00:00:00Z",
-            was_cancelled: "false",
+            "Lead Time (in days)": "",
+            "Was Cancelled?": "false",
           });
         }, join(outputDir, getPullOutputName("pull-request-data-90d.csv")));
       });
@@ -124,11 +125,11 @@ Deno.test({
     });
 
     await withOutputToCsv(t, "with a pull that's closed but not merged", async ({ outputDir, t }) => {
-      await t.step("sets was_cancelled to true", async () => {
+      await t.step('sets "Was Cancelled?" to true', async () => {
         // ↑ encoded to avoid outputting literal newlines that can confuse the csv format
         await withCsvContent((content) => {
           assertEquals(content.length, 1);
-          assertEquals(content[0].was_cancelled, "true");
+          assertEquals(content[0]["Was Cancelled?"], "true");
         }, join(outputDir, getPullOutputName("pull-request-data-90d.csv")));
       });
     }, {

@@ -138,11 +138,12 @@ const prPrimaryHeaders = [
   "created_at",
   "merged_at",
   "updated_at",
-  "was_cancelled",
+  "Was Cancelled?",
   "commits_count",
   "commits_authors",
   "commits_committers",
   "head_ref",
+  "Lead Time (in days)",
 ] as const;
 const prIgnoreHeaders = [
   "_links",
@@ -194,7 +195,8 @@ async function* githubPullsAsCsv(
       state: el.state,
       title: JSON.stringify(el.title),
       updated_at: el.updated_at,
-      was_cancelled: Boolean(el.closed_at && el.merged_at === null).toString(),
+      "Lead Time (in days)": el.lead_time ? toDays(el.lead_time).toPrecision(2) : "",
+      "Was Cancelled?": Boolean(el.closed_at && el.merged_at === null).toString(),
     };
   }
 }
