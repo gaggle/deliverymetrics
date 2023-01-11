@@ -99,7 +99,7 @@ export async function outputToCsv(
           githubPullsAsCsv(
             inspectIter(
               () => increment(name),
-              yieldPullRequestData(gh, { maxDays: 90 }),
+              yieldPullRequestData(gh, { maxDays: 90, excludeLabels }),
             ),
           ),
           { header: prHeaders.slice() as Array<string> },
