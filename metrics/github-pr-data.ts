@@ -1,10 +1,14 @@
-import { GithubPull, ReadonlyGithubClient } from "../github/types/mod.ts";
+import { GithubPull, isMergedGithubPull, ReadonlyGithubClient } from "../github/types/mod.ts";
 
 import { asyncToArray, filterIter, regexIntersect } from "../utils.ts";
 
 import { daysBetween } from "./date-utils.ts";
+import { calculatePullRequestLeadTime } from "./github-pr-lead-time.ts";
 
-type YieldPullRequestData = GithubPull & { commits: Array<{ author_name?: string; committer_name?: string }> };
+type YieldPullRequestData = GithubPull & {
+  commits: Array<{ author_name?: string; committer_name?: string }>;
+  lead_time?: number;
+};
 
 export async function* yieldPullRequestData(
   gh: ReadonlyGithubClient,
@@ -67,6 +71,7 @@ export async function* yieldPullRequestData(
         author_name: el.commit?.author?.name,
         committer_name: el.commit?.committer?.name,
       })),
+      lead_time: isMergedGithubPull(pull) ? calculatePullRequestLeadTime(pull) : undefined,
     };
   }
 }
