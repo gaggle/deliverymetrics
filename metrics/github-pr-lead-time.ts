@@ -13,13 +13,11 @@
  *
  * https://sourcelevel.io/blog/5-metrics-engineering-managers-can-extract-from-pull-requests
  */
-import { GithubPull, ReadonlyGithubClient } from "../github/mod.ts";
+import { GithubPull, MergedGithubPull, ReadonlyGithubClient } from "../github/mod.ts";
 
 import { assertUnreachable, filterIter, regexIntersect } from "../utils.ts";
 
 import { dateEnd, daysBetween, dayStart, monthEnd, monthStart, nextDate, weekEnd, weekStart } from "./date-utils.ts";
-
-type MergedGithubPull = GithubPull & { merged_at: string };
 
 type PullRequestLeadTime = {
   start: Date;

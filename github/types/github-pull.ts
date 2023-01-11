@@ -152,4 +152,10 @@ export const githubPullSchema = z.object({
 
 export type GithubPull = z.infer<typeof githubPullSchema>;
 
+export type MergedGithubPull = GithubPull & { merged_at: string };
+
+export function isMergedGithubPull(pull: GithubPull): pull is MergedGithubPull {
+  return !!pull.merged_at;
+}
+
 export type GithubPullDateKey = keyof Pick<GithubPull, "created_at" | "updated_at" | "closed_at" | "merged_at">;
