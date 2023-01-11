@@ -113,10 +113,7 @@ export async function outputToCsv(
             join(outputDir, name),
             prLeadTimeAsCsv(inspectIter(
               () => increment(name),
-              filterIter(
-                (el) => daysBetween(el.start, new Date(latestSync.updatedAt!)) < 90,
-                yieldPullRequestLeadTime(gh, { mode, excludeLabels }),
-              ),
+              yieldPullRequestLeadTime(gh, { mode, maxDays: 90, excludeLabels }),
             )),
             { header: leadTimeHeaders.slice() },
           );

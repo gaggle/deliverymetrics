@@ -1,6 +1,6 @@
 import { assertEquals } from "dev:asserts";
 
-import { createFakeReadonlyGithubClient, getFakePull } from "../github/testing.ts";
+import { createFakeReadonlyGithubClient, getFakePull, getFakeSyncInfo } from "../github/testing.ts";
 
 import { asyncToArray } from "../utils.ts";
 
@@ -16,6 +16,10 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
             number: 1,
             created_at: "2022-01-01T00:00:00Z",
             merged_at: "2022-01-05T00:00:00Z",
+          })],
+          syncInfos: [getFakeSyncInfo({
+            createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
+            updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
           })],
         });
 
@@ -71,6 +75,10 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
               merged_at: "2022-09-30T00:00:00Z",
             }),
           ],
+          syncInfos: [getFakeSyncInfo({
+            createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
+            updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
+          })],
         });
 
         assertEquals(
@@ -121,6 +129,10 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
               },
             }),
           ],
+          syncInfos: [getFakeSyncInfo({
+            createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
+            updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
+          })],
         });
 
         assertEquals(
@@ -196,6 +208,10 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
               merged_at: "2022-02-05T23:59:59Z",
             }),
           ],
+          syncInfos: [getFakeSyncInfo({
+            createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
+            updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
+          })],
         });
 
         assertEquals(
@@ -239,6 +255,10 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
             merged_at: "2022-01-20T23:59:59.999Z",
           }),
         ],
+        syncInfos: [getFakeSyncInfo({
+          createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
+          updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
+        })],
       });
 
       assertEquals(
@@ -270,6 +290,10 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
             merged_at: "2022-01-10T00:00:00Z",
           }),
         ],
+        syncInfos: [getFakeSyncInfo({
+          createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
+          updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
+        })],
       });
 
       assertEquals(
@@ -309,6 +333,10 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
             merged_at: "2022-02-01T00:00:00Z",
           }),
         ],
+        syncInfos: [getFakeSyncInfo({
+          createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
+          updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
+        })],
       });
 
       assertEquals(

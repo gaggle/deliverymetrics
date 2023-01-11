@@ -15,9 +15,11 @@
  */
 import { GithubPull, ReadonlyGithubClient } from "../github/mod.ts";
 
-import { assertUnreachable, regexIntersect } from "../utils.ts";
+import { assertUnreachable, filterIter, regexIntersect } from "../utils.ts";
 
-import { dateEnd, dayStart, monthEnd, monthStart, nextDate, weekEnd, weekStart } from "./date-utils.ts";
+import { dateEnd, daysBetween, dayStart, monthEnd, monthStart, nextDate, weekEnd, weekStart } from "./date-utils.ts";
+
+type MergedGithubPull = GithubPull & { merged_at: string };
 
 type PullRequestLeadTime = {
   start: Date;
@@ -28,8 +30,9 @@ type PullRequestLeadTime = {
 
 export async function* yieldPullRequestLeadTime(
   gh: ReadonlyGithubClient,
-  { mode, includeLabels, excludeLabels, excludeBranches, includeBranches }: {
+  { mode, maxDays, includeLabels, excludeLabels, excludeBranches, includeBranches }: {
     mode: "daily" | "weekly" | "monthly";
+    maxDays?: number;
     includeBranches?: Array<string | RegExp>;
     excludeBranches?: Array<string | RegExp>;
     includeLabels?: Array<string | RegExp>;
@@ -76,41 +79,51 @@ export async function* yieldPullRequestLeadTime(
     };
   }
 
+  const latestSync = await gh.findLatestSync();
+  if (!latestSync) return;
+
   for await (
-    const pull of gh.findPulls({ sort: { key: "merged_at", order: "asc" } })
+    const pull of filterIter(
+      (pull) => {
+        if (!pull.merged_at) return false;
+
+        if (daysBetween(new Date(pull.created_at), new Date(latestSync.updatedAt!)) > (maxDays || Infinity)) {
+          return false;
+        }
+
+        if (
+          excludeBranches !== undefined &&
+          regexIntersect([pull.head.ref], excludeBranches).length > 0
+        ) {
+          return false;
+        }
+
+        if (
+          includeBranches !== undefined &&
+          regexIntersect([pull.head.ref], includeBranches).length === 0
+        ) {
+          return false;
+        }
+
+        if (
+          excludeLabels !== undefined &&
+          regexIntersect(pull.labels.map((lbl) => lbl.name), excludeLabels).length > 0
+        ) {
+          return false;
+        }
+
+        if (
+          includeLabels !== undefined &&
+          regexIntersect(pull.labels.map((lbl) => lbl.name), includeLabels).length === 0
+        ) {
+          return false;
+        }
+
+        return true;
+      },
+      gh.findPulls({ sort: { key: "merged_at", order: "asc" } }),
+    ) as AsyncGenerator<MergedGithubPull>
   ) {
-    if (!pull.merged_at) {
-      continue;
-    }
-
-    if (
-      excludeBranches !== undefined &&
-      regexIntersect([pull.head.ref], excludeBranches).length > 0
-    ) {
-      continue;
-    }
-
-    if (
-      includeBranches !== undefined &&
-      regexIntersect([pull.head.ref], includeBranches).length === 0
-    ) {
-      continue;
-    }
-
-    if (
-      excludeLabels !== undefined &&
-      regexIntersect(pull.labels.map((lbl) => lbl.name), excludeLabels).length > 0
-    ) {
-      continue;
-    }
-
-    if (
-      includeLabels !== undefined &&
-      regexIntersect(pull.labels.map((lbl) => lbl.name), includeLabels).length === 0
-    ) {
-      continue;
-    }
-
     const currentPeriod = periodConf.floor(new Date(pull.merged_at));
 
     if (prevPeriod && prevPeriod.getTime() !== currentPeriod.getTime()) {
