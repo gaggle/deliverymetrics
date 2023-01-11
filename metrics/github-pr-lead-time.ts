@@ -121,8 +121,7 @@ export async function* yieldPullRequestLeadTime(
     prevPeriod = currentPeriod;
 
     leadTimes.push({
-      leadTime: nextDate(pull.merged_at).getTime() -
-        dayStart(pull.created_at).getTime(),
+      leadTime: calculatePullRequestLeadTime(pull),
       number: pull.number,
     });
   }
@@ -130,4 +129,8 @@ export async function* yieldPullRequestLeadTime(
   if (prevPeriod) {
     yield getYieldValue();
   }
+}
+
+export function calculatePullRequestLeadTime(pull: MergedGithubPull): number {
+  return nextDate(pull.merged_at).getTime() - dayStart(pull.created_at).getTime();
 }
