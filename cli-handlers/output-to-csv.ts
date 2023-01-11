@@ -138,6 +138,7 @@ const prPrimaryHeaders = [
   "created_at",
   "merged_at",
   "updated_at",
+  "closed_at",
   "Was Cancelled?",
   "commits_count",
   "commits_authors",
