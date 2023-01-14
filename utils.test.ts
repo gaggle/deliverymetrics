@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "dev:asserts";
+import { assertEquals, assertRejects, assertThrows } from "dev:asserts";
 import { FakeTime } from "dev:time";
 
 import { getFakePull } from "./github/testing.ts";
@@ -11,6 +11,7 @@ import {
   limit,
   pluralize,
   regexIntersect,
+  single,
   stringifyPull,
   stringifyUpdatedPull,
   throttle,
@@ -82,6 +83,31 @@ Deno.test("last", async (t) => {
     }
 
     assertEquals(await last(yielder()), "bar");
+  });
+});
+
+Deno.test("single", async (t) => {
+  await t.step("yields the only element of an AsyncGenerator", async () => {
+    async function* yielder(): AsyncGenerator<string> {
+      yield "foo";
+    }
+
+    assertEquals(await single(yielder()), "foo");
+  });
+
+  await t.step("throws if more elements are available", async () => {
+    async function* yielder(): AsyncGenerator<string> {
+      yield "foo";
+      yield "bar";
+    }
+
+    await assertRejects(() => single(yielder()), Error, "too many");
+  });
+
+  await t.step("throws if no elements are available", async () => {
+    async function* yielder(): AsyncGenerator<string> {}
+
+    await assertRejects(() => single(yielder()), Error, "not enough");
   });
 });
 

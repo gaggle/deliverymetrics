@@ -44,6 +44,21 @@ export async function last<T>(iter: AsyncIterable<T>): Promise<T | undefined> {
   return lastEl;
 }
 
+export async function single<T>(iter: AsyncIterable<T>): Promise<T> {
+  let firstEl: T | undefined = undefined;
+  // noinspection LoopStatementThatDoesntLoopJS
+  for await (const el of iter) {
+    if (firstEl) {
+      throw new Error("too many values to unpack");
+    }
+    firstEl = el;
+  }
+  if (firstEl === undefined) {
+    throw new Error("not enough values to unpack");
+  }
+  return firstEl;
+}
+
 export async function* arrayToAsyncGenerator<T>(
   array: Array<T>,
 ): AsyncGenerator<T> {
