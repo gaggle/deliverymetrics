@@ -92,6 +92,10 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     }
   }
 
+  async findEarliestPullCommit({ pr }: Partial<{ pr: number }> = {}): Promise<BoundGithubPullCommit | undefined> {
+    return first(this.findPullCommits({ pr, sort: { key: "commit.author", order: "asc" } }));
+  }
+
   async findLatestSync(): Promise<SyncInfo | undefined> {
     const syncs = await this.db.syncs.findMany({ updatedAt: exists() });
     return syncs[syncs.length - 1];

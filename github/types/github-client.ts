@@ -18,6 +18,8 @@ export interface ReadonlyGithubClient {
     opts?: Partial<{ pr: number } & Sortable<GithubPullCommitDateKey>>,
   ): AsyncGenerator<BoundGithubPullCommit>;
 
+  findEarliestPullCommit(opts?: Partial<{ pr: number }>): Promise<BoundGithubPullCommit | undefined>;
+
   findLatestSync(): Promise<SyncInfo | undefined>;
 
   findActionRuns(
