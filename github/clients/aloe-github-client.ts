@@ -79,7 +79,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
   }
 
   async *findPullCommits(
-    { sort, pr }: Partial<{ pr: number } & Sortable<GithubPullCommitDateKey>>,
+    { sort, pr }: Partial<{ pr: number } & Sortable<GithubPullCommitDateKey>> = {},
   ): AsyncGenerator<BoundGithubPullCommit> {
     const sortedPullCommits: BoundGithubPullCommit[] = sortPullCommitsByKey(
       await this.db.pullCommits.findMany(pr ? { pr } : undefined),
