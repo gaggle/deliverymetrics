@@ -85,6 +85,9 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
       await this.db.pullCommits.findMany(pr ? { pr } : undefined),
       sort?.key ?? "commit.author",
     );
+    if (sort?.order === "desc") {
+      sortedPullCommits.reverse();
+    }
     for (const el of sortedPullCommits) {
       yield el;
     }
