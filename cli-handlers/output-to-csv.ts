@@ -144,7 +144,6 @@ const prPrimaryHeaders = [
   "commits_authors",
   "commits_committers",
   "head_ref",
-  "Lead Time (in days)",
 ] as const;
 const prIgnoreHeaders = [
   "_links",
@@ -210,8 +209,7 @@ const prCommitHeaders = [
   "Committer Name",
   "Committer Email",
   "HTML Url",
-];
-
+] as const;
 type PrCommitRow = Record<typeof prCommitHeaders[number], string>;
 
 async function* githubPullCommitsAsCsv(
@@ -236,7 +234,7 @@ const leadTimeHeaders = [
   "Lead Time (in days)",
   "# of PRs Merged",
   "Merged PRs",
-];
+] as const;
 type LeadTimeRow = Record<typeof leadTimeHeaders[number], string>;
 
 async function* prLeadTimeAsCsv(
@@ -262,7 +260,7 @@ const actionsRunHeaders = [
   "Conclusions",
   "Run IDs",
   "Run URLs",
-];
+] as const;
 type ActionsRunRow = Record<typeof actionsRunHeaders[number], string>;
 
 async function* actionsRunAsCsv(
