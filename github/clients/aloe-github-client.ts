@@ -75,9 +75,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
   }
 
   findLatestPull(): Promise<GithubPull | undefined> {
-    return first(
-      this.findPulls({ sort: { key: "updated_at", order: "desc" } }),
-    );
+    return first(this.findPulls({ sort: { key: "updated_at", order: "desc" } }));
   }
 
   async *findPullCommits(
