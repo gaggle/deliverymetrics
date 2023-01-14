@@ -44,3 +44,7 @@ export type RequestMethod = "GET" | "POST";
 export type WithRequired<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: T[P] };
 
 export type WithOptional<T, K extends keyof T> = Omit<T, K> & { [P in K]+?: T[P] };
+
+export type Entries<T> = {
+  [K in keyof T]: [K, T[K]];
+}[keyof T][];

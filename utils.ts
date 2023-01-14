@@ -3,6 +3,8 @@ import { debug } from "std:log";
 
 import { GithubPull } from "./github/mod.ts";
 
+import { Entries } from "./types.ts";
+
 export async function asyncToArray<T>(
   iter: AsyncIterable<T>,
 ): Promise<Array<T>> {
@@ -253,3 +255,4 @@ function filterInPlace<T>(
 
   return array;
 }
+export const getEntries = <T extends object>(obj: T) => Object.entries(obj) as Entries<T>;
