@@ -112,3 +112,5 @@ export const boundGithubPullCommit = githubPullCommitSchema.extend({ pr: z.numbe
  * "Bound" meaning bound to a pull, i.e. it has a `pr` field
  */
 export type BoundGithubPullCommit = z.infer<typeof boundGithubPullCommit>;
+
+export type GithubPullCommitDateKey = "commit.author" | "commit.committer";
