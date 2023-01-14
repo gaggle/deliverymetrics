@@ -11,7 +11,7 @@ import { fetchPullCommits } from "../utils/fetch-pull-commits.ts";
 import { fetchPulls } from "../utils/fetch-pulls.ts";
 import { fetchActionRuns } from "../utils/fetch-action-runs.ts";
 import { fetchActionWorkflows } from "../utils/fetch-action-workflows.ts";
-import { sortActionRunsKey, sortPullsByKey } from "../utils/sorting.ts";
+import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../utils/sorting.ts";
 
 import {
   ActionRun,
@@ -20,8 +20,10 @@ import {
   GithubClient,
   GithubDiff,
   GithubPull,
+  GithubPullCommitDateKey,
   GithubPullDateKey,
   ReadonlyGithubClient,
+  Sortable,
   SyncInfo,
   SyncProgressParams,
 } from "../types/mod.ts";
@@ -78,9 +80,14 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     );
   }
 
-  async *findPullCommits(opts?: Partial<{ pr: number }>): AsyncGenerator<BoundGithubPullCommit> {
-    const pullCommits = await this.db.pullCommits.findMany(opts?.pr ? { pr: opts.pr } : undefined);
-    for (const el of pullCommits) {
+  async *findPullCommits(
+    { sort, pr }: Partial<{ pr: number } & Sortable<GithubPullCommitDateKey>>,
+  ): AsyncGenerator<BoundGithubPullCommit> {
+    const sortedPullCommits: BoundGithubPullCommit[] = sortPullCommitsByKey(
+      await this.db.pullCommits.findMany(pr ? { pr } : undefined),
+      sort?.key ?? "commit.author",
+    );
+    for (const el of sortedPullCommits) {
       yield el;
     }
   }

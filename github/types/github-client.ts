@@ -1,6 +1,6 @@
 import { ActionRun } from "./github-action-run.ts";
 import { ActionWorkflow } from "./github-action-workflow.ts";
-import { BoundGithubPullCommit, GithubPullCommit } from "./github-pull-commit.ts";
+import { BoundGithubPullCommit, GithubPullCommit, GithubPullCommitDateKey } from "./github-pull-commit.ts";
 import { GithubDiff } from "./sync-diff.ts";
 import { GithubPull, GithubPullDateKey } from "./github-pull.ts";
 import { SyncInfo } from "./sync-info.ts";
@@ -14,7 +14,9 @@ export interface ReadonlyGithubClient {
 
   findLatestPull(): Promise<GithubPull | undefined>;
 
-  findPullCommits(opts?: Partial<{ pr: number }>): AsyncGenerator<BoundGithubPullCommit>;
+  findPullCommits(
+    opts?: Partial<{ pr: number } & Sortable<GithubPullCommitDateKey>>,
+  ): AsyncGenerator<BoundGithubPullCommit>;
 
   findLatestSync(): Promise<SyncInfo | undefined>;
 
