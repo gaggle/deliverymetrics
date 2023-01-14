@@ -91,34 +91,34 @@ export async function outputToCsv(
           );
         }));
       }
+    }
 
+    jobs.push(limit(() => {
+      const name = "pull-request-data-90d.csv";
+      return writeCSVToFile(
+        join(outputDir, name),
+        githubPullsAsCsv(
+          inspectIter(
+            () => increment(name),
+            yieldPullRequestData(gh, { maxDays: 90, excludeLabels }),
+          ),
+        ),
+        { header: prHeaders.slice() as Array<string> },
+      );
+    }));
+
+    for (const mode of getModes()) {
       jobs.push(limit(() => {
-        const name = "pull-request-data-90d.csv";
+        const name = `pull-request-lead-times-${mode}-90d.csv`;
         return writeCSVToFile(
           join(outputDir, name),
-          githubPullsAsCsv(
-            inspectIter(
-              () => increment(name),
-              yieldPullRequestData(gh, { maxDays: 90, excludeLabels }),
-            ),
-          ),
-          { header: prHeaders.slice() as Array<string> },
+          prLeadTimeAsCsv(inspectIter(
+            () => increment(name),
+            yieldPullRequestLeadTime(gh, { mode, maxDays: 90, excludeLabels }),
+          )),
+          { header: leadTimeHeaders.slice() },
         );
       }));
-
-      for (const mode of getModes()) {
-        jobs.push(limit(() => {
-          const name = `pull-request-lead-times-${mode}-90d.csv`;
-          return writeCSVToFile(
-            join(outputDir, name),
-            prLeadTimeAsCsv(inspectIter(
-              () => increment(name),
-              yieldPullRequestLeadTime(gh, { mode, maxDays: 90, excludeLabels }),
-            )),
-            { header: leadTimeHeaders.slice() },
-          );
-        }));
-      }
     }
 
     jobs.push(sleep(200));
