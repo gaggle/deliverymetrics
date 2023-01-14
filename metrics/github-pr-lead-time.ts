@@ -1,5 +1,5 @@
 /**
- * Pull Request Lead Time
+ * ## Pull Request Lead Time
  *
  * The lead-time metric gives you an idea of how many times (usually in days)
  * pull requests take to be merged or closed.
@@ -12,17 +12,27 @@
  * A good practice is to measure this number over time so that you can spot trends and behaviors more pragmatically.
  *
  * https://sourcelevel.io/blog/5-metrics-engineering-managers-can-extract-from-pull-requests
+ *
+ * ## Pull Request Time to Merge
+ *
+ * Time to Merge is how much time it takes for the first commit of a branch to reach main.
+ * In practice, the math is simple: It’s the timestamp of the oldest commit of a branch
+ * minus the timestamp of the merge commit.
+ *
+ * https://sourcelevel.io/blog/5-metrics-engineering-managers-can-extract-from-pull-requests
  */
-import { GithubPull, MergedGithubPull, ReadonlyGithubClient } from "../github/mod.ts";
+import { BoundGithubPullCommit, GithubPull, MergedGithubPull, ReadonlyGithubClient } from "../github/mod.ts";
 
 import { assertUnreachable, filterIter, regexIntersect } from "../utils.ts";
 
 import { dateEnd, daysBetween, dayStart, monthEnd, monthStart, nextDate, weekEnd, weekStart } from "./date-utils.ts";
+import { warning } from "std:log";
 
 type PullRequestLeadTime = {
   start: Date;
   end: Date;
   leadTime: number;
+  timeToMerge: number | undefined;
   mergedPRs: Array<number>;
 };
 
@@ -37,7 +47,7 @@ export async function* yieldPullRequestLeadTime(
     excludeLabels?: Array<string | RegExp>;
   },
 ): AsyncGenerator<PullRequestLeadTime> {
-  let leadTimes: Array<{ leadTime: number; number: GithubPull["number"] }> = [];
+  let leadTimes: Array<{ leadTime: number; timeToMerge?: number; number: GithubPull["number"] }> = [];
   let prevPeriod: Date | undefined;
 
   let periodConf: {
@@ -69,10 +79,18 @@ export async function* yieldPullRequestLeadTime(
 
   function getYieldValue(): PullRequestLeadTime {
     const leadTimeSum = leadTimes.reduce((acc, val) => acc + val.leadTime, 0);
+
+    let timeToMerge: number | undefined = undefined;
+    if (!leadTimes.filter((el) => el.timeToMerge === undefined).length) {
+      // ↑ If any of this period's PRs failed to calculate Time to Merge then the metric isn't useful for that period
+      const timeToMergeSum = leadTimes.reduce((acc, val) => acc + val.timeToMerge!, 0);
+      timeToMerge = timeToMergeSum / leadTimes.length;
+    }
     return {
       start: prevPeriod!,
       end: periodConf.ceil(prevPeriod!),
       leadTime: leadTimeSum / leadTimes.length,
+      timeToMerge,
       mergedPRs: leadTimes.map((el) => el.number),
     };
   }
@@ -131,8 +149,19 @@ export async function* yieldPullRequestLeadTime(
     }
     prevPeriod = currentPeriod;
 
+    const commit = await gh.findEarliestPullCommit({ pr: pull.number });
+    const timeToMerge = commit ? calculatePullRequestTimeToMerge(pull, commit) : undefined;
+    if (!timeToMerge) {
+      warning(
+        commit
+          ? `Failed to calculate Time to Merge for pull ${pull.number}`
+          : `No commits found for pull ${pull.number}`,
+      );
+    }
+
     leadTimes.push({
       leadTime: calculatePullRequestLeadTime(pull),
+      timeToMerge,
       number: pull.number,
     });
   }
@@ -144,4 +173,15 @@ export async function* yieldPullRequestLeadTime(
 
 export function calculatePullRequestLeadTime(pull: MergedGithubPull): number {
   return nextDate(pull.merged_at).getTime() - dayStart(pull.created_at).getTime();
+}
+
+export function calculatePullRequestTimeToMerge(
+  pull: MergedGithubPull,
+  earliestCommit: BoundGithubPullCommit,
+): number | undefined {
+  const earliestCommitDate = earliestCommit?.commit?.author?.date;
+  if (!earliestCommitDate) {
+    return undefined;
+  }
+  return nextDate(pull.merged_at).getTime() - dayStart(earliestCommitDate).getTime();
 }

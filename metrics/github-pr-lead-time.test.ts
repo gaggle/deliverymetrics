@@ -1,43 +1,51 @@
-import { assertEquals } from "dev:asserts";
+import { assertEquals, assertObjectMatch } from "dev:asserts";
 
-import { createFakeReadonlyGithubClient, getFakePull, getFakeSyncInfo } from "../github/testing.ts";
+import { createFakeReadonlyGithubClient, getFakePull, getFakePullCommit, getFakeSyncInfo } from "../github/testing.ts";
 
-import { asyncToArray } from "../utils.ts";
+import { asyncToArray, single } from "../utils.ts";
 
 import { yieldPullRequestLeadTime } from "./github-pr-lead-time.ts";
 
 Deno.test("yieldPullRequestLeadTime", async (t) => {
   await t.step("for daily lead times", async (t) => {
-    await t.step(
-      "calculates a trivial case of a single merged PR",
-      async () => {
-        const github = await createFakeReadonlyGithubClient({
-          pulls: [getFakePull({
-            number: 1,
-            created_at: "2022-01-01T00:00:00Z",
-            merged_at: "2022-01-05T00:00:00Z",
-          })],
-          syncInfos: [getFakeSyncInfo({
-            createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
-            updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
-          })],
-        });
+    await t.step("for a single merged PR", async (t) => {
+      const github = await createFakeReadonlyGithubClient({
+        pulls: [getFakePull({
+          number: 1,
+          created_at: "2022-01-10T00:00:00Z",
+          merged_at: "2022-01-15T00:00:00Z",
+        })],
+        pullCommits: [
+          getFakePullCommit({
+            pr: 1,
+            commit: { author: { date: "2022-01-01T00:00:00Z" }, committer: { date: "2022-01-05T00:00:00Z" } },
+          }),
+        ],
+        syncInfos: [getFakeSyncInfo({
+          createdAt: new Date("2022-01-20T00:00:00Z").getTime(),
+          updatedAt: new Date("2022-01-20T00:00:00Z").getTime(),
+        })],
+      });
 
-        assertEquals(
-          await asyncToArray(
-            yieldPullRequestLeadTime(github, { mode: "daily" }),
-          ),
-          [
-            {
-              start: new Date("2022-01-05T00:00:00.000Z"),
-              end: new Date("2022-01-05T23:59:59.999Z"),
-              leadTime: 432_000_000,
-              mergedPRs: [1],
-            },
-          ],
-        );
-      },
-    );
+      const result = await single(yieldPullRequestLeadTime(github, { mode: "daily" }));
+
+      await t.step("calculates a the start and end period of a single merged PR", () =>
+        assertObjectMatch(result, {
+          start: new Date("2022-01-05T00:00:00.000Z"),
+          end: new Date("2022-01-05T23:59:59.999Z"),
+        }));
+
+      await t.step("calculates that one PR got merged", () => assertObjectMatch(result, { mergedPRs: [1] }));
+
+      await t.step(
+        "calculates Lead Time",
+        () => assertObjectMatch(result, { leadTime: 518_400_000 }),
+      );
+      await t.step(
+        "calculates Time to Merge",
+        () => assertObjectMatch(result, { timeToMerge: 1_296_000_000 }),
+      );
+    });
 
     await t.step(
       "can filter a pull based on label",
@@ -81,24 +89,24 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           })],
         });
 
-        assertEquals(
-          await asyncToArray(yieldPullRequestLeadTime(github, { mode: "daily", excludeLabels: ["Bar 😎"] })),
-          [{
+        assertObjectMatch(
+          await single(yieldPullRequestLeadTime(github, { mode: "daily", excludeLabels: ["Bar 😎"] })),
+          {
             start: new Date("2022-09-30T00:00:00.000Z"),
             end: new Date("2022-09-30T23:59:59.999Z"),
             leadTime: 864_000_000,
             mergedPRs: [2],
-          }],
+          },
         );
 
-        assertEquals(
-          await asyncToArray(yieldPullRequestLeadTime(github, { mode: "daily", includeLabels: ["Bar 😎"] })),
-          [{
+        assertObjectMatch(
+          await single(yieldPullRequestLeadTime(github, { mode: "daily", includeLabels: ["Bar 😎"] })),
+          {
             start: new Date("2022-01-05T00:00:00.000Z"),
             end: new Date("2022-01-05T23:59:59.999Z"),
             leadTime: 432_000_000,
             mergedPRs: [1],
-          }],
+          },
         );
       },
     );
@@ -135,14 +143,14 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           })],
         });
 
-        assertEquals(
-          await asyncToArray(yieldPullRequestLeadTime(github, { mode: "daily", excludeBranches: ["branch-name"] })),
-          [{
+        assertObjectMatch(
+          await single(yieldPullRequestLeadTime(github, { mode: "daily", excludeBranches: ["branch-name"] })),
+          {
             start: new Date("2022-09-30T00:00:00.000Z"),
             end: new Date("2022-09-30T23:59:59.999Z"),
             leadTime: 864_000_000,
             mergedPRs: [2],
-          }],
+          },
         );
 
         assertEquals(
@@ -150,28 +158,28 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           [],
         );
 
-        assertEquals(
-          await asyncToArray(
+        assertObjectMatch(
+          await single(
             yieldPullRequestLeadTime(github, { mode: "daily", includeBranches: ["branch-name"] }),
           ),
-          [{
+          {
             start: new Date("2022-01-05T00:00:00.000Z"),
             end: new Date("2022-01-05T23:59:59.999Z"),
             leadTime: 432_000_000,
             mergedPRs: [1],
-          }],
+          },
         );
 
-        assertEquals(
-          await asyncToArray(
+        assertObjectMatch(
+          await single(
             yieldPullRequestLeadTime(github, { mode: "daily", includeBranches: [/^branch.*/] }),
           ),
-          [{
+          {
             start: new Date("2022-01-05T00:00:00.000Z"),
             end: new Date("2022-01-05T23:59:59.999Z"),
             leadTime: 432_000_000,
             mergedPRs: [1],
-          }],
+          },
         );
       },
     );
@@ -223,12 +231,14 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
               start: new Date("2022-01-05T00:00:00.000Z"),
               end: new Date("2022-01-05T23:59:59.999Z"),
               leadTime: 432_000_000,
+              timeToMerge: undefined,
               mergedPRs: [1, 2],
             },
             {
               start: new Date("2022-02-05T00:00:00.000Z"),
               end: new Date("2022-02-05T23:59:59.999Z"),
               leadTime: 432_000_000,
+              timeToMerge: undefined,
               mergedPRs: [3, 4, 5],
             },
           ],
@@ -261,16 +271,14 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         })],
       });
 
-      assertEquals(
-        await asyncToArray(yieldPullRequestLeadTime(github, { mode: "daily" })),
-        [
-          {
-            start: new Date("2022-01-20T00:00:00.000Z"),
-            end: new Date("2022-01-20T23:59:59.999Z"),
-            leadTime: 950_400_000,
-            mergedPRs: [1, 2, 3],
-          },
-        ],
+      assertObjectMatch(
+        await single(yieldPullRequestLeadTime(github, { mode: "daily" })),
+        {
+          start: new Date("2022-01-20T00:00:00.000Z"),
+          end: new Date("2022-01-20T23:59:59.999Z"),
+          leadTime: 950_400_000,
+          mergedPRs: [1, 2, 3],
+        },
       );
     });
   });
@@ -305,12 +313,14 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
             start: new Date("2022-01-03T00:00:00.000Z"),
             end: new Date("2022-01-09T23:59:59.999Z"),
             leadTime: 432_000_000,
+            timeToMerge: undefined,
             mergedPRs: [1],
           },
           {
             start: new Date("2022-01-10T00:00:00.000Z"),
             end: new Date("2022-01-16T23:59:59.999Z"),
             leadTime: 864_000_000,
+            timeToMerge: undefined,
             mergedPRs: [2],
           },
         ],
@@ -348,12 +358,14 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
             start: new Date("2022-01-01T00:00:00.000Z"),
             end: new Date("2022-01-31T23:59:59.999Z"),
             leadTime: 432_000_000,
+            timeToMerge: undefined,
             mergedPRs: [1],
           },
           {
             start: new Date("2022-02-01T00:00:00.000Z"),
             end: new Date("2022-02-28T23:59:59.999Z"),
             leadTime: 864_000_000,
+            timeToMerge: undefined,
             mergedPRs: [2],
           },
         ],
