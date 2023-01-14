@@ -162,6 +162,7 @@ Deno.test({
             "# of PRs Merged": "1",
             "Merged PRs": "4",
             "Lead Time (in days)": "5.0",
+            "Time to Merge (in days)": "",
           });
         }, join(outputDir, getPullOutputName("pull-request-lead-times-daily-90d.csv")));
       });
@@ -176,6 +177,7 @@ Deno.test({
             "# of PRs Merged": "1",
             "Merged PRs": "4",
             "Lead Time (in days)": "5.0",
+            "Time to Merge (in days)": "",
           });
         }, join(outputDir, getPullOutputName("pull-request-lead-times-weekly-90d.csv")));
       });
@@ -190,6 +192,7 @@ Deno.test({
             "# of PRs Merged": "1",
             "Merged PRs": "4",
             "Lead Time (in days)": "5.0",
+            "Time to Merge (in days)": "",
           });
         }, join(outputDir, getPullOutputName("pull-request-lead-times-monthly-90d.csv")));
       });

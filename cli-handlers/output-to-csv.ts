@@ -235,6 +235,7 @@ const leadTimeHeaders = [
   "Period Start",
   "Period End",
   "Lead Time (in days)",
+  "Time to Merge (in days)",
   "# of PRs Merged",
   "Merged PRs",
 ] as const;
@@ -248,6 +249,7 @@ async function* prLeadTimeAsCsv(
       "Period Start": el.start.toISOString(),
       "Period End": el.end.toISOString(),
       "Lead Time (in days)": toDays(el.leadTime).toPrecision(2),
+      "Time to Merge (in days)": el.timeToMerge ? toDays(el.timeToMerge).toPrecision(2) : "",
       "# of PRs Merged": el.mergedPRs.length.toString(),
       "Merged PRs": el.mergedPRs.join("; "),
     };
