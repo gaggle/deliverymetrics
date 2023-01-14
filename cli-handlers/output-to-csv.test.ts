@@ -106,6 +106,7 @@ Deno.test({
             updated_at: "1981-01-01T00:00:00Z",
             "Lead Time (in days)": "",
             "Was Cancelled?": "false",
+            "Time to Merge (in days)": "",
           });
         }, join(outputDir, getPullOutputName("pull-request-data-90d.csv")));
       });
