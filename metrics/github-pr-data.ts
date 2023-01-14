@@ -3,11 +3,13 @@ import { GithubPull, isMergedGithubPull, ReadonlyGithubClient } from "../github/
 import { asyncToArray, filterIter, regexIntersect } from "../utils.ts";
 
 import { daysBetween } from "./date-utils.ts";
-import { calculatePullRequestLeadTime } from "./github-pr-lead-time.ts";
+import { calculatePullRequestLeadTime, calculatePullRequestTimeToMerge } from "./github-pr-lead-time.ts";
 
-type YieldPullRequestData = GithubPull & {
+type YieldPullRequestData = {
+  pull: GithubPull;
   commits: Array<{ author_name?: string; committer_name?: string }>;
-  lead_time?: number;
+  leadTime?: number;
+  timeToMerge?: number;
 };
 
 export async function* yieldPullRequestData(
@@ -64,14 +66,17 @@ export async function* yieldPullRequestData(
       return true;
     }, gh.findPulls({ sort: { key: "created_at", order: "asc" } }))
   ) {
-    const commits = await asyncToArray(gh.findPullCommits({ pr: pull.number }));
+    const commits = await asyncToArray(
+      gh.findPullCommits({ pr: pull.number, sort: { key: "commit.author", order: "asc" } }),
+    );
     yield {
-      ...pull,
+      pull,
       commits: commits.map((el) => ({
         author_name: el.commit?.author?.name,
         committer_name: el.commit?.committer?.name,
       })),
-      lead_time: isMergedGithubPull(pull) ? calculatePullRequestLeadTime(pull) : undefined,
+      leadTime: isMergedGithubPull(pull) ? calculatePullRequestLeadTime(pull) : undefined,
+      timeToMerge: isMergedGithubPull(pull) ? calculatePullRequestTimeToMerge(pull, commits[0]) : undefined,
     };
   }
 }
