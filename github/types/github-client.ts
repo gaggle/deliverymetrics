@@ -38,7 +38,7 @@ export interface ReadonlyGithubClient {
 export type SyncProgressParams =
   | { type: "actions-workflow"; workflow: ActionWorkflow }
   | { type: "actions-run"; run: ActionRun }
-  | { type: "commits"; commits: Array<GithubPullCommit | BoundGithubPullCommit>; pr: number }
+  | { type: "pull-commits"; commits: Array<GithubPullCommit | BoundGithubPullCommit>; pr: number }
   | { type: "pull"; pull: GithubPull };
 
 export interface GithubClient extends ReadonlyGithubClient {

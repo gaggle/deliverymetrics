@@ -198,7 +198,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
         debug(`Deleted pull commits bound to pr ${pull.number}`);
         await this.db.pullCommits.insertMany(commits.map((commit) => ({ ...commit, pr: pull.number })));
         await progress({
-          type: "commits",
+          type: "pull-commits",
           commits,
           pr: pull.number,
         });

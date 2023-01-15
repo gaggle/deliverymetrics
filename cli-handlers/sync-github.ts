@@ -53,7 +53,7 @@ export async function githubSyncHandler(
           case "actions-workflow":
             progress.increment(el.type, { text: `Fetched workflow: ${el.workflow.name}` });
             break;
-          case "commits":
+          case "pull-commits":
             progress.increment(el.type, { text: `Fetched ${el.commits.length} commits for PR: ${el.pr}` });
             break;
           case "pull":
@@ -69,7 +69,7 @@ export async function githubSyncHandler(
     display: "  [:completed completed] :text",
     bars: {
       "pull": { total: Number.MAX_SAFE_INTEGER },
-      "commits": { total: Number.MAX_SAFE_INTEGER, text: "<Waiting for pulls...>" },
+      "pull-commits": { total: Number.MAX_SAFE_INTEGER, text: "<Waiting for pulls...>" },
       "actions-workflow": { total: Number.MAX_SAFE_INTEGER },
       "actions-run": { total: Number.MAX_SAFE_INTEGER, text: "<Waiting for workflows...>" },
     },
