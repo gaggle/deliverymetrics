@@ -1,9 +1,10 @@
 import * as z from "zod";
 
 import { actionRunSchema } from "./github-action-run.ts";
+import { actionWorkflowSchema } from "./github-action-workflow.ts";
+import { githubCommitSchema } from "./github-commit.ts";
 import { GithubPull, githubPullSchema } from "./github-pull.ts";
 import { githubPullCommitSchema } from "./github-pull-commit.ts";
-import { actionWorkflowSchema } from "./github-action-workflow.ts";
 
 export const githubRestSpec = {
   /**
@@ -24,6 +25,23 @@ export const githubRestSpec = {
     getUrl: (owner: string, repo: string) =>
       new URL(`https://api.github.com/repos/${owner}/${repo}/actions/workflows`).toString(),
     schema: z.object({ total_count: z.number().int(), workflows: z.array(actionWorkflowSchema) }),
+  },
+  /**
+   * https://docs.github.com/en/rest/commits/commits?apiVersion=2022-11-28#list-commits
+   */
+  commits: {
+    /**
+     * @param owner The account owner of the repository. The name is not case-sensitive.
+     * @param repo The name of the repository. The name is not case-sensitive.
+     * @param since Only show notifications updated after the given time.
+     *              This is a timestamp in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.
+     */
+    getUrl: (owner: string, repo: string, since?: string) => {
+      const url = new URL(`https://api.github.com/repos/${owner}/${repo}/commits`);
+      if (since) url.searchParams.set("since", since);
+      return url.toString();
+    },
+    schema: z.array(githubCommitSchema),
   },
   /**
    * https://docs.github.com/en/rest/pulls/pulls#list-commits-on-a-pull-request
