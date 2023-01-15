@@ -48,16 +48,21 @@ export async function githubSyncHandler(
         const type = el.type;
         switch (type) {
           case "actions-run":
-            progress.increment(el.type, { text: `Fetched run ${el.run.run_number} for workflow: ${el.run.name}` });
+            progress.increment("action-runs", {
+              text: `Fetched run ${el.run.run_number} for workflow: ${el.run.name}`,
+            });
             break;
           case "actions-workflow":
-            progress.increment(el.type, { text: `Fetched workflow: ${el.workflow.name}` });
+            progress.increment("action-workflows", { text: `Fetched workflow: ${el.workflow.name}` });
+            break;
+          case "commit":
+            progress.increment("commits", { text: `Fetched commit: ${el.commit.sha}` });
             break;
           case "pull-commits":
-            progress.increment(el.type, { text: `Fetched ${el.commits.length} commits for PR: ${el.pr}` });
+            progress.increment("pull-commits", { text: `Fetched ${el.commits.length} commits for PR: ${el.pr}` });
             break;
           case "pull":
-            progress.increment(el.type, { text: `Fetched pull: ${stringifyPull(el.pull)}` });
+            progress.increment("pulls", { text: `Fetched pull: ${stringifyPull(el.pull)}` });
             break;
           default:
             return assertUnreachable(type);
@@ -68,10 +73,11 @@ export async function githubSyncHandler(
     title: "↓ Pulling GitHub resources",
     display: "  [:completed completed] :text",
     bars: {
-      "pull": { total: Number.MAX_SAFE_INTEGER },
+      "commits": { total: Number.MAX_SAFE_INTEGER },
+      "pulls": { total: Number.MAX_SAFE_INTEGER },
       "pull-commits": { total: Number.MAX_SAFE_INTEGER, text: "<Waiting for pulls...>" },
-      "actions-workflow": { total: Number.MAX_SAFE_INTEGER },
-      "actions-run": { total: Number.MAX_SAFE_INTEGER, text: "<Waiting for workflows...>" },
+      "action-workflows": { total: Number.MAX_SAFE_INTEGER },
+      "action-runs": { total: Number.MAX_SAFE_INTEGER, text: "<Waiting for workflows...>" },
     },
   });
   console.log(formatGithubSyncResult(syncResult!));

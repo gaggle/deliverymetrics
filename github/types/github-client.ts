@@ -4,6 +4,7 @@ import { BoundGithubPullCommit, GithubPullCommit, GithubPullCommitDateKey } from
 import { GithubDiff } from "./sync-diff.ts";
 import { GithubPull, GithubPullDateKey } from "./github-pull.ts";
 import { SyncInfo } from "./sync-info.ts";
+import { GithubCommit } from "./github-commit.ts";
 
 export interface ReadonlyGithubClient {
   repoHtmlUrl: string;
@@ -38,6 +39,7 @@ export interface ReadonlyGithubClient {
 export type SyncProgressParams =
   | { type: "actions-workflow"; workflow: ActionWorkflow }
   | { type: "actions-run"; run: ActionRun }
+  | { type: "commit"; commit: GithubCommit }
   | { type: "pull-commits"; commits: Array<GithubPullCommit | BoundGithubPullCommit>; pr: number }
   | { type: "pull"; pull: GithubPull };
 

@@ -9,6 +9,7 @@ import { asyncToArray, first } from "../../utils.ts";
 
 import { fetchActionRuns } from "../utils/fetch-action-runs.ts";
 import { fetchActionWorkflows } from "../utils/fetch-action-workflows.ts";
+import { fetchCommits } from "../utils/fetch-commits.ts";
 import { fetchPullCommits } from "../utils/fetch-pull-commits.ts";
 import { fetchPulls } from "../utils/fetch-pulls.ts";
 import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../utils/sorting.ts";
@@ -18,6 +19,7 @@ import {
   ActionWorkflow,
   BoundGithubPullCommit,
   GithubClient,
+  GithubCommit,
   GithubDiff,
   GithubPull,
   GithubPullCommitDateKey,
@@ -29,6 +31,7 @@ import {
 } from "../types/mod.ts";
 
 interface AloeGithubClientDb {
+  commits: AloeDatabase<GithubCommit>;
   pullCommits: AloeDatabase<BoundGithubPullCommit>;
   pulls: AloeDatabase<GithubPull>;
   syncs: AloeDatabase<SyncInfo>;
@@ -179,6 +182,17 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 
     const fetchedPulls: Array<GithubPull> = [];
 
+    const handleCommits = async () => {
+      for await (
+        const commit of _internals.fetchCommits(this.owner, this.repo, this.token, { from })
+      ) {
+        await this.db.commits.deleteOne({ node_id: commit.node_id });
+        await this.db.commits.insertOne(commit);
+        await progress({ type: "commit", commit });
+      }
+      await this.db.commits.save();
+    };
+
     const handlePulls = async () => {
       for await (
         const pull of _internals.fetchPulls(this.owner, this.repo, this.token, { from })
@@ -230,6 +244,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     };
 
     await Promise.all([
+      handleCommits(),
       handlePulls().then(() => handlePullCommits()),
       handleWorkflows(),
       handleRuns(),
@@ -257,8 +272,9 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 }
 
 export const _internals = {
+  fetchCommits,
   fetchPullCommits,
   fetchPulls,
   fetchActionRuns,
   fetchActionWorkflows,
-};
+} as const;

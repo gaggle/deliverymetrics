@@ -7,6 +7,7 @@ import {
   ActionWorkflow,
   BoundGithubPullCommit,
   GithubClient,
+  GithubCommit,
   GithubPull,
   GithubPullCommit,
   SyncInfo,
@@ -39,12 +40,14 @@ function withInternalsStubs(
   callable: (stubs: {
     fetchActionRunsStub: Stub;
     fetchActionWorkflowsStub: Stub;
+    fetchCommitsStub: Stub;
     fetchPullCommitsStub: Stub;
     fetchPullsStub: Stub;
   }) => Promise<void> | void,
   opts: Partial<{
     fetchActionRuns: Array<ActionRun>;
     fetchActionWorkflows: Array<ActionWorkflow>;
+    fetchCommits: Array<GithubCommit>;
     fetchPullCommits: Array<GithubPullCommit>;
     fetchPulls: Array<GithubPull>;
   }> = {},
@@ -59,6 +62,11 @@ function withInternalsStubs(
       _internals,
       "fetchActionWorkflows",
       returnsNext([arrayToAsyncGenerator(opts.fetchActionWorkflows || [])]),
+    ),
+    fetchCommitsStub: stub(
+      _internals,
+      "fetchCommits",
+      returnsNext([arrayToAsyncGenerator(opts.fetchCommits || [])]),
     ),
     fetchPullCommitsStub: stub(
       _internals,
