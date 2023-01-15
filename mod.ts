@@ -56,7 +56,12 @@ yargs(Deno.args)
         describe: "Max number of days back to sync for the initial sync",
         type: "number",
         coerce: (maxDays: number) => {
-          if (isNaN(maxDays)) {
+          if (maxDays === Infinity) {
+            // Users are allowed to specify infinity, which internally means no max days
+            return undefined;
+          }
+
+          if (!Number.isFinite(maxDays)) {
             throw new Error(`--max-days must be a number, got: ${maxDays}`);
           }
           return maxDays;
@@ -67,7 +72,7 @@ yargs(Deno.args)
       argv: YargsArguments & {
         repoId: ReturnType<typeof parseGithubUrl>;
         token: string;
-        maxDays: number;
+        maxDays?: number;
       },
     ) => {
       await githubSyncHandler({
