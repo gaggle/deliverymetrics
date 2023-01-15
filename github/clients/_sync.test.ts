@@ -1,8 +1,16 @@
 import { assertEquals, assertObjectMatch } from "dev:asserts";
-import { assertSpyCalls, returnsNext, stub } from "dev:mock";
+import { assertSpyCalls, returnsNext, Stub, stub } from "dev:mock";
 import { FakeTime } from "dev:time";
 
-import { BoundGithubPullCommit, GithubClient, GithubPull, SyncInfo } from "../types/mod.ts";
+import {
+  ActionRun,
+  ActionWorkflow,
+  BoundGithubPullCommit,
+  GithubClient,
+  GithubPull,
+  GithubPullCommit,
+  SyncInfo,
+} from "../types/mod.ts";
 
 import { arrayToAsyncGenerator, asyncToArray } from "../../utils.ts";
 import { withFakeTime, withStubs } from "../../dev-utils.ts";
@@ -27,57 +35,79 @@ async function* yieldGithubClient(
   yield createFakeGithubClient(opts);
 }
 
+function withInternalsStubs(
+  callable: (stubs: {
+    fetchActionRunsStub: Stub;
+    fetchActionWorkflowsStub: Stub;
+    fetchPullCommitsStub: Stub;
+    fetchPullsStub: Stub;
+  }) => Promise<void> | void,
+  opts: Partial<{
+    fetchActionRuns: Array<ActionRun>;
+    fetchActionWorkflows: Array<ActionWorkflow>;
+    fetchPullCommits: Array<GithubPullCommit>;
+    fetchPulls: Array<GithubPull>;
+  }> = {},
+): Promise<void> {
+  const stubs = {
+    fetchActionRunsStub: stub(
+      _internals,
+      "fetchActionRuns",
+      returnsNext([arrayToAsyncGenerator(opts.fetchActionRuns || [])]),
+    ),
+    fetchActionWorkflowsStub: stub(
+      _internals,
+      "fetchActionWorkflows",
+      returnsNext([arrayToAsyncGenerator(opts.fetchActionWorkflows || [])]),
+    ),
+    fetchPullCommitsStub: stub(
+      _internals,
+      "fetchPullCommits",
+      returnsNext([arrayToAsyncGenerator(opts.fetchPullCommits || [])]),
+    ),
+    fetchPullsStub: stub(
+      _internals,
+      "fetchPulls",
+      returnsNext([arrayToAsyncGenerator(opts.fetchPulls || [])]),
+    ),
+  } as const;
+  return withStubs(() => callable(stubs), ...Object.values(stubs));
+}
+
 Deno.test("Syncable Github Client shared tests", async (t) => {
   await t.step(
     "should fetch using the client's owner, repo, and token",
     async (t) => {
       for await (const client of yieldGithubClient()) {
         await t.step(`for ${client.constructor.name}`, async () => {
-          await withStubs(
-            async (fetchPullsStub, fetchPullCommitsStub, fetchActionWorkflowsStub) => {
-              await client.sync();
+          await withInternalsStubs(async ({ fetchPullsStub, fetchPullCommitsStub, fetchActionWorkflowsStub }) => {
+            await client.sync();
 
-              assertSpyCalls(fetchPullsStub, 1);
-              assertObjectMatch(fetchPullsStub.calls[0].args, {
-                "0": "owner",
-                "1": "repo",
-                "2": "token",
-              });
+            assertSpyCalls(fetchPullsStub, 1);
+            assertObjectMatch(fetchPullsStub.calls[0].args, {
+              "0": "owner",
+              "1": "repo",
+              "2": "token",
+            });
 
-              assertSpyCalls(fetchPullCommitsStub, 1);
-              assertObjectMatch(fetchPullCommitsStub.calls[0].args, {
-                "0": { commits_url: "https://commits_url" },
-                "1": "token",
-              });
+            assertSpyCalls(fetchPullCommitsStub, 1);
+            assertObjectMatch(fetchPullCommitsStub.calls[0].args, {
+              "0": { commits_url: "https://commits_url" },
+              "1": "token",
+            });
 
-              assertSpyCalls(fetchActionWorkflowsStub, 1);
-              assertObjectMatch(fetchActionWorkflowsStub.calls[0].args, {
-                "0": "owner",
-                "1": "repo",
-                "2": "token",
-              });
-            },
-            stub(
-              _internals,
-              "fetchPulls",
-              returnsNext([arrayToAsyncGenerator([getFakePull({ commits_url: "https://commits_url" })])]),
-            ),
-            stub(
-              _internals,
-              "fetchPullCommits",
-              returnsNext([arrayToAsyncGenerator([getFakePullCommit()])]),
-            ),
-            stub(
-              _internals,
-              "fetchActionWorkflows",
-              returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
-            ),
-            stub(
-              _internals,
-              "fetchActionRuns",
-              returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
-            ),
-          );
+            assertSpyCalls(fetchActionWorkflowsStub, 1);
+            assertObjectMatch(fetchActionWorkflowsStub.calls[0].args, {
+              "0": "owner",
+              "1": "repo",
+              "2": "token",
+            });
+          }, {
+            fetchPulls: [getFakePull({ commits_url: "https://commits_url" })],
+            fetchPullCommits: [getFakePullCommit()],
+            fetchActionRuns: [getFakeActionRun()],
+            fetchActionWorkflows: [getFakeActionWorkflow()],
+          });
         });
       }
     },
@@ -92,35 +122,18 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
         })
       ) {
         await t.step(`for ${client.constructor.name}`, async () => {
-          await withStubs(
-            async (fetchPullsStub) => {
-              await client.sync();
-              assertSpyCalls(fetchPullsStub, 1);
-              assertObjectMatch(fetchPullsStub.calls[0].args, {
-                "3": { from: 10_000 },
-              });
-            },
-            stub(
-              _internals,
-              "fetchPulls",
-              returnsNext([arrayToAsyncGenerator([getFakePull()])]),
-            ),
-            stub(
-              _internals,
-              "fetchPullCommits",
-              returnsNext([arrayToAsyncGenerator([getFakePullCommit()])]),
-            ),
-            stub(
-              _internals,
-              "fetchActionWorkflows",
-              returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
-            ),
-            stub(
-              _internals,
-              "fetchActionRuns",
-              returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
-            ),
-          );
+          await withInternalsStubs(async ({ fetchPullsStub }) => {
+            await client.sync();
+            assertSpyCalls(fetchPullsStub, 1);
+            assertObjectMatch(fetchPullsStub.calls[0].args, {
+              "3": { from: 10_000 },
+            });
+          }, {
+            fetchPulls: [getFakePull()],
+            fetchPullCommits: [getFakePullCommit()],
+            fetchActionRuns: [getFakeActionRun()],
+            fetchActionWorkflows: [getFakeActionWorkflow()],
+          });
         });
       }
     },
@@ -136,8 +149,8 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
         })
       ) {
         await t.step(`for ${client.constructor.name}`, async () => {
-          await withStubs(
-            async (fetchPullsStub, fetchActionRunsStub) => {
+          await withInternalsStubs(
+            async ({ fetchPullsStub, fetchActionRunsStub }) => {
               await client.sync({ syncFromIfUnsynced: 10 });
               assertSpyCalls(fetchPullsStub, 1);
               assertObjectMatch(fetchPullsStub.calls[0].args, {
@@ -149,10 +162,6 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
                 "3": { from: 10 },
               });
             },
-            stub(_internals, "fetchPulls", returnsNext([arrayToAsyncGenerator([])])),
-            stub(_internals, "fetchActionRuns", returnsNext([arrayToAsyncGenerator([])])),
-            stub(_internals, "fetchPullCommits", returnsNext([arrayToAsyncGenerator([])])),
-            stub(_internals, "fetchActionWorkflows", returnsNext([arrayToAsyncGenerator([])])),
           );
         });
       }
@@ -163,34 +172,17 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
     for await (const client of yieldGithubClient()) {
       const fakePull = getFakePull();
       await t.step(`for ${client.constructor.name}`, async () => {
-        await withStubs(
-          async (_) => {
-            await client.sync();
-            assertEquals(await asyncToArray(client.findPulls()), [
-              fakePull,
-            ]);
-          },
-          stub(
-            _internals,
-            "fetchPulls",
-            returnsNext([arrayToAsyncGenerator([fakePull])]),
-          ),
-          stub(
-            _internals,
-            "fetchPullCommits",
-            returnsNext([arrayToAsyncGenerator([getFakePullCommit()])]),
-          ),
-          stub(
-            _internals,
-            "fetchActionWorkflows",
-            returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
-          ),
-          stub(
-            _internals,
-            "fetchActionRuns",
-            returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
-          ),
-        );
+        await withInternalsStubs(async () => {
+          await client.sync();
+          assertEquals(await asyncToArray(client.findPulls()), [
+            fakePull,
+          ]);
+        }, {
+          fetchPulls: [fakePull],
+          fetchPullCommits: [getFakePullCommit()],
+          fetchActionWorkflows: [getFakeActionWorkflow()],
+          fetchActionRuns: [getFakeActionRun()],
+        });
       });
     }
   });
@@ -200,34 +192,17 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
       const fakePull = getFakePull();
       const fakePullCommit = getFakePullCommit();
       await t.step(`for ${client.constructor.name}`, async () => {
-        await withStubs(
-          async (_) => {
-            await client.sync();
-            assertEquals(await asyncToArray(client.findPullCommits()), [
-              { ...fakePullCommit, pr: fakePull.number },
-            ]);
-          },
-          stub(
-            _internals,
-            "fetchPulls",
-            returnsNext([arrayToAsyncGenerator([fakePull])]),
-          ),
-          stub(
-            _internals,
-            "fetchPullCommits",
-            returnsNext([arrayToAsyncGenerator([fakePullCommit])]),
-          ),
-          stub(
-            _internals,
-            "fetchActionWorkflows",
-            returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
-          ),
-          stub(
-            _internals,
-            "fetchActionRuns",
-            returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
-          ),
-        );
+        await withInternalsStubs(async () => {
+          await client.sync();
+          assertEquals(await asyncToArray(client.findPullCommits()), [
+            { ...fakePullCommit, pr: fakePull.number },
+          ]);
+        }, {
+          fetchPulls: [fakePull],
+          fetchPullCommits: [fakePullCommit],
+          fetchActionWorkflows: [getFakeActionWorkflow()],
+          fetchActionRuns: [getFakeActionRun()],
+        });
       });
     }
   });
@@ -236,30 +211,16 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
     for await (const client of yieldGithubClient()) {
       await t.step(`for ${client.constructor.name}`, async () => {
         await withFakeTime(async () => {
-          await withStubs(
-            async () => {
-              await client.sync();
-              assertEquals(
-                await (await client.findLatestSync())?.updatedAt,
-                10_000,
-              );
-            },
-            stub(
-              _internals,
-              "fetchPulls",
-              returnsNext([arrayToAsyncGenerator([])]),
-            ),
-            stub(
-              _internals,
-              "fetchActionWorkflows",
-              returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
-            ),
-            stub(
-              _internals,
-              "fetchActionRuns",
-              returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
-            ),
-          );
+          await withInternalsStubs(async () => {
+            await client.sync();
+            assertEquals(
+              await (await client.findLatestSync())?.updatedAt,
+              10_000,
+            );
+          }, {
+            fetchActionWorkflows: [getFakeActionWorkflow()],
+            fetchActionRuns: [getFakeActionRun()],
+          });
         }, new FakeTime(10_000));
       });
     }
@@ -269,27 +230,13 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
     for await (const client of yieldGithubClient()) {
       await t.step(`for ${client.constructor.name}`, async () => {
         await withFakeTime(async () => {
-          await withStubs(
-            async () => {
-              const result = await client.sync();
-              assertEquals(result.syncedAt, 10_000);
-            },
-            stub(
-              _internals,
-              "fetchPulls",
-              returnsNext([arrayToAsyncGenerator([])]),
-            ),
-            stub(
-              _internals,
-              "fetchActionWorkflows",
-              returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
-            ),
-            stub(
-              _internals,
-              "fetchActionRuns",
-              returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
-            ),
-          );
+          await withInternalsStubs(async () => {
+            const result = await client.sync();
+            assertEquals(result.syncedAt, 10_000);
+          }, {
+            fetchActionWorkflows: [getFakeActionWorkflow()],
+            fetchActionRuns: [getFakeActionRun()],
+          });
         }, new FakeTime(10_000));
       });
     }
@@ -300,35 +247,18 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
     const pullClosed = getFakePull({ id: 1, number: 1, state: "closed" });
     for await (const client of yieldGithubClient({ pulls: [pullOpen] })) {
       await t.step(`for ${client.constructor.name}`, async () => {
-        await withStubs(
-          async () => {
-            const result = await client.sync();
-            assertEquals(result.updatedPulls, [{
-              prev: pullOpen,
-              updated: pullClosed,
-            }]);
-          },
-          stub(
-            _internals,
-            "fetchPulls",
-            returnsNext([arrayToAsyncGenerator([pullClosed])]),
-          ),
-          stub(
-            _internals,
-            "fetchPullCommits",
-            returnsNext([arrayToAsyncGenerator([getFakePullCommit({ pr: pullClosed.number })])]),
-          ),
-          stub(
-            _internals,
-            "fetchActionWorkflows",
-            returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
-          ),
-          stub(
-            _internals,
-            "fetchActionRuns",
-            returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
-          ),
-        );
+        await withInternalsStubs(async () => {
+          const result = await client.sync();
+          assertEquals(result.updatedPulls, [{
+            prev: pullOpen,
+            updated: pullClosed,
+          }]);
+        }, {
+          fetchPulls: [pullClosed],
+          fetchPullCommits: [getFakePullCommit({ pr: pullClosed.number })],
+          fetchActionWorkflows: [getFakeActionWorkflow()],
+          fetchActionRuns: [getFakeActionRun()],
+        });
       });
     }
   });
@@ -337,32 +267,15 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
     const newPull = getFakePull({ id: 1, number: 1, state: "closed" });
     for await (const client of yieldGithubClient()) {
       await t.step(`for ${client.constructor.name}`, async () => {
-        await withStubs(
-          async () => {
-            const result = await client.sync();
-            assertEquals(result.newPulls, [newPull]);
-          },
-          stub(
-            _internals,
-            "fetchPulls",
-            returnsNext([arrayToAsyncGenerator([newPull])]),
-          ),
-          stub(
-            _internals,
-            "fetchPullCommits",
-            returnsNext([arrayToAsyncGenerator([getFakePullCommit({ pr: newPull.number })])]),
-          ),
-          stub(
-            _internals,
-            "fetchActionWorkflows",
-            returnsNext([arrayToAsyncGenerator([getFakeActionWorkflow()])]),
-          ),
-          stub(
-            _internals,
-            "fetchActionRuns",
-            returnsNext([arrayToAsyncGenerator([getFakeActionRun()])]),
-          ),
-        );
+        await withInternalsStubs(async () => {
+          const result = await client.sync();
+          assertEquals(result.newPulls, [newPull]);
+        }, {
+          fetchPulls: [newPull],
+          fetchPullCommits: [getFakePullCommit({ pr: newPull.number })],
+          fetchActionWorkflows: [getFakeActionWorkflow()],
+          fetchActionRuns: [getFakeActionRun()],
+        });
       });
     }
   });
