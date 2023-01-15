@@ -4,6 +4,7 @@ import { FakeTime } from "dev:time";
 import { getFakePull } from "./github/testing.ts";
 
 import {
+  asyncSingle,
   asyncToArray,
   first,
   getEnv,
@@ -87,27 +88,84 @@ Deno.test("last", async (t) => {
 });
 
 Deno.test("single", async (t) => {
-  await t.step("yields the only element of an AsyncGenerator", async () => {
-    async function* yielder(): AsyncGenerator<string> {
-      yield "foo";
-    }
+  await t.step("given a Generator", async (t) => {
+    await t.step("yields the only element", () => {
+      function* yielder(): Generator<string> {
+        yield "foo";
+      }
 
-    assertEquals(await single(yielder()), "foo");
+      assertEquals(single(yielder()), "foo");
+    });
+
+    await t.step("throws if more elements are available", () => {
+      function* yielder(): Generator<string> {
+        yield "foo";
+        yield "bar";
+      }
+
+      assertThrows(() => single(yielder()), Error, "too many");
+    });
+
+    await t.step("throws if no elements are available", () => {
+      function* yielder(): Generator<string> {}
+
+      assertThrows(() => single(yielder()), Error, "not enough");
+    });
   });
 
-  await t.step("throws if more elements are available", async () => {
-    async function* yielder(): AsyncGenerator<string> {
-      yield "foo";
-      yield "bar";
-    }
+  await t.step("given an Array", async (t) => {
+    await t.step("yields the only element", () => {
+      assertEquals(single(["foo"]), "foo");
+    });
 
-    await assertRejects(() => single(yielder()), Error, "too many");
+    await t.step("throws if more elements are available", () => {
+      assertThrows(() => single(["foo", "bar"]), Error, "too many");
+    });
+
+    await t.step("throws if no elements are available", () => {
+      assertThrows(() => single([]), Error, "not enough");
+    });
+  });
+});
+
+Deno.test("asyncSingle", async (t) => {
+  await t.step("given an AsyncGenerator", async (t) => {
+    await t.step("yields the only element", async () => {
+      async function* yielder(): AsyncGenerator<string> {
+        yield "foo";
+      }
+
+      assertEquals(await asyncSingle(yielder()), "foo");
+    });
+
+    await t.step("throws if more elements are available", async () => {
+      async function* yielder(): AsyncGenerator<string> {
+        yield "foo";
+        yield "bar";
+      }
+
+      await assertRejects(() => asyncSingle(yielder()), Error, "too many");
+    });
+
+    await t.step("throws if no elements are available", async () => {
+      async function* yielder(): AsyncGenerator<string> {}
+
+      await assertRejects(() => asyncSingle(yielder()), Error, "not enough");
+    });
   });
 
-  await t.step("throws if no elements are available", async () => {
-    async function* yielder(): AsyncGenerator<string> {}
+  await t.step("given an Array", async (t) => {
+    await t.step("yields the only element", async () => {
+      assertEquals(await asyncSingle(["foo"]), "foo");
+    });
 
-    await assertRejects(() => single(yielder()), Error, "not enough");
+    await t.step("throws if more elements are available", async () => {
+      await assertRejects(() => asyncSingle(["foo", "bar"]), Error, "too many");
+    });
+
+    await t.step("throws if no elements are available", async () => {
+      await assertRejects(() => asyncSingle([]), Error, "not enough");
+    });
   });
 });
 

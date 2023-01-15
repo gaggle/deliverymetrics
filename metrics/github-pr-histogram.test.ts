@@ -2,7 +2,7 @@ import { assertEquals, assertObjectMatch } from "dev:asserts";
 
 import { createFakeReadonlyGithubClient, getFakePull, getFakePullCommit, getFakeSyncInfo } from "../github/testing.ts";
 
-import { asyncToArray, single } from "../utils.ts";
+import { asyncSingle, asyncToArray } from "../utils.ts";
 
 import { yieldPullRequestHistogram } from "./github-pr-histogram.ts";
 
@@ -27,7 +27,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         })],
       });
 
-      const result = await single(yieldPullRequestHistogram(github, { mode: "daily" }));
+      const result = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily" }));
 
       await t.step("calculates a the start and end period of a single merged PR", () =>
         assertObjectMatch(result, {
@@ -90,7 +90,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         });
 
         assertObjectMatch(
-          await single(yieldPullRequestHistogram(github, { mode: "daily", excludeLabels: ["Bar 😎"] })),
+          await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", excludeLabels: ["Bar 😎"] })),
           {
             start: new Date("2022-09-30T00:00:00.000Z"),
             end: new Date("2022-09-30T23:59:59.999Z"),
@@ -100,7 +100,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         );
 
         assertObjectMatch(
-          await single(yieldPullRequestHistogram(github, { mode: "daily", includeLabels: ["Bar 😎"] })),
+          await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", includeLabels: ["Bar 😎"] })),
           {
             start: new Date("2022-01-05T00:00:00.000Z"),
             end: new Date("2022-01-05T23:59:59.999Z"),
@@ -144,7 +144,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         });
 
         assertObjectMatch(
-          await single(yieldPullRequestHistogram(github, { mode: "daily", excludeBranches: ["branch-name"] })),
+          await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", excludeBranches: ["branch-name"] })),
           {
             start: new Date("2022-09-30T00:00:00.000Z"),
             end: new Date("2022-09-30T23:59:59.999Z"),
@@ -159,7 +159,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         );
 
         assertObjectMatch(
-          await single(
+          await asyncSingle(
             yieldPullRequestHistogram(github, { mode: "daily", includeBranches: ["branch-name"] }),
           ),
           {
@@ -171,7 +171,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         );
 
         assertObjectMatch(
-          await single(
+          await asyncSingle(
             yieldPullRequestHistogram(github, { mode: "daily", includeBranches: [/^branch.*/] }),
           ),
           {
@@ -272,7 +272,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
       });
 
       assertObjectMatch(
-        await single(yieldPullRequestHistogram(github, { mode: "daily" })),
+        await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily" })),
         {
           start: new Date("2022-01-20T00:00:00.000Z"),
           end: new Date("2022-01-20T23:59:59.999Z"),
