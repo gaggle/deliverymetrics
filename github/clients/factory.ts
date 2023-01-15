@@ -38,25 +38,25 @@ export async function getGithubClient(
   opts: GithubClientOpts | ReadonlyGithubClientOpts,
 ): Promise<GithubClient | ReadonlyGithubClient> {
   const db: ConstructorParameters<typeof AloeGithubClient>[0]["db"] = {
-    pullCommits: await AloeDatabase.new({
-      path: join(opts.persistenceDir, "pull-commits.json"),
-      schema: boundGithubPullCommit,
-    }),
-    pulls: await AloeDatabase.new({
-      path: join(opts.persistenceDir, "pulls.json"),
-      schema: githubPullSchema,
-    }),
-    syncs: await AloeDatabase.new({
-      path: join(opts.persistenceDir, "syncs.json"),
-      schema: syncInfoSchema,
+    actionRuns: await AloeDatabase.new({
+      path: join(opts.persistenceDir, "action-runs.json"),
+      schema: actionRunSchema,
     }),
     actionWorkflows: await AloeDatabase.new({
       path: join(opts.persistenceDir, "action-workflows.json"),
       schema: actionWorkflowSchema,
     }),
-    actionRuns: await AloeDatabase.new({
-      path: join(opts.persistenceDir, "action-runs.json"),
-      schema: actionRunSchema,
+    pulls: await AloeDatabase.new({
+      path: join(opts.persistenceDir, "pulls.json"),
+      schema: githubPullSchema,
+    }),
+    pullCommits: await AloeDatabase.new({
+      path: join(opts.persistenceDir, "pull-commits.json"),
+      schema: boundGithubPullCommit,
+    }),
+    syncs: await AloeDatabase.new({
+      path: join(opts.persistenceDir, "syncs.json"),
+      schema: syncInfoSchema,
     }),
   };
 

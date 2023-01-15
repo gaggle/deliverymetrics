@@ -608,44 +608,45 @@ export function getFakeActionRun(partial: DeepPartial<ActionRun> = {}): ActionRu
 }
 
 export async function createFakeReadonlyGithubClient(
-  { pullCommits, pulls, syncInfos, workflows, actionsRuns }: Partial<{
+  { actionsRuns, pullCommits, pulls, syncInfos, workflows }: Partial<{
+    actionsRuns: Array<ActionRun>;
     pullCommits: Array<BoundGithubPullCommit>;
     pulls: Array<GithubPull>;
     syncInfos: Array<SyncInfo>;
     workflows: Array<ActionWorkflow>;
-    actionsRuns: Array<ActionRun>;
   }> = {},
 ): Promise<ReadonlyGithubClient> {
   return new ReadonlyAloeGithubClient({
     owner: "owner",
     repo: "repo",
     db: {
-      pullCommits: await MockAloeDatabase.new({
-        schema: boundGithubPullCommit,
-        documents: pullCommits,
-      }),
-      pulls: await MockAloeDatabase.new({
-        schema: githubPullSchema,
-        documents: pulls,
-      }),
-      syncs: await MockAloeDatabase.new({
-        schema: syncInfoSchema,
-        documents: syncInfos,
+      actionRuns: await MockAloeDatabase.new({
+        schema: actionRunSchema,
+        documents: actionsRuns,
       }),
       actionWorkflows: await MockAloeDatabase.new({
         schema: actionWorkflowSchema,
         documents: workflows,
       }),
-      actionRuns: await MockAloeDatabase.new({
-        schema: actionRunSchema,
-        documents: actionsRuns,
+      pulls: await MockAloeDatabase.new({
+        schema: githubPullSchema,
+        documents: pulls,
+      }),
+      pullCommits: await MockAloeDatabase.new({
+        schema: boundGithubPullCommit,
+        documents: pullCommits,
+      }),
+      syncs: await MockAloeDatabase.new({
+        schema: syncInfoSchema,
+        documents: syncInfos,
       }),
     },
   });
 }
 
 export async function createFakeGithubClient(
-  { pullCommits, pulls, syncInfos, workflows, actionsRuns }: Partial<{
+  { actionsRuns, pullCommits, pulls, syncInfos, workflows }: Partial<{
+    actionsRuns: Array<ActionRun>;
     pullCommits: Array<BoundGithubPullCommit>;
     pulls: Array<GithubPull>;
     syncInfos: Array<SyncInfo>;
@@ -658,25 +659,25 @@ export async function createFakeGithubClient(
     repo: "repo",
     token: "token",
     db: {
-      pullCommits: await MockAloeDatabase.new({
-        schema: boundGithubPullCommit,
-        documents: pullCommits,
-      }),
-      pulls: await MockAloeDatabase.new({
-        schema: githubPullSchema,
-        documents: pulls,
-      }),
-      syncs: await MockAloeDatabase.new({
-        schema: syncInfoSchema,
-        documents: syncInfos,
+      actionRuns: await MockAloeDatabase.new({
+        schema: actionRunSchema,
+        documents: actionsRuns,
       }),
       actionWorkflows: await MockAloeDatabase.new({
         schema: actionWorkflowSchema,
         documents: workflows,
       }),
-      actionRuns: await MockAloeDatabase.new({
-        schema: actionRunSchema,
-        documents: actionsRuns,
+      pulls: await MockAloeDatabase.new({
+        schema: githubPullSchema,
+        documents: pulls,
+      }),
+      pullCommits: await MockAloeDatabase.new({
+        schema: boundGithubPullCommit,
+        documents: pullCommits,
+      }),
+      syncs: await MockAloeDatabase.new({
+        schema: syncInfoSchema,
+        documents: syncInfos,
       }),
     },
   });
