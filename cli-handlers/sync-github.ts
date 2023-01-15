@@ -18,7 +18,7 @@ export async function githubSyncHandler(
     repo: string;
     token: string;
     persistenceRoot: string;
-    maxDays: number;
+    maxDays?: number;
   },
 ) {
   let github: GithubClient;
@@ -33,12 +33,15 @@ export async function githubSyncHandler(
   }, { start: "Initializing...", succeed: "Initialized", delayFor: 100 });
   console.log(await formatGithubClientStatus(github!));
 
-  const maxSyncFromIfUnsynced = Date.now() - dayInMs * maxDays;
-  debug("maxSyncFromIfUnsynced", {
-    now: new Date(),
-    maxSyncFromIfUnsynced: new Date(maxSyncFromIfUnsynced),
-    diff: difference(new Date(), new Date(maxSyncFromIfUnsynced), { units: ["days"] }),
-  });
+  let maxSyncFromIfUnsynced: number | undefined;
+  if (maxDays !== undefined) {
+    maxSyncFromIfUnsynced = Date.now() - dayInMs * maxDays;
+    debug("maxSyncFromIfUnsynced", {
+      now: new Date(),
+      maxSyncFromIfUnsynced: new Date(maxSyncFromIfUnsynced),
+      diff: difference(new Date(), new Date(maxSyncFromIfUnsynced), { units: ["days"] }),
+    });
+  }
 
   let syncResult: GithubDiff;
   await withProgress(async (progress) => {
