@@ -9,6 +9,7 @@ import {
   actionWorkflowSchema,
   boundGithubPullCommit,
   GithubClient,
+  githubCommitSchema,
   githubPullSchema,
   ReadonlyGithubClient,
   syncInfoSchema,
@@ -45,6 +46,10 @@ export async function getGithubClient(
     actionWorkflows: await AloeDatabase.new({
       path: join(opts.persistenceDir, "action-workflows.json"),
       schema: actionWorkflowSchema,
+    }),
+    commits: await AloeDatabase.new({
+      path: join(opts.persistenceDir, "commits.json"),
+      schema: githubCommitSchema,
     }),
     pulls: await AloeDatabase.new({
       path: join(opts.persistenceDir, "pulls.json"),

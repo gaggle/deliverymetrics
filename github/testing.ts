@@ -14,6 +14,7 @@ import {
   boundGithubPullCommit,
   GithubClient,
   GithubCommit,
+  githubCommitSchema,
   GithubPull,
   GithubPullCommit,
   githubPullSchema,
@@ -608,8 +609,9 @@ export function getFakeActionRun(partial: DeepPartial<ActionRun> = {}): ActionRu
 }
 
 export async function createFakeReadonlyGithubClient(
-  { actionsRuns, pullCommits, pulls, syncInfos, workflows }: Partial<{
+  { actionsRuns, commits, pullCommits, pulls, syncInfos, workflows }: Partial<{
     actionsRuns: Array<ActionRun>;
+    commits: Array<GithubCommit>;
     pullCommits: Array<BoundGithubPullCommit>;
     pulls: Array<GithubPull>;
     syncInfos: Array<SyncInfo>;
@@ -628,6 +630,10 @@ export async function createFakeReadonlyGithubClient(
         schema: actionWorkflowSchema,
         documents: workflows,
       }),
+      commits: await MockAloeDatabase.new({
+        schema: githubCommitSchema,
+        documents: commits,
+      }),
       pulls: await MockAloeDatabase.new({
         schema: githubPullSchema,
         documents: pulls,
@@ -645,13 +651,13 @@ export async function createFakeReadonlyGithubClient(
 }
 
 export async function createFakeGithubClient(
-  { actionsRuns, pullCommits, pulls, syncInfos, workflows }: Partial<{
+  { actionsRuns, commits, pullCommits, pulls, syncInfos, workflows }: Partial<{
     actionsRuns: Array<ActionRun>;
+    commits: Array<GithubCommit>;
     pullCommits: Array<BoundGithubPullCommit>;
     pulls: Array<GithubPull>;
     syncInfos: Array<SyncInfo>;
     workflows: Array<ActionWorkflow>;
-    actionsRuns: Array<ActionRun>;
   }> = {},
 ): Promise<GithubClient> {
   return new AloeGithubClient({
@@ -666,6 +672,10 @@ export async function createFakeGithubClient(
       actionWorkflows: await MockAloeDatabase.new({
         schema: actionWorkflowSchema,
         documents: workflows,
+      }),
+      commits: await MockAloeDatabase.new({
+        schema: githubCommitSchema,
+        documents: commits,
       }),
       pulls: await MockAloeDatabase.new({
         schema: githubPullSchema,
