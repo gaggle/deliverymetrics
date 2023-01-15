@@ -11,7 +11,7 @@ import {
   getFakeSyncInfo,
 } from "../github/testing.ts";
 
-import { asyncToArray } from "../utils.ts";
+import { asyncToArray, single } from "../utils.ts";
 import { withFileOpen, withTempDir, yieldDir } from "../path-and-file-utils.ts";
 import { withStubs } from "../dev-utils.ts";
 
@@ -154,9 +154,7 @@ Deno.test({
     await withOutputToCsv(t, "with two closed pulls", async ({ outputDir, t }) => {
       await t.step("formats daily pull-request lead times as expected", async () => {
         await withCsvContent((content) => {
-          assertEquals(content.length, 1);
-
-          assertEquals(content[0], {
+          assertEquals(single(content), {
             "Period Start": "1984-01-05T00:00:00.000Z",
             "Period End": "1984-01-05T23:59:59.999Z",
             "# of PRs Merged": "1",
@@ -169,9 +167,7 @@ Deno.test({
 
       await t.step("formats weekly pull-request lead times as expected", async () => {
         await withCsvContent((content) => {
-          assertEquals(content.length, 1);
-
-          assertEquals(content[0], {
+          assertEquals(single(content), {
             "Period Start": "1984-01-02T00:00:00.000Z",
             "Period End": "1984-01-08T23:59:59.999Z",
             "# of PRs Merged": "1",
@@ -184,9 +180,7 @@ Deno.test({
 
       await t.step("formats monthly pull-request lead times as expected", async () => {
         await withCsvContent((content) => {
-          assertEquals(content.length, 1);
-
-          assertEquals(content[0], {
+          assertEquals(single(content), {
             "Period Start": "1984-01-01T00:00:00.000Z",
             "Period End": "1984-01-31T23:59:59.999Z",
             "# of PRs Merged": "1",
