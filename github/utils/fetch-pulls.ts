@@ -30,16 +30,9 @@ export async function* fetchPulls(
     url: githubRestSpec.pulls.getUrl(owner, repo),
   });
 
-  for await (
-    const resp of fetchExhaustively(req, {
-      fetchLike: retrier.fetch.bind(retrier),
-    })
-  ) {
+  for await (const resp of fetchExhaustively(req, { fetchLike: retrier.fetch.bind(retrier) })) {
     if (!resp.ok) {
-      throw new Error(
-        `Could not fetch ${req.url}, got ${resp.status} ${resp.statusText}: ${await resp
-          .text()}`,
-      );
+      throw new Error(`Could not fetch ${req.url}, got ${resp.status} ${resp.statusText}: ${await resp.text()}`);
     }
 
     const data: z.infer<typeof githubRestSpec.pulls.schema> = await resp.json();
