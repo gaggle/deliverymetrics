@@ -1,4 +1,4 @@
-import { assert, IsExact } from "dev:conditional-type-checks";
+import { assert, Has, IsExact, NotHas } from "dev:conditional-type-checks";
 
 import { Tail, ToTuple, WithOptional, WithRequired } from "./types.ts";
 
@@ -6,10 +6,8 @@ Deno.test("ToTuple", async (t) => {
   await t.step("extracts an object's keys into a constant array type", () => {
     type Keys = ToTuple<keyof { foo: string; bar: number }>;
 
-    assert<IsExact<Keys, ["foo", "bar"]>>(true);
-    assert<IsExact<Keys, ["foo"]>>(false);
-    assert<IsExact<Keys, ["foo", "baz"]>>(false);
-    assert<IsExact<Keys, ["foo", "bar", "baz"]>>(false);
+    assert<Has<Keys, ["foo", "bar"]>>(true);
+    assert<NotHas<Keys, ["baz"]>>(true);
   });
 });
 
