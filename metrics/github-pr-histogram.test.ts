@@ -4,7 +4,7 @@ import { createFakeReadonlyGithubClient, getFakePull, getFakePullCommit, getFake
 
 import { asyncToArray, single } from "../utils.ts";
 
-import { yieldPullRequestLeadTime } from "./github-pr-lead-time.ts";
+import { yieldPullRequestHistogram } from "./github-pr-histogram.ts";
 
 Deno.test("yieldPullRequestLeadTime", async (t) => {
   await t.step("for daily lead times", async (t) => {
@@ -27,7 +27,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         })],
       });
 
-      const result = await single(yieldPullRequestLeadTime(github, { mode: "daily" }));
+      const result = await single(yieldPullRequestHistogram(github, { mode: "daily" }));
 
       await t.step("calculates a the start and end period of a single merged PR", () =>
         assertObjectMatch(result, {
@@ -90,7 +90,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         });
 
         assertObjectMatch(
-          await single(yieldPullRequestLeadTime(github, { mode: "daily", excludeLabels: ["Bar 😎"] })),
+          await single(yieldPullRequestHistogram(github, { mode: "daily", excludeLabels: ["Bar 😎"] })),
           {
             start: new Date("2022-09-30T00:00:00.000Z"),
             end: new Date("2022-09-30T23:59:59.999Z"),
@@ -100,7 +100,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         );
 
         assertObjectMatch(
-          await single(yieldPullRequestLeadTime(github, { mode: "daily", includeLabels: ["Bar 😎"] })),
+          await single(yieldPullRequestHistogram(github, { mode: "daily", includeLabels: ["Bar 😎"] })),
           {
             start: new Date("2022-01-05T00:00:00.000Z"),
             end: new Date("2022-01-05T23:59:59.999Z"),
@@ -144,7 +144,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         });
 
         assertObjectMatch(
-          await single(yieldPullRequestLeadTime(github, { mode: "daily", excludeBranches: ["branch-name"] })),
+          await single(yieldPullRequestHistogram(github, { mode: "daily", excludeBranches: ["branch-name"] })),
           {
             start: new Date("2022-09-30T00:00:00.000Z"),
             end: new Date("2022-09-30T23:59:59.999Z"),
@@ -154,13 +154,13 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         );
 
         assertEquals(
-          await asyncToArray(yieldPullRequestLeadTime(github, { mode: "daily", excludeBranches: [/.*branch.*/] })),
+          await asyncToArray(yieldPullRequestHistogram(github, { mode: "daily", excludeBranches: [/.*branch.*/] })),
           [],
         );
 
         assertObjectMatch(
           await single(
-            yieldPullRequestLeadTime(github, { mode: "daily", includeBranches: ["branch-name"] }),
+            yieldPullRequestHistogram(github, { mode: "daily", includeBranches: ["branch-name"] }),
           ),
           {
             start: new Date("2022-01-05T00:00:00.000Z"),
@@ -172,7 +172,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
 
         assertObjectMatch(
           await single(
-            yieldPullRequestLeadTime(github, { mode: "daily", includeBranches: [/^branch.*/] }),
+            yieldPullRequestHistogram(github, { mode: "daily", includeBranches: [/^branch.*/] }),
           ),
           {
             start: new Date("2022-01-05T00:00:00.000Z"),
@@ -224,7 +224,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
 
         assertEquals(
           await asyncToArray(
-            yieldPullRequestLeadTime(github, { mode: "daily" }),
+            yieldPullRequestHistogram(github, { mode: "daily" }),
           ),
           [
             {
@@ -272,7 +272,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
       });
 
       assertObjectMatch(
-        await single(yieldPullRequestLeadTime(github, { mode: "daily" })),
+        await single(yieldPullRequestHistogram(github, { mode: "daily" })),
         {
           start: new Date("2022-01-20T00:00:00.000Z"),
           end: new Date("2022-01-20T23:59:59.999Z"),
@@ -306,7 +306,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
 
       assertEquals(
         await asyncToArray(
-          yieldPullRequestLeadTime(github, { mode: "weekly" }),
+          yieldPullRequestHistogram(github, { mode: "weekly" }),
         ),
         [
           {
@@ -351,7 +351,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
 
       assertEquals(
         await asyncToArray(
-          yieldPullRequestLeadTime(github, { mode: "monthly" }),
+          yieldPullRequestHistogram(github, { mode: "monthly" }),
         ),
         [
           {

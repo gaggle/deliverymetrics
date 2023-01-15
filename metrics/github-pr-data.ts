@@ -3,7 +3,7 @@ import { GithubPull, isMergedGithubPull, ReadonlyGithubClient } from "../github/
 import { asyncToArray, filterIter, regexIntersect } from "../utils.ts";
 
 import { daysBetween } from "./date-utils.ts";
-import { calculatePullRequestLeadTime, calculatePullRequestTimeToMerge } from "./github-pr-lead-time.ts";
+import { calculatePullRequestLeadTime, calculatePullRequestTimeToMerge } from "./github-pr-histogram.ts";
 
 type YieldPullRequestData = {
   pull: GithubPull;

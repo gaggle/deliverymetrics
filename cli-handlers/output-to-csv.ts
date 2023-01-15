@@ -6,7 +6,7 @@ import { makeRunWithLimit as makeLimit } from "run-with-limit";
 import { ActionWorkflow, getGithubClient, GithubPull, GithubPullCommit, githubPullSchema } from "../github/mod.ts";
 import { daysBetween, toDays } from "../metrics/date-utils.ts";
 import { withProgress } from "../cli-gui/mod.ts";
-import { yieldActionRunHistogram, yieldPullRequestData, yieldPullRequestLeadTime } from "../metrics/mod.ts";
+import { yieldActionRunHistogram, yieldPullRequestData, yieldPullRequestHistogram } from "../metrics/mod.ts";
 
 import { filterIter, inspectIter, sleep } from "../utils.ts";
 import { ToTuple } from "../types.ts";
@@ -114,7 +114,7 @@ export async function outputToCsv(
           join(outputDir, name),
           prLeadTimeAsCsv(inspectIter(
             () => increment(name),
-            yieldPullRequestLeadTime(gh, { mode, maxDays: 90, excludeLabels }),
+            yieldPullRequestHistogram(gh, { mode, maxDays: 90, excludeLabels }),
           )),
           { header: leadTimeHeaders.slice() },
         );
@@ -242,7 +242,7 @@ const leadTimeHeaders = [
 type LeadTimeRow = Record<typeof leadTimeHeaders[number], string>;
 
 async function* prLeadTimeAsCsv(
-  iter: ReturnType<typeof yieldPullRequestLeadTime>,
+  iter: ReturnType<typeof yieldPullRequestHistogram>,
 ): AsyncGenerator<LeadTimeRow> {
   for await (const el of iter) {
     yield {

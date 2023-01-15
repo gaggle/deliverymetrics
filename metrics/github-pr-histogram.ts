@@ -36,7 +36,7 @@ type PullRequestLeadTime = {
   mergedPRs: Array<number>;
 };
 
-export async function* yieldPullRequestLeadTime(
+export async function* yieldPullRequestHistogram(
   gh: ReadonlyGithubClient,
   { mode, maxDays, includeLabels, excludeLabels, excludeBranches, includeBranches }: {
     mode: "daily" | "weekly" | "monthly";
