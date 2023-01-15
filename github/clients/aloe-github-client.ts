@@ -7,10 +7,10 @@ import { AloeDatabase } from "../../db/mod.ts";
 
 import { asyncToArray, first } from "../../utils.ts";
 
-import { fetchPullCommits } from "../utils/fetch-pull-commits.ts";
-import { fetchPulls } from "../utils/fetch-pulls.ts";
 import { fetchActionRuns } from "../utils/fetch-action-runs.ts";
 import { fetchActionWorkflows } from "../utils/fetch-action-workflows.ts";
+import { fetchPullCommits } from "../utils/fetch-pull-commits.ts";
+import { fetchPulls } from "../utils/fetch-pulls.ts";
 import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../utils/sorting.ts";
 
 import {
