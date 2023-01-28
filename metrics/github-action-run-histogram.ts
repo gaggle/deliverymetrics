@@ -12,7 +12,7 @@ import { ActionRun, ActionWorkflow, ReadonlyGithubClient } from "../github/mod.t
 
 import { assertUnreachable } from "../utils.ts";
 
-import { dateEnd, dayStart, monthEnd, monthStart, weekEnd, weekStart } from "./date-utils.ts";
+import { dayEnd, dayStart, monthEnd, monthStart, weekEnd, weekStart } from "./date-utils.ts";
 
 type ActionRunHistogram = {
   start: Date;
@@ -39,7 +39,7 @@ export async function* yieldActionRunHistogram(
   switch (mode) {
     case "daily":
       periodConf = {
-        ceil: dateEnd,
+        ceil: dayEnd,
         floor: dayStart,
       };
       break;

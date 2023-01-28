@@ -1,6 +1,7 @@
-import { MergedGithubPull } from "../github/types/github-pull.ts";
-import { dayStart, nextDate } from "./date-utils.ts";
 import { BoundGithubPullCommit } from "../github/types/github-pull-commit.ts";
+import { MergedGithubPull } from "../github/types/github-pull.ts";
+
+import { dayStart, nextDayStart } from "./date-utils.ts";
 
 /**
  * ## Pull Request Lead Time
@@ -18,7 +19,7 @@ import { BoundGithubPullCommit } from "../github/types/github-pull-commit.ts";
  * https://sourcelevel.io/blog/5-metrics-engineering-managers-can-extract-from-pull-requests
  */
 export function calculatePullRequestLeadTime(pull: MergedGithubPull): number {
-  return nextDate(pull.merged_at).getTime() - dayStart(pull.created_at).getTime();
+  return nextDayStart(pull.merged_at).getTime() - dayStart(pull.created_at).getTime();
 }
 
 /**
@@ -38,5 +39,5 @@ export function calculatePullRequestTimeToMerge(
   if (!earliestCommitDate) {
     return undefined;
   }
-  return nextDate(pull.merged_at).getTime() - dayStart(earliestCommitDate).getTime();
+  return nextDayStart(pull.merged_at).getTime() - dayStart(earliestCommitDate).getTime();
 }

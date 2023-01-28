@@ -5,7 +5,7 @@ import { GithubPull, MergedGithubPull, ReadonlyGithubClient } from "../github/mo
 import { assertUnreachable, filterIter, regexIntersect } from "../utils.ts";
 
 import { calculatePullRequestLeadTime, calculatePullRequestTimeToMerge } from "./github-pr-engineering-metrics.ts";
-import { dateEnd, daysBetween, dayStart, monthEnd, monthStart, weekEnd, weekStart } from "./date-utils.ts";
+import { dayEnd, daysBetween, dayStart, monthEnd, monthStart, weekEnd, weekStart } from "./date-utils.ts";
 
 type PullRequestLeadTime = {
   start: Date;
@@ -36,7 +36,7 @@ export async function* yieldPullRequestHistogram(
   switch (mode) {
     case "daily":
       periodConf = {
-        ceil: dateEnd,
+        ceil: dayEnd,
         floor: dayStart,
       };
       break;
