@@ -43,25 +43,19 @@ export async function outputToCsv(
 
   const latestSync = await gh.findLatestSync();
 
-  const { runWithLimit: limit } = makeLimit(2);
+  const { runWithLimit: limit } = makeLimit(3);
 
   await withProgress(async (progress) => {
     const jobs: Array<Promise<unknown>> = [];
-    const increment = (name: string) =>
-      progress.increment(name, {
-        text: `Processing ${name}`,
-        total: Number.MAX_SAFE_INTEGER,
-      });
 
     for await (const workflow of gh.findActionWorkflows()) {
       for (const mode of getModes()) {
-        const name = join("workflows", workflow.name, `histogram-${mode}.csv`);
         jobs.push(limit(() =>
           writeCSVToFile(
-            join(outputDir, name),
+            join(outputDir, join("workflows", workflow.name, `histogram-${mode}.csv`)),
             actionsRunAsCsv(
               inspectIter(
-                () => increment(name),
+                () => progress.increment("workflows", { total: Number.MAX_SAFE_INTEGER }),
                 yieldActionRunHistogram(gh, { mode, branch: "main", conclusion: "success", workflow }),
               ),
               workflow,
@@ -79,12 +73,11 @@ export async function outputToCsv(
           gh.findPulls({ sort: { key: "created_at", order: "asc" } }),
         )
       ) {
-        const name = join("commits", `pull-request-${pull.number}-data.csv`);
         jobs.push(limit(() => {
           return writeCSVToFile(
-            join(outputDir, name),
+            join(outputDir, join("pull-request-commits", `pull-request-${pull.number}-data.csv`)),
             githubPullCommitsAsCsv(inspectIter(
-              () => increment(name),
+              () => progress.increment("pull-request-commits", { total: Number.MAX_SAFE_INTEGER }),
               gh.findPullCommits({ pr: pull.number }),
             )),
             { header: prCommitHeaders.slice() as Array<string> },
@@ -94,26 +87,22 @@ export async function outputToCsv(
     }
 
     jobs.push(limit(() => {
-      const name = "pull-request-data-90d.csv";
       return writeCSVToFile(
-        join(outputDir, name),
-        githubPullsAsCsv(
-          inspectIter(
-            () => increment(name),
-            yieldPullRequestData(gh, { maxDays: 90, excludeLabels }),
-          ),
-        ),
+        join(outputDir, "pull-request-data-90d.csv"),
+        githubPullsAsCsv(inspectIter(
+          () => progress.increment("pull-request-data", { total: Number.MAX_SAFE_INTEGER }),
+          yieldPullRequestData(gh, { maxDays: 90, excludeLabels }),
+        )),
         { header: prHeaders.slice() as Array<string> },
       );
     }));
 
     for (const mode of getModes()) {
       jobs.push(limit(() => {
-        const name = `pull-request-lead-times-${mode}-90d.csv`;
         return writeCSVToFile(
-          join(outputDir, name),
+          join(outputDir, `pull-request-lead-times-${mode}-90d.csv`),
           prLeadTimeAsCsv(inspectIter(
-            () => increment(name),
+            () => progress.increment("pull-request-lead-times", { total: Number.MAX_SAFE_INTEGER }),
             yieldPullRequestHistogram(gh, { mode, maxDays: 90, excludeLabels }),
           )),
           { header: leadTimeHeaders.slice() },
@@ -121,15 +110,20 @@ export async function outputToCsv(
       }));
     }
 
-    jobs.push(sleep(200));
+    await Promise.all(jobs);
+
+    await sleep(200);
     // ↑ Through trial-and-error I found this hack where a small delay helps the tests pass reliably,
     //   presumably because the progress bar gets a bit of time to resolve itself? (or the underlying throttle)
-
-    await Promise.all(jobs);
   }, {
     title: "Outputting data",
     display: ":text [Row: :completed]",
-    bars: { foo: {} },
+    bars: {
+      "pull-request-commits": { text: "pull-request commits", total: Number.MAX_SAFE_INTEGER },
+      "pull-request-data": { text: "pull-request-data", total: Number.MAX_SAFE_INTEGER },
+      "pull-request-lead-times": { text: "pull-request-lead-times", total: Number.MAX_SAFE_INTEGER },
+      "workflows": { text: "workflows", total: Number.MAX_SAFE_INTEGER },
+    },
   });
 }
 
@@ -264,7 +258,6 @@ const actionsRunHeaders = [
   "Invocations",
   "Conclusions",
   "Run IDs",
-  "Run URLs",
 ] as const;
 type ActionsRunRow = Record<typeof actionsRunHeaders[number], string>;
 
@@ -281,7 +274,6 @@ async function* actionsRunAsCsv(
       "Invocations": el.count.toString(),
       "Conclusions": el.conclusions.join("; "),
       "Run IDs": el.ids.join("; "),
-      "Run URLs": el.htmlUrls.join("; "),
     };
   }
 }

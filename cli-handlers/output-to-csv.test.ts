@@ -218,7 +218,6 @@ Deno.test({
             "Invocations": "1",
             "Conclusions": "success",
             "Run IDs": "1",
-            "Run URLs": "https://example.com/1",
           });
         }, join(outputDir, "workflows/Name/histogram-daily.csv"));
       });
