@@ -31,12 +31,12 @@ import {
 } from "../types/mod.ts";
 
 interface AloeGithubClientDb {
+  actionRuns: AloeDatabase<ActionRun>;
+  actionWorkflows: AloeDatabase<ActionWorkflow>;
   commits: AloeDatabase<GithubCommit>;
   pullCommits: AloeDatabase<BoundGithubPullCommit>;
   pulls: AloeDatabase<GithubPull>;
   syncs: AloeDatabase<SyncInfo>;
-  actionWorkflows: AloeDatabase<ActionWorkflow>;
-  actionRuns: AloeDatabase<ActionRun>;
 }
 
 export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
@@ -82,7 +82,7 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
   }
 
   async *findPullCommits(
-    { sort, pr }: Partial<{ pr: number } & Sortable<GithubPullCommitDateKey>> = {},
+    { sort, pr }: Partial<{ pr: GithubPull["number"] } & Sortable<GithubPullCommitDateKey>> = {},
   ): AsyncGenerator<BoundGithubPullCommit> {
     const sortedPullCommits: BoundGithubPullCommit[] = sortPullCommitsByKey(
       await this.db.pullCommits.findMany(pr ? { pr } : undefined),
@@ -96,7 +96,9 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     }
   }
 
-  async findEarliestPullCommit({ pr }: Partial<{ pr: number }> = {}): Promise<BoundGithubPullCommit | undefined> {
+  findEarliestPullCommit(
+    { pr }: Partial<{ pr: GithubPull["number"] }> = {},
+  ): Promise<BoundGithubPullCommit | undefined> {
     return first(this.findPullCommits({ pr, sort: { key: "commit.author", order: "asc" } }));
   }
 
@@ -105,14 +107,12 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     return syncs[syncs.length - 1];
   }
 
-  async *findActionRuns(
-    opts?: Partial<{
-      branch: string | RegExp;
-      conclusion: string | RegExp;
-      path: string | RegExp;
-      sort: { key: "created_at" | "updated_at"; order?: "asc" | "desc" };
-    }>,
-  ): AsyncGenerator<ActionRun> {
+  async *findActionRuns(opts: Partial<{
+    branch: string | RegExp;
+    conclusion: string | RegExp;
+    path: string | RegExp;
+    sort: { key: "created_at" | "updated_at"; order?: "asc" | "desc" };
+  }> = {}): AsyncGenerator<ActionRun> {
     const query: Query<ActionRun> = {};
     if (opts?.branch) query.head_branch = opts.branch;
     if (opts?.conclusion) query.conclusion = opts.conclusion;
@@ -220,7 +220,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
       await this.db.pullCommits.save();
     };
 
-    const handleWorkflows = async () => {
+    const handleActionWorkflows = async () => {
       for await (const workflow of _internals.fetchActionWorkflows(this.owner, this.repo, this.token)) {
         const current = await this.db.actionWorkflows.findOne({ node_id: workflow.node_id });
         await progress({ type: "actions-workflow", workflow });
@@ -232,7 +232,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
       await this.db.actionWorkflows.save();
     };
 
-    const handleRuns = async () => {
+    const handleActionRuns = async () => {
       for await (
         const run of _internals.fetchActionRuns(this.owner, this.repo, this.token, { from })
       ) {
@@ -246,8 +246,8 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     await Promise.all([
       handleCommits(),
       handlePulls().then(() => handlePullCommits()),
-      handleWorkflows(),
-      handleRuns(),
+      handleActionWorkflows(),
+      handleActionRuns(),
     ]);
 
     sync = await this.db.syncs.updateOne(sync, {

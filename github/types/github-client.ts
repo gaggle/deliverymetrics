@@ -16,10 +16,10 @@ export interface ReadonlyGithubClient {
   findLatestPull(): Promise<GithubPull | undefined>;
 
   findPullCommits(
-    opts?: Partial<{ pr: number } & Sortable<GithubPullCommitDateKey>>,
+    opts?: Partial<{ pr: GithubPull["number"] } & Sortable<GithubPullCommitDateKey>>,
   ): AsyncGenerator<BoundGithubPullCommit>;
 
-  findEarliestPullCommit(opts?: Partial<{ pr: number }>): Promise<BoundGithubPullCommit | undefined>;
+  findEarliestPullCommit(opts?: Partial<{ pr: GithubPull["number"] }>): Promise<BoundGithubPullCommit | undefined>;
 
   findLatestSync(): Promise<SyncInfo | undefined>;
 
