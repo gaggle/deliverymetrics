@@ -51,12 +51,12 @@ export async function githubSyncHandler(
         const type = el.type;
         switch (type) {
           case "actions-run":
-            progress.increment("action-runs", {
+            progress.increment("actions-runs", {
               text: `Fetched run ${el.run.run_number} for workflow: ${el.run.name}`,
             });
             break;
           case "actions-workflow":
-            progress.increment("action-workflows", { text: `Fetched workflow: ${el.workflow.name}` });
+            progress.increment("actions-workflows", { text: `Fetched workflow: ${el.workflow.name}` });
             break;
           case "commit":
             progress.increment("commits", { text: `Fetched commit: ${el.commit.sha}` });
@@ -79,8 +79,8 @@ export async function githubSyncHandler(
       "commits": { total: Number.MAX_SAFE_INTEGER },
       "pulls": { total: Number.MAX_SAFE_INTEGER },
       "pull-commits": { total: Number.MAX_SAFE_INTEGER, text: "<Waiting for pulls...>" },
-      "action-workflows": { total: Number.MAX_SAFE_INTEGER },
-      "action-runs": { total: Number.MAX_SAFE_INTEGER, text: "<Waiting for workflows...>" },
+      "actions-workflows": { total: Number.MAX_SAFE_INTEGER },
+      "actions-runs": { total: Number.MAX_SAFE_INTEGER, text: "<Waiting for action-workflows...>" },
     },
   });
   console.log(formatGithubSyncResult(syncResult!));
