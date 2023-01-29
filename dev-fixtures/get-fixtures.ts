@@ -1,93 +1,73 @@
-import { dirname, fromFileUrl, join, relative } from "std:path";
-import { ensureDir } from "std:fs";
+import { dirname, join, relative } from "std:path"
+import { ensureDir } from "std:fs"
 
-import { getEnv } from "../utils.ts";
-import { JSONValue, RequestMethod } from "../types.ts";
+import { JSONValue, RequestMethod } from "../libs/types.ts"
 
-import { FetchSpec, FetchSpecCommand } from "./types.ts";
-
-const metaDir = dirname(fromFileUrl(import.meta.url));
+import { FixtureSpec, FixtureSpecs } from "./types.ts"
 
 export async function fetchGithubFixtures(
-  commands: FetchSpec,
+  fixtureSpecs: FixtureSpecs,
+  outputDir: string,
   { token }: { token: string },
 ): Promise<void> {
-  await Promise.all(commands.map((cmd) => {
-    const strictCmd: FetchSpecCommand = typeof cmd === "string" ? { url: cmd } : cmd;
+  await Promise.all(fixtureSpecs.map((cmd) => {
+    const strictCmd: FixtureSpec = typeof cmd === "string" ? { url: cmd } : cmd
 
-    const fixturePath = getFixturePath({
-      method: "GET",
-      ...strictCmd,
-      prefix: "github",
-    });
-    const req = createGithubRequest({ method: "GET", ...strictCmd, token });
-    return fetchFixture(req, fixturePath, { asJson: strictCmd.json !== undefined ? strictCmd.json : true });
-  }));
+    const fixturePath = getFixturePath({ method: "GET", ...strictCmd })
+    const req = createGithubRequest({ method: "GET", ...strictCmd, token })
+    return fetchFixture(req, {
+      outputDir,
+      filename: fixturePath,
+      asJson: strictCmd.json !== undefined ? strictCmd.json : true,
+    })
+  }))
 }
 
 export async function fetchJiraFixtures(
-  commands: FetchSpec,
+  fixtureSpecs: FixtureSpecs,
+  outputDir: string,
+  { token, user }: { token: string; user: string },
 ): Promise<void> {
-  const apiToken = getEnv("JIRA_API_TOKEN");
-  const apiUser = getEnv("JIRA_API_USER");
+  await Promise.all(fixtureSpecs.map((cmd) => {
+    const strictCmd: FixtureSpec = typeof cmd === "string" ? { url: cmd } : cmd
 
-  await Promise.all(commands.map((cmd) => {
-    switch (typeof cmd) {
-      case "string":
-        cmd = { url: cmd };
-    }
-    const fixturePath = getFixturePath({
-      method: "GET",
-      ...cmd,
-      prefix: "jira",
-    });
-    const req = createJiraRequest({ method: "GET", ...cmd, apiToken, apiUser });
-    return fetchFixture(req, fixturePath);
-  }));
+    const fixturePath = getFixturePath({ method: "GET", ...strictCmd })
+    const req = createJiraRequest({ method: "GET", ...strictCmd, apiToken: token, apiUser: user })
+    return fetchFixture(req, {
+      outputDir,
+      filename: fixturePath,
+      asJson: strictCmd.json !== undefined ? strictCmd.json : true,
+    })
+  }))
 }
 
 function getFixturePath(
-  {
-    method,
-    name,
-    prefix,
-    url,
-  }: {
-    method: RequestMethod;
-    name?: string;
-    prefix?: string;
-    url: string;
+  { method, name, url }: {
+    method: RequestMethod
+    name?: string
+    url: string
   },
 ) {
-  const uri = new URL(url);
-  const pathnameNoLeadingSlash = uri.pathname.slice(1);
-  const folderPath = join(metaDir, prefix || "", pathnameNoLeadingSlash);
+  const uri = new URL(url)
+  const folderPath = uri.pathname.slice(1)
 
-  let filename: string = method;
-  if (name) {
-    filename += `.${name}`;
-  }
-  filename += ".json";
+  let filename: string = method
+  if (name) filename += `.${name}`
+  filename += ".json"
 
-  return join(folderPath, filename);
+  return join(folderPath, filename)
 }
 
 function createJiraRequest(
-  {
-    apiToken,
-    apiUser,
-    body,
-    method,
-    url,
-  }: {
-    apiToken: string;
-    apiUser: string;
-    body?: Record<string, string>;
-    method: RequestMethod;
-    url: string;
+  { apiToken, apiUser, body, method, url }: {
+    apiToken: string
+    apiUser: string
+    body?: Record<string, string>
+    method: RequestMethod
+    url: string
   },
 ): Request {
-  const uri = new URL(url);
+  const uri = new URL(url)
 
   return new Request(uri.toString(), {
     body: JSON.stringify(body),
@@ -96,23 +76,18 @@ function createJiraRequest(
       "Authorization": `Basic ${btoa(`${apiUser}:${apiToken}`)}`,
     },
     method,
-  });
+  })
 }
 
 function createGithubRequest(
-  {
-    token,
-    body,
-    method,
-    url,
-  }: {
-    token: string;
-    body?: Record<string, string>;
-    method: RequestMethod;
-    url: string;
+  { token, body, method, url }: {
+    token: string
+    body?: Record<string, string>
+    method: RequestMethod
+    url: string
   },
 ): Request {
-  const uri = new URL(url);
+  const uri = new URL(url)
 
   return new Request(uri.toString(), {
     body: JSON.stringify(body),
@@ -122,37 +97,42 @@ function createGithubRequest(
       "Content-Type": "application/json",
     },
     method,
-  });
+  })
 }
 
 async function fetchFixture(
   request: Request,
-  filepath: string,
-  { asJson }: Partial<{ asJson: boolean }> = {},
+  { asJson, outputDir, filename }: {
+    asJson?: boolean
+    outputDir: string
+    filename: string
+  },
 ): Promise<void> {
+  const filepath = join(outputDir, filename)
+
   if (await fileExists(filepath)) {
-    console.log("Skipped fixture", relative(Deno.cwd(), filepath));
-    return;
+    console.log("Skipped fixture", relative(outputDir, filepath))
+    return
   }
 
   // console.log(`Fetching:`, request);
-  const response = await fetch(request);
+  const response = await fetch(request)
   // console.log("\tFetched:", response);
 
-  let json: JSONValue | undefined;
-  let text: string | undefined;
+  let json: JSONValue | undefined
+  let text: string | undefined
   if (asJson) {
     try {
-      json = await response.clone().json();
+      json = await response.clone().json()
     } catch (err) {
-      console.warn("\tFailed to parse response body as JSON:", err.message);
-      text = await response.clone().text();
+      console.warn("\tFailed to parse response body as JSON:", err.message)
+      text = await response.clone().text()
     }
   } else {
-    text = await response.clone().text();
+    text = await response.clone().text()
   }
 
-  await ensureDir(dirname(filepath));
+  await ensureDir(dirname(filepath))
   await Deno.writeTextFile(
     filepath,
     JSON.stringify(
@@ -173,16 +153,16 @@ async function fetchFixture(
       null,
       2,
     ),
-  );
-  console.log("\tWrote fixture", relative(Deno.cwd(), filepath));
+  )
+  console.log("\tWrote fixture", relative(Deno.cwd(), filepath))
 }
 
 async function fileExists(filename: string): Promise<boolean> {
   try {
-    await Deno.stat(filename);
-    return true;
+    await Deno.stat(filename)
+    return true
   } catch (error) {
-    if (error && error instanceof Deno.errors.NotFound) return false;
-    throw error;
+    if (error && error instanceof Deno.errors.NotFound) return false
+    throw error
   }
 }

@@ -1,9 +1,6 @@
 .coverage/
 .deliverymetrics-data/
+.fixtures/
 .output/
 .vscode/
 dm-*-*
-
-dev-fixtures/**
-!dev-fixtures/*
-dev-fixtures/*.yml

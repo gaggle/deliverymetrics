@@ -1,45 +1,45 @@
-import { dirname, fromFileUrl, join } from "std:path";
-import { parse as yamlParse } from "std:yaml-encoding";
+import { dirname, fromFileUrl, join } from "std:path"
+import { parse as yamlParse } from "std:yaml-encoding"
 
-import { getEnv } from "../utils.ts";
+import { getEnv } from "../libs/utils/mod.ts"
 
-import { fetchGithubFixtures, fetchJiraFixtures } from "./get-fixtures.ts";
-import { FetchSpec, fetchSpecSchema } from "./types.ts";
+import { fetchGithubFixtures, fetchJiraFixtures } from "./get-fixtures.ts"
+import { FixtureSpecs, fixtureSpecsSchema } from "./types.ts"
 
-const moduleDir = dirname(fromFileUrl(import.meta.url));
-type FetchFunction = (args: FetchSpec) => Promise<void>;
+export type FetchFunction = (fixtureSpec: FixtureSpecs) => Promise<void>
+const moduleDir = dirname(fromFileUrl(import.meta.url))
+const outputDir = join(moduleDir, "..", ".fixtures")
 
-const fixtureConfig: Array<
-  { callable: FetchFunction; fetchSpecFilepath: string }
-> = [
+const fixtureConfig: Array<{ callable: FetchFunction; definitionFilepath: string }> = [
   {
-    callable: fetchJiraFixtures,
-    fetchSpecFilepath: join(moduleDir, "jira.yml"),
+    callable: (specs) =>
+      fetchJiraFixtures(specs, join(outputDir, "jira"), {
+        token: getEnv("JIRA_API_TOKEN"),
+        user: getEnv("JIRA_API_USER"),
+      }),
+    definitionFilepath: join(outputDir, "jira.yml"),
   },
   {
-    callable: (commands) => fetchGithubFixtures(commands, { token: getEnv("GITHUB_TOKEN") }),
-    fetchSpecFilepath: join(moduleDir, "github.yml"),
+    callable: (specs) => fetchGithubFixtures(specs, join(outputDir, "github"), { token: getEnv("GITHUB_TOKEN") }),
+    definitionFilepath: join(outputDir, "github.yml"),
   },
-];
-
-console.time();
+]
 
 const results = await Promise.allSettled(
-  fixtureConfig.map(async ({ callable, fetchSpecFilepath }) => {
-    const fetchSpec = fetchSpecSchema.parse(
-      yamlParse(await Deno.readTextFile(fetchSpecFilepath)),
-    );
-    await callable(fetchSpec);
+  fixtureConfig.map(async ({ callable, definitionFilepath }) => {
+    const fetchSpec = fixtureSpecsSchema.parse(
+      yamlParse(await Deno.readTextFile(definitionFilepath)),
+    )
+    await callable(fetchSpec)
   }),
-);
+)
 
 for (const [idx, result] of results.entries()) {
   if (result.status === "rejected") {
     console.log(
-      `ERROR: ${fixtureConfig[idx].fetchSpecFilepath} ${result.reason}`,
-    );
+      `ERROR: ${fixtureConfig[idx].definitionFilepath} ${result.reason}`,
+    )
   } else {
-    console.log(`OK: ${fixtureConfig[idx].fetchSpecFilepath}`);
+    console.log(`OK: ${fixtureConfig[idx].definitionFilepath}`)
   }
 }
-console.timeLog();
