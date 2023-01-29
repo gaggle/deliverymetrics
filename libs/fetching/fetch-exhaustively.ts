@@ -14,6 +14,12 @@ export function parseLink(link: string): Record<string, string> {
     return acc
   }, {} as Record<string, string>)
 }
+
+/**
+ * Fetches `request` and yields response,
+ * and if response has a `Link.next` header
+ * then continue to yield those (up to `maxPages`)
+ */
 export async function* fetchExhaustively(
   request: Request,
   opts: { fetchLike?: typeof fetch; maxPages?: number } = {},
