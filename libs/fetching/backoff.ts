@@ -1,4 +1,4 @@
-export function calculateBackoff(attempt: number, opts: {
+export function calculateExponentialBackoff(attempt: number, opts: {
   /** The exponential factor to use. Default is `2`. */
   factor?: number
   /** The number of milliseconds before starting the first retry. Default is `1000`. */
