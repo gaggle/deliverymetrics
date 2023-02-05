@@ -2,6 +2,14 @@
 ALLOW = --allow-read --allow-write --allow-net --allow-env
 ALLOW_TEST = --allow-read --allow-write --allow-env
 
+test: test-cli test-libs
+
+test-cli:
+	cd cli && $(MAKE) test
+
+test-libs:
+	cd libs && $(MAKE) test
+
 coverage:
 	deno coverage .coverage && rm -rf coverage/html && mkdir -p .coverage/html && deno coverage .coverage --lcov > .coverage/html/coverage.lcov && genhtml -o .coverage/html .coverage/html/coverage.lcov
 
