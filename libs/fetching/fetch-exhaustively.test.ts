@@ -1,4 +1,4 @@
-import { assertEquals } from "dev:asserts"
+import { assertEquals, assertRejects } from "dev:asserts"
 
 import { asyncToArray } from "../utils/mod.ts"
 import { withMockedFetch } from "../dev-utils.ts"
@@ -31,57 +31,77 @@ Deno.test("fetchExhaustively", async (t) => {
     })
   })
 
-  await t.step(
-    "fetches thrice to exhaust a three-paginated endpoint",
-    async () => {
-      await withMockedFetch(async (mockFetch) => {
-        mockFetch("GET@/pulls", (req) => {
-          const pageQuery = new URL(req.url).searchParams.get("page")
-          switch (pageQuery) {
-            case null:
-              return new Response("foo", {
-                status: 200,
-                headers: {
-                  link: `<https://x/pulls?page=2>; rel="next", <https://x/pulls?page=3>; rel="last"`,
-                },
-              })
-            case "2":
-              return new Response("bar", {
-                status: 200,
-                headers: {
-                  link: `<https://x/pulls?page=3>; rel="next", <https://x/pulls?page=3>; rel="last"`,
-                },
-              })
-            case "3":
-              return new Response("baz", { status: 200 })
-          }
-          throw new Error(`Unregistered fetch: ${pageQuery}`)
-        })
-        const request = new Request("https://x/pulls")
-        const responses = await asyncToArray(fetchExhaustively(request))
-        const bodies = await Promise.all(responses.map((resp) => resp.text()))
-        assertEquals(bodies, ["foo", "bar", "baz"])
+  await t.step("fetches thrice to exhaust a three-paginated endpoint", async () => {
+    await withMockedFetch(async (mockFetch) => {
+      mockFetch("GET@/pulls", (req) => {
+        const pageQuery = new URL(req.url).searchParams.get("page")
+        switch (pageQuery) {
+          case null:
+            return new Response("foo", {
+              status: 200,
+              headers: {
+                link: `<https://x/pulls?page=2>; rel="next", <https://x/pulls?page=3>; rel="last"`,
+              },
+            })
+          case "2":
+            return new Response("bar", {
+              status: 200,
+              headers: {
+                link: `<https://x/pulls?page=3>; rel="next", <https://x/pulls?page=3>; rel="last"`,
+              },
+            })
+          case "3":
+            return new Response("baz", { status: 200 })
+        }
+        throw new Error(`Unregistered fetch: ${pageQuery}`)
       })
-    },
-  )
+      const request = new Request("https://x/pulls")
 
-  await t.step(
-    "fetchExhaustively fetches once if endpoint has a Link header with no next link",
-    async () => {
-      await withMockedFetch(async (mockFetch) => {
-        mockFetch("GET@/pulls", () => {
-          return new Response("foo", {
-            status: 200,
-            headers: {
-              link: `<https://x/pulls?page=2>; rel="foo", <https://x/pulls?page=3>; rel="last"`,
-            },
-          })
+      const responses = await asyncToArray(fetchExhaustively(request))
+
+      const bodies = await Promise.all(responses.map((resp) => resp.text()))
+      assertEquals(bodies, ["foo", "bar", "baz"])
+    })
+  })
+
+  await t.step("fetches once if endpoint has a Link header with no next link", async () => {
+    await withMockedFetch(async (mockFetch) => {
+      mockFetch("GET@/pulls", () => {
+        return new Response("foo", {
+          status: 200,
+          headers: {
+            link: `<https://x/pulls?page=2>; rel="foo", <https://x/pulls?page=3>; rel="last"`,
+          },
         })
-        const request = new Request("https://x/pulls")
-        const responses = await asyncToArray(fetchExhaustively(request))
-        const bodies = await Promise.all(responses.map((resp) => resp.text()))
-        assertEquals(bodies, ["foo"])
       })
-    },
-  )
+      const request = new Request("https://x/pulls")
+
+      const responses = await asyncToArray(fetchExhaustively(request))
+
+      const bodies = await Promise.all(responses.map((resp) => resp.text()))
+      assertEquals(bodies, ["foo"])
+    })
+  })
+
+  await t.step("throws when exceeding max pages", async () => {
+    await withMockedFetch(async (mockFetch) => {
+      let page = 0
+      mockFetch("GET@/pulls", () => {
+        page++
+        return new Response("foo", {
+          status: 200,
+          headers: {
+            link: `<https://x/pulls?page=${page}>; rel="next", <https://x/pulls?page=100>; rel="last"`,
+          },
+        })
+      })
+      const request = new Request("https://x/pulls")
+
+      await assertRejects(
+        () => asyncToArray(fetchExhaustively(request, { maxPages: 5 })),
+        Error,
+        "Cannot fetch exhaustively more than 5 pages",
+      )
+    })
+  })
 })
