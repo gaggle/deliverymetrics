@@ -1,6 +1,9 @@
+import { AssertionError } from "dev:asserts"
 import { FakeTime } from "dev:time"
 import { install as mockFetchInstall, mock as mockFetch, uninstall as mockFetchUninstall } from "dev:mock-fetch"
 import { Stub } from "dev:mock"
+
+import { sleep } from "./utils/utils.ts"
 
 export async function withMockedFetch(
   callback: (mf: typeof mockFetch) => Promise<void> | void,
@@ -34,5 +37,20 @@ export async function withFakeTime(
     await callable(fakeTime)
   } finally {
     fakeTime.restore()
+  }
+}
+
+export async function waitFor(
+  predicate: () => boolean | Promise<boolean>,
+  timeout = 1000,
+  msg?: string,
+): Promise<boolean> {
+  const now = Date.now()
+
+  while (true) {
+    const result = await predicate()
+    if (result === true) return true
+    if (Date.now() > now + timeout) throw new AssertionError(msg || `waitFor timed out after ${timeout} ms`)
+    await sleep(10)
   }
 }
