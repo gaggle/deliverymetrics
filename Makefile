@@ -1,6 +1,11 @@
-.PHONY : test-watch test coverage lint lint-fix compile-dm-x86-gnu compile-dm-x86-win compile-dm-x86-mac compile-dm-a64-mac compile help pull-github output-csv get-fixtures
+.PHONY : test-cov test test-cli test-libs coverage lint lint-fix compile-dm-x86-gnu compile-dm-x86-win compile-dm-x86-mac compile-dm-a64-mac compile
 ALLOW = --allow-read --allow-write --allow-net --allow-env
 ALLOW_TEST = --allow-read --allow-write --allow-env
+
+test-cov:
+	rm -rf .coverage
+	$(MAKE) test
+	$(MAKE) coverage
 
 test: test-cli test-libs
 
