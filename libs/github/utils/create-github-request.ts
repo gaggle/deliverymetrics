@@ -7,7 +7,7 @@ export function createGithubRequest(
     method,
     url,
   }: {
-    token: string
+    token?: string
     body?: Record<string, string>
     method: RequestMethod
     url: string
@@ -15,13 +15,16 @@ export function createGithubRequest(
 ): Request {
   const uri = new URL(url)
 
+  const headers: HeadersInit = {
+    "Accept": "Accept: application/vnd.github.v3+json",
+    "Content-Type": "application/json",
+  }
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`
+  }
   return new Request(uri.toString(), {
     body: JSON.stringify(body),
-    headers: {
-      "Accept": "Accept: application/vnd.github.v3+json",
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
+    headers,
     method,
   })
 }

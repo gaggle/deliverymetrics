@@ -12,7 +12,7 @@ type FetchWorkflowsOpts = { retrier: Retrier }
 export async function* fetchActionWorkflows(
   owner: string,
   repo: string,
-  token: string,
+  token?: string,
   opts: Partial<FetchWorkflowsOpts> = {},
 ): AsyncGenerator<ActionWorkflow> {
   const { retrier }: FetchWorkflowsOpts = deepMerge({ retrier: new Retrier() }, opts)

@@ -25,7 +25,7 @@ interface BaseOpts {
 
 type GithubClientOpts = BaseOpts & {
   type: "GithubClient"
-  token: string
+  token?: string
 }
 
 type ReadonlyGithubClientOpts = BaseOpts & {

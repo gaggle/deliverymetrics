@@ -16,7 +16,7 @@ export async function githubSyncHandler(
   { owner, repo, token, persistenceRoot, maxDays }: {
     owner: string
     repo: string
-    token: string
+    token?: string
     persistenceRoot: string
     maxDays?: number
   },

@@ -43,7 +43,7 @@ export function main(args: Array<string>) {
       return loglevel
     })
     .command(
-      "pull github <repo-id> <token> [--max-days]",
+      "pull github <repo-id> [--token] [--max-days]",
       "Pull data from Github",
       (inst: YargsInstance) => {
         inst.positional("repo-id", {
@@ -51,7 +51,7 @@ export function main(args: Array<string>) {
           type: "string",
           coerce: (repoId: string) => parseGithubUrl(repoId),
         })
-        inst.positional("token", {
+        inst.option("token", {
           describe: "GitHub Personal Access Token, one can be created at https://github.com/settings/tokens",
           type: "string",
         })
@@ -75,7 +75,7 @@ export function main(args: Array<string>) {
       async (
         argv: YargsArguments & {
           repoId: ReturnType<typeof parseGithubUrl>
-          token: string
+          token?: string
           maxDays?: number
         },
       ) => {

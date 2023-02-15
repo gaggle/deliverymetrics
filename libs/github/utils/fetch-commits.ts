@@ -14,7 +14,7 @@ type FetchCommitsOpts = { from?: Epoch; retrier: Retrier }
 export async function* fetchCommits(
   owner: string,
   repo: string,
-  token: string,
+  token?: string,
   opts: Partial<FetchCommitsOpts> = {},
 ): AsyncGenerator<GithubCommit> {
   const { from, retrier }: FetchCommitsOpts = deepMerge({

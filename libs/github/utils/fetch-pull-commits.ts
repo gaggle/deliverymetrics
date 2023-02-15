@@ -12,7 +12,7 @@ type FetchPullCommitsOpts = { retrier: Retrier }
 
 export async function* fetchPullCommits(
   pull: Pick<GithubPull, "commits_url">,
-  token: string,
+  token?: string,
   opts: Partial<FetchPullCommitsOpts> = {},
 ): AsyncGenerator<GithubPullCommit> {
   const { retrier }: FetchPullCommitsOpts = deepMerge({

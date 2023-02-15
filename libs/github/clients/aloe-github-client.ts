@@ -144,14 +144,14 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
 export class AloeGithubClient extends ReadonlyAloeGithubClient implements GithubClient {
   private readonly owner: string
   private readonly repo: string
-  private readonly token: string
+  private readonly token?: string
 
   constructor(
     opts: {
       db: AloeGithubClientDb
       owner: string
       repo: string
-      token: string
+      token?: string
     },
   ) {
     super(opts)

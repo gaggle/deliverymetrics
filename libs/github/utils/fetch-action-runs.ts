@@ -15,7 +15,7 @@ type FetchRunsOpts = { from?: Epoch; retrier: Retrier }
 export async function* fetchActionRuns(
   owner: string,
   repo: string,
-  token: string,
+  token?: string,
   opts: Partial<FetchRunsOpts> = {},
 ): AsyncGenerator<ActionRun> {
   const { from, retrier }: FetchRunsOpts = deepMerge({

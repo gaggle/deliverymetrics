@@ -16,7 +16,7 @@ type FetchPullsOpts = { from?: Epoch; retrier: Retrier }
 export async function* fetchPulls(
   owner: string,
   repo: string,
-  token: string,
+  token?: string,
   opts: Partial<FetchPullsOpts> = {},
 ): AsyncGenerator<GithubPull> {
   const { from, retrier }: FetchPullsOpts = deepMerge({
