@@ -42,6 +42,16 @@ export type SyncProgressParams =
   | { type: "commit"; commit: GithubCommit }
   | { type: "pull-commits"; commits: Array<GithubPullCommit | BoundGithubPullCommit>; pr: number }
   | { type: "pull"; pull: GithubPull }
+  | {
+    type: "rate-limited"
+    target:
+      | "actions-workflow"
+      | "actions-run"
+      | "commit"
+      | "pull-commits"
+      | "pull"
+    duration: number
+  }
 
 export interface GithubClient extends ReadonlyGithubClient {
   sync(
