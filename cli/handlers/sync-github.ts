@@ -67,6 +67,13 @@ export async function githubSyncHandler(
           case "pull":
             progress.increment("pulls", { text: `Fetched pull: ${stringifyPull(el.pull)}` })
             break
+          case "rate-limited": {
+            const resumeDate = new Date(Date.now() + el.duration)
+            progress.render(el.target, {
+              text: `${el.target}: Rate-limited, will resume in at ${resumeDate.toLocaleString()}`,
+            })
+            break
+          }
           default:
             return assertUnreachable(type)
         }
