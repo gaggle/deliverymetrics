@@ -12,6 +12,7 @@ import { fetchActionWorkflows } from "../utils/fetch-action-workflows.ts"
 import { fetchCommits } from "../utils/fetch-commits.ts"
 import { fetchPullCommits } from "../utils/fetch-pull-commits.ts"
 import { fetchPulls } from "../utils/fetch-pulls.ts"
+import { retrierFactory } from "../../fetching/retrier-factory.ts"
 import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../utils/sorting.ts"
 
 import {
@@ -183,8 +184,18 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     const fetchedPulls: Array<GithubPull> = []
 
     const handleCommits = async () => {
+      const rateLimitAwareRetrier = retrierFactory({ strategy: "rate-limit-exponential" })
+      rateLimitAwareRetrier.on(
+        "rate-limited",
+        async (args) => {
+          await progress({ type: "rate-limited", target: "commit", duration: args.duration })
+        },
+      )
       for await (
-        const commit of _internals.fetchCommits(this.owner, this.repo, this.token, { from })
+        const commit of _internals.fetchCommits(this.owner, this.repo, this.token, {
+          from,
+          fetchLike: rateLimitAwareRetrier.fetch.bind(rateLimitAwareRetrier),
+        })
       ) {
         await this.db.commits.deleteOne({ node_id: commit.node_id })
         await this.db.commits.insertOne(commit)
@@ -194,8 +205,18 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     }
 
     const handlePulls = async () => {
+      const rateLimitAwareRetrier = retrierFactory({ strategy: "rate-limit-exponential" })
+      rateLimitAwareRetrier.on(
+        "rate-limited",
+        async (args) => {
+          await progress({ type: "rate-limited", target: "pull", duration: args.duration })
+        },
+      )
       for await (
-        const pull of _internals.fetchPulls(this.owner, this.repo, this.token, { from })
+        const pull of _internals.fetchPulls(this.owner, this.repo, this.token, {
+          from,
+          fetchLike: rateLimitAwareRetrier.fetch.bind(rateLimitAwareRetrier),
+        })
       ) {
         fetchedPulls.push(pull)
         await this.db.pulls.deleteOne({ number: pull.number })
@@ -206,8 +227,19 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     }
 
     const handlePullCommits = async () => {
+      const rateLimitAwareRetrier = retrierFactory({ strategy: "rate-limit-exponential" })
+      rateLimitAwareRetrier.on(
+        "rate-limited",
+        async (args) => {
+          await progress({ type: "rate-limited", target: "pull-commits", duration: args.duration })
+        },
+      )
       for (const pull of fetchedPulls) {
-        const commits = await asyncToArray(_internals.fetchPullCommits({ commits_url: pull.commits_url }, this.token))
+        const commits = await asyncToArray(
+          _internals.fetchPullCommits({ commits_url: pull.commits_url }, this.token, {
+            fetchLike: rateLimitAwareRetrier.fetch.bind(rateLimitAwareRetrier),
+          }),
+        )
         await this.db.pullCommits.deleteMany({ pr: pull.number })
         debug(`Deleted pull commits bound to pr ${pull.number}`)
         await this.db.pullCommits.insertMany(commits.map((commit) => ({ ...commit, pr: pull.number })))
@@ -221,7 +253,18 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     }
 
     const handleActionWorkflows = async () => {
-      for await (const workflow of _internals.fetchActionWorkflows(this.owner, this.repo, this.token)) {
+      const rateLimitAwareRetrier = retrierFactory({ strategy: "rate-limit-exponential" })
+      rateLimitAwareRetrier.on(
+        "rate-limited",
+        async (args) => {
+          await progress({ type: "rate-limited", target: "actions-workflow", duration: args.duration })
+        },
+      )
+      for await (
+        const workflow of _internals.fetchActionWorkflows(this.owner, this.repo, this.token, {
+          fetchLike: rateLimitAwareRetrier.fetch.bind(rateLimitAwareRetrier),
+        })
+      ) {
         const current = await this.db.actionWorkflows.findOne({ node_id: workflow.node_id })
         await progress({ type: "actions-workflow", workflow })
         if (JSON.stringify(current) !== JSON.stringify(workflow)) {
@@ -233,8 +276,18 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     }
 
     const handleActionRuns = async () => {
+      const rateLimitAwareRetrier = retrierFactory({ strategy: "rate-limit-exponential" })
+      rateLimitAwareRetrier.on(
+        "rate-limited",
+        async (args) => {
+          await progress({ type: "rate-limited", target: "actions-run", duration: args.duration })
+        },
+      )
       for await (
-        const run of _internals.fetchActionRuns(this.owner, this.repo, this.token, { from })
+        const run of _internals.fetchActionRuns(this.owner, this.repo, this.token, {
+          from,
+          fetchLike: rateLimitAwareRetrier.fetch.bind(rateLimitAwareRetrier),
+        })
       ) {
         await this.db.actionRuns.deleteOne({ node_id: run.node_id })
         await this.db.actionRuns.insertOne(run)
