@@ -1,13 +1,13 @@
 import * as z from "zod"
 import { deepMerge } from "std:deep-merge"
 
-import { fetchExhaustively, Retrier } from "../../fetching/mod.ts"
+import { fetchExhaustively } from "../../fetching/mod.ts"
 
 import { ActionWorkflow, githubRestSpec } from "../types/mod.ts"
 
 import { createGithubRequest } from "./create-github-request.ts"
 
-type FetchWorkflowsOpts = { retrier: Retrier }
+type FetchWorkflowsOpts = { fetchLike: typeof fetch }
 
 export async function* fetchActionWorkflows(
   owner: string,
@@ -15,7 +15,7 @@ export async function* fetchActionWorkflows(
   token?: string,
   opts: Partial<FetchWorkflowsOpts> = {},
 ): AsyncGenerator<ActionWorkflow> {
-  const { retrier }: FetchWorkflowsOpts = deepMerge({ retrier: new Retrier() }, opts)
+  const { fetchLike }: FetchWorkflowsOpts = deepMerge({ fetchLike: fetch }, opts)
 
   const req = createGithubRequest({
     method: "GET",
@@ -23,16 +23,9 @@ export async function* fetchActionWorkflows(
     url: githubRestSpec.actionWorkflows.getUrl(owner, repo),
   })
 
-  for await (
-    const resp of fetchExhaustively(req, {
-      fetchLike: retrier.fetch.bind(retrier),
-    })
-  ) {
+  for await (const resp of fetchExhaustively(req, { fetchLike })) {
     if (!resp.ok) {
-      throw new Error(
-        `Could not fetch ${req.url}, got ${resp.status} ${resp.statusText}: ${await resp
-          .text()}`,
-      )
+      throw new Error(`${resp.status} ${resp.statusText} (${req.url}): ${await resp.text()}`)
     }
 
     const data: z.infer<typeof githubRestSpec.actionWorkflows.schema> = await resp.json()

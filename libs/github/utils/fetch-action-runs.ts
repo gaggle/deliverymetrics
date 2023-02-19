@@ -2,7 +2,7 @@ import * as z from "zod"
 import { debug } from "std:log"
 import { deepMerge } from "std:deep-merge"
 
-import { fetchExhaustively, Retrier } from "../../fetching/mod.ts"
+import { fetchExhaustively } from "../../fetching/mod.ts"
 
 import { Epoch } from "../../types.ts"
 
@@ -10,7 +10,7 @@ import { ActionRun, githubRestSpec } from "../types/mod.ts"
 
 import { createGithubRequest } from "./create-github-request.ts"
 
-type FetchRunsOpts = { from?: Epoch; retrier: Retrier }
+type FetchRunsOpts = { from?: Epoch; fetchLike: typeof fetch }
 
 export async function* fetchActionRuns(
   owner: string,
@@ -18,9 +18,9 @@ export async function* fetchActionRuns(
   token?: string,
   opts: Partial<FetchRunsOpts> = {},
 ): AsyncGenerator<ActionRun> {
-  const { from, retrier }: FetchRunsOpts = deepMerge({
+  const { from, fetchLike }: FetchRunsOpts = deepMerge({
     from: undefined,
-    retrier: new Retrier(),
+    fetchLike: fetch,
   }, opts)
 
   const req = createGithubRequest({
@@ -31,16 +31,13 @@ export async function* fetchActionRuns(
 
   for await (
     const resp of fetchExhaustively(req, {
-      fetchLike: retrier.fetch.bind(retrier),
+      fetchLike,
       maxPages: 10_000,
       // ↑ There are often many, MANY, runs
     })
   ) {
     if (!resp.ok) {
-      throw new Error(
-        `Could not fetch ${req.url}, got ${resp.status} ${resp.statusText}: ${await resp
-          .text()}`,
-      )
+      throw new Error(`${resp.status} ${resp.statusText} (${req.url}): ${await resp.text()}`)
     }
 
     const data: z.infer<typeof githubRestSpec.actionRuns.schema> = await resp.json()
