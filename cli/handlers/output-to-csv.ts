@@ -49,7 +49,7 @@ export async function outputToCsv(
 
   const latestSync = await gh.findLatestSync()
 
-  const { runWithLimit: limit } = makeLimit(3)
+  const { runWithLimit: limit } = makeLimit(2)
 
   await withProgress(async (progress) => {
     const jobs: Array<Promise<unknown>> = []
