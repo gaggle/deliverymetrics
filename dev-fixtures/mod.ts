@@ -27,8 +27,18 @@ const fixtureConfig: Array<{ callable: FetchFunction; definitionFilepath: string
 
 const results = await Promise.allSettled(
   fixtureConfig.map(async ({ callable, definitionFilepath }) => {
+    let content: string
+    try {
+      content = await Deno.readTextFile(definitionFilepath)
+    } catch (err) {
+      if (err instanceof Deno.errors.NotFound) {
+        return
+      } else {
+        throw err
+      }
+    }
     const fetchSpec = fixtureSpecsSchema.parse(
-      yamlParse(await Deno.readTextFile(definitionFilepath)),
+      yamlParse(content),
     )
     await callable(fetchSpec)
   }),
