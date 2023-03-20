@@ -8,6 +8,7 @@ import {
   ensureJson,
   pathExists,
   readJsonFile,
+  safeReadFileSync,
   safeReadTextFile,
   withTempDir,
   withTempFile,
@@ -239,5 +240,20 @@ Deno.test("yieldDir", async (t) => {
       const result = await asyncToArray(yieldDir(fp))
       assertEquals(result, ["foo/bar/baz.txt"])
     })
+  })
+})
+
+Deno.test("safeReadFileSync", async (t) => {
+  await t.step("reads file if exists", async () => {
+    await withTempFile((fp) => {
+      const decoder = new TextDecoder("utf-8")
+      const data = safeReadFileSync(fp)
+      assertEquals(decoder.decode(data), "foo bar")
+    }, { data: "foo bar" })
+  })
+
+  await t.step("returns undefined if file doesn't exist", () => {
+    const data = safeReadFileSync("doesn't.exist")
+    assertEquals(data, undefined)
   })
 })

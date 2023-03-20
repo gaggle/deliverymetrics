@@ -169,3 +169,16 @@ export async function* yieldDir(path: string): AsyncIterable<string> {
     }
   }
 }
+
+export function safeReadFileSync(
+  ...args: Parameters<typeof Deno.readFileSync>
+): ReturnType<typeof Deno.readFileSync> | undefined {
+  try {
+    return Deno.readFileSync(...args)
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) {
+      return undefined
+    }
+    throw err
+  }
+}
