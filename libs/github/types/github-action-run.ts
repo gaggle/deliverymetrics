@@ -143,7 +143,8 @@ export const actionRunSchema = z.object({
       starred_at: z.string().optional(),
     })
     .describe("A GitHub user.")
-    .optional(),
+    .optional()
+    .nullable(),
   run_started_at: z
     .string()
     .describe("The start time of the latest run. Resets on re-run.")
