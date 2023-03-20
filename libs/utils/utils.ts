@@ -1,5 +1,6 @@
 import * as z from "zod"
 import { debug } from "std:log"
+import { distinct } from "std:distinct"
 
 import { GithubPull } from "../github/mod.ts"
 
@@ -285,4 +286,15 @@ function filterInPlace<T>(
 
   return array
 }
+
 export const getEntries = <T extends Record<string, unknown>>(obj: T) => Object.entries(obj) as Entries<T>
+
+export function hasDupes<T>(arr: Array<T>): boolean {
+  return distinct(arr).length !== arr.length
+}
+
+export function mapFilter<From, To>(from: Array<From>, callbackfn: (el: From) => To | undefined): Array<To> {
+  return from
+    .map((el) => callbackfn(el))
+    .filter((el): el is To => el !== undefined)
+}

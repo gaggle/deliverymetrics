@@ -8,8 +8,10 @@ import {
   asyncToArray,
   first,
   getEnv,
+  hasDupes,
   last,
   limit,
+  mapFilter,
   pluralize,
   regexIntersect,
   single,
@@ -387,5 +389,30 @@ Deno.test("regexIntersect", async (t) => {
 
   await t.step("finds intersection from a mix", () => {
     assertEquals(regexIntersect(["foo", "bar", "baz"], ["foo", /baz/]), ["foo", "baz"])
+  })
+})
+
+Deno.test("getDupes", async (t) => {
+  await t.step("returns trivial dupes", () => {
+    assertEquals(hasDupes([1, 1]), true)
+  })
+
+  await t.step("returns dupes", () => {
+    assertEquals(hasDupes(["foo", "bar", "foo"]), true)
+  })
+
+  await t.step("returns complex duping", () => {
+    assertEquals(hasDupes(["foo", "bar", "foo", "bar", "bar"]), true)
+  })
+
+  await t.step("returns empty if no dupes exist", () => {
+    assertEquals(hasDupes(["foo", "bar", "baz"]), false)
+  })
+})
+
+Deno.test("mapFilter", async (t) => {
+  await t.step("filters away undefined", () => {
+    const mapFiltered = mapFilter([{ name: "foo" }, { name: "bar" }], (el) => el.name === "foo" ? el : undefined)
+    assertEquals(mapFiltered, [{ name: "foo" }])
   })
 })
