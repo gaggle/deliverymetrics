@@ -104,7 +104,7 @@ export async function writeTempFile(
 }
 
 export async function withTempFile(
-  callable: (fp: string) => Promise<void>,
+  callable: (fp: string) => void | Promise<void>,
   ...args: Parameters<typeof writeTempFile>
 ) {
   const fp = await writeTempFile(...args)
@@ -116,7 +116,7 @@ export async function withTempFile(
 }
 
 export async function withTempDir(
-  callable: (p: string) => Promise<void>,
+  callable: (p: string) => void | Promise<void>,
   { suffix }: Partial<{ suffix: string }> = {},
 ) {
   const p = await Deno.makeTempDir({ suffix })
