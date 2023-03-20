@@ -16,6 +16,7 @@
     "std:datetime": "https://deno.land/std@0.170.0/datetime/mod.ts",
     "std:debounce": "https://deno.land/std@0.170.0/async/debounce.ts",
     "std:deep-merge": "https://deno.land/std@0.166.0/collections/deep_merge.ts",
+    "std:distinct": "https://deno.land/std@0.180.0/collections/distinct.ts",
     "std:fs": "https://deno.land/std@0.166.0/fs/mod.ts",
     "std:group-by": "https://deno.land/std@0.166.0/collections/group_by.ts",
     "std:log": "https://deno.land/std@0.166.0/log/mod.ts",
