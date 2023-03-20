@@ -1,4 +1,4 @@
-import { assertUnreachable } from "../utils/utils.ts"
+import { assertUnreachable } from "../utils/mod.ts"
 
 import { exponentialBackoff, rateLimitAwareBackoff, simpleBackoff } from "./retrier-backoff-functions.ts"
 import {

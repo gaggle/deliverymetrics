@@ -3,7 +3,7 @@ import { FakeTime } from "dev:time"
 import { install as mockFetchInstall, mock as mockFetch, uninstall as mockFetchUninstall } from "dev:mock-fetch"
 import { Stub } from "dev:mock"
 
-import { sleep } from "./utils/utils.ts"
+import { sleep } from "./utils/mod.ts"
 
 export async function withMockedFetch(
   callback: (mf: typeof mockFetch) => Promise<void> | void,

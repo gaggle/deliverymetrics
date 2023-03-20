@@ -14,9 +14,8 @@ import { daysBetween, toDays } from "../../libs/metrics/date-utils.ts"
 import { withProgress } from "../gui/mod.ts"
 import { yieldActionRunHistogram, yieldPullRequestData, yieldPullRequestHistogram } from "../../libs/metrics/mod.ts"
 
-import { filterIter, inspectIter, sleep } from "../../libs/utils/mod.ts"
+import { filterIter, inspectIter, sleep, withFileOpen, withTempFile } from "../../libs/utils/mod.ts"
 import { ToTuple } from "../../libs/types.ts"
-import { withFileOpen, withTempFile } from "../../libs/utils/path-and-file-utils.ts"
 
 import { formatGithubClientStatus } from "./formatting.ts"
 
