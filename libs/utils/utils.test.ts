@@ -15,11 +15,13 @@ import {
   pluralize,
   regexIntersect,
   single,
+  sleep,
   stringifyPull,
   stringifyUpdatedPull,
   throttle,
 } from "./utils.ts"
 import { withFakeTime } from "../dev-utils.ts"
+import { AbortError } from "../errors.ts"
 
 Deno.test("asyncToArray", async (t) => {
   await t.step("converts AsyncGenerator", async () => {
@@ -168,6 +170,17 @@ Deno.test("asyncSingle", async (t) => {
     await t.step("throws if no elements are available", async () => {
       await assertRejects(() => asyncSingle([]), Error, "not enough")
     })
+  })
+})
+
+Deno.test("sleep", async (t) => {
+  await t.step("trivially sleeps", async () => {
+    await sleep(1)
+  })
+
+  await t.step("can be aborted", async () => {
+    const signal = AbortSignal.timeout(1)
+    await assertRejects(() => sleep(50_000, { signal }), AbortError)
   })
 })
 

@@ -4,6 +4,7 @@ import { distinct } from "std:distinct"
 
 import { GithubPull } from "../github/mod.ts"
 
+import { AbortError } from "../errors.ts"
 import { Entries } from "../types.ts"
 
 export async function asyncToArray<T>(
@@ -83,8 +84,20 @@ export async function* arrayToAsyncGenerator<T>(
   }
 }
 
-export function sleep(ms = 1000) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+export function sleep(ms = 1000, { signal }: { signal?: AbortSignal } = {}): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const abortListener = () => {
+      clearTimeout(t)
+      signal?.removeEventListener("abort", abortListener)
+      reject(new AbortError(signal?.reason))
+    }
+    signal?.addEventListener("abort", abortListener)
+
+    const t = setTimeout(() => {
+      signal?.removeEventListener("abort", abortListener)
+      resolve()
+    }, ms)
+  })
 }
 
 export function getEnv(key: string) {
