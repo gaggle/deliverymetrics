@@ -27,14 +27,19 @@ import {
 import { _internals } from "./aloe-github-client.ts"
 
 async function* yieldGithubClient(
-  opts?: {
-    pullCommits?: Array<BoundGithubPullCommit>
-    pulls?: Array<GithubPull>
-    syncInfos?: Array<SyncInfo>
-  },
+  opts?: Partial<{
+    actionRuns: Array<ActionRun>
+    actionWorkflows: Array<ActionWorkflow>
+    commits: Array<GithubCommit>
+    pullCommits: Array<BoundGithubPullCommit>
+    pulls: Array<GithubPull>
+    syncInfos: Array<SyncInfo>
+  }>,
 ): AsyncGenerator<GithubClient> {
   yield createFakeGithubClient(opts)
 }
+
+type InternalsStubData<T> = Array<T> | (() => AsyncGenerator<T>)
 
 function withInternalsStubs(
   callable: (stubs: {
@@ -45,38 +50,42 @@ function withInternalsStubs(
     fetchPullsStub: Stub
   }) => Promise<void> | void,
   opts: Partial<{
-    fetchActionRuns: Array<ActionRun>
-    fetchActionWorkflows: Array<ActionWorkflow>
-    fetchCommits: Array<GithubCommit>
-    fetchPullCommits: Array<GithubPullCommit>
-    fetchPulls: Array<GithubPull>
+    fetchActionRuns: InternalsStubData<ActionRun>
+    fetchActionWorkflows: InternalsStubData<ActionWorkflow>
+    fetchCommits: InternalsStubData<GithubCommit>
+    fetchPullCommits: InternalsStubData<GithubPullCommit>
+    fetchPulls: InternalsStubData<GithubPull>
   }> = {},
 ): Promise<void> {
+  function resolve<T>(stubData: InternalsStubData<T>): AsyncGenerator<T> {
+    return stubData instanceof Function ? stubData() : arrayToAsyncGenerator(stubData)
+  }
+
   const stubs = {
     fetchActionRunsStub: stub(
       _internals,
       "fetchActionRuns",
-      returnsNext([arrayToAsyncGenerator(opts.fetchActionRuns || [])]),
+      returnsNext([resolve(opts.fetchActionRuns || [])]),
     ),
     fetchActionWorkflowsStub: stub(
       _internals,
       "fetchActionWorkflows",
-      returnsNext([arrayToAsyncGenerator(opts.fetchActionWorkflows || [])]),
+      returnsNext([resolve(opts.fetchActionWorkflows || [])]),
     ),
     fetchCommitsStub: stub(
       _internals,
       "fetchCommits",
-      returnsNext([arrayToAsyncGenerator(opts.fetchCommits || [])]),
+      returnsNext([resolve(opts.fetchCommits || [])]),
     ),
     fetchPullCommitsStub: stub(
       _internals,
       "fetchPullCommits",
-      returnsNext([arrayToAsyncGenerator(opts.fetchPullCommits || [])]),
+      returnsNext([resolve(opts.fetchPullCommits || [])]),
     ),
     fetchPullsStub: stub(
       _internals,
       "fetchPulls",
-      returnsNext([arrayToAsyncGenerator(opts.fetchPulls || [])]),
+      returnsNext([resolve(opts.fetchPulls || [])]),
     ),
   } as const
   return withStubs(() => callable(stubs), ...Object.values(stubs))
