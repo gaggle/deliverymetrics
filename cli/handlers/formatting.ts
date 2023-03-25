@@ -1,4 +1,4 @@
-import { writeAll as streamWriteAll } from "std:stream-conversion"
+import { writeAll as streamWriteAll } from "std:streams"
 
 import { GithubClient, GithubPull, ReadonlyGithubClient } from "../../libs/github/mod.ts"
 
