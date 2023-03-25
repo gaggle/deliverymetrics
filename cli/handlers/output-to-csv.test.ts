@@ -223,8 +223,7 @@ Deno.test({
       })
     }, {
       githubClientData: {
-        workflows: [getFakeActionWorkflow({ path: "path.yml", name: "Name" })],
-        actionsRuns: [getFakeActionRun({
+        actionRuns: [getFakeActionRun({
           id: 1,
           created_at: "1984-01-03T00:00:00Z",
           updated_at: "1984-01-03T01:00:00Z",
@@ -233,6 +232,7 @@ Deno.test({
           conclusion: "success",
           html_url: "https://example.com/1",
         })],
+        actionWorkflows: [getFakeActionWorkflow({ path: "path.yml", name: "Name" })],
       },
       expectedFiles: [
         "workflows/Name/histogram-monthly.csv",

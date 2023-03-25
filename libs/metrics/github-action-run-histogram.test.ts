@@ -10,7 +10,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
   await t.step("for daily histogram", async (t) => {
     await t.step("calculates two workflow runs in a day", async () => {
       const github = await createFakeReadonlyGithubClient({
-        actionsRuns: [
+        actionRuns: [
           getFakeActionRun({
             id: 1,
             html_url: "example.org/1",
@@ -52,7 +52,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
 
     await t.step("calculates two workflow runs on different days", async () => {
       const github = await createFakeReadonlyGithubClient({
-        actionsRuns: [
+        actionRuns: [
           getFakeActionRun({
             id: 1,
             html_url: "example.org/1",
@@ -106,7 +106,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
   await t.step("for weekly histogram", async (t) => {
     await t.step("calculates two workflow runs in same week", async () => {
       const github = await createFakeReadonlyGithubClient({
-        actionsRuns: [
+        actionRuns: [
           getFakeActionRun({
             id: 1,
             html_url: "example.org/1",
@@ -150,7 +150,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
   await t.step("for monthy histogram", async (t) => {
     await t.step("calculates two workflow runs in the same month", async () => {
       const github = await createFakeReadonlyGithubClient({
-        actionsRuns: [
+        actionRuns: [
           getFakeActionRun({
             id: 1,
             html_url: "example.org/1",
