@@ -13,6 +13,7 @@
     "parse-link-header": "https://cdn.jsdelivr.net/gh/bryik/deno-parse-link-header@v0.1.1/parseLinkHeader.ts",
     "progress": "https://deno.land/x/progress@v1.3.4/mod.ts",
     "run-with-limit": "https://denopkg.com/alextes/run-with-limit/mod.ts",
+    "semaphore": "https://deno.land/x/semaphore@v1.1.2/mod.ts",
     "std:datetime": "https://deno.land/std@0.181.0/datetime/mod.ts",
     "std:debounce": "https://deno.land/std@0.181.0/async/debounce.ts",
     "std:deep-merge": "https://deno.land/std@0.181.0/collections/deep_merge.ts",
