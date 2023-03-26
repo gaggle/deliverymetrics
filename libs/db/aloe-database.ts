@@ -1,8 +1,9 @@
 import { Acceptable, Database, Document } from "aloedb"
+import { Mutex } from "semaphore"
+import { Schema as ZodSchema } from "zod"
 import { debug } from "std:log"
 import { dirname } from "std:path"
 import { ensureDir } from "std:fs"
-import { Schema as ZodSchema } from "zod"
 
 import type { Filepath } from "../types.ts"
 
@@ -11,6 +12,7 @@ type DatabaseDocument = Document & { _id?: never }
 class BaseAloeDatabase<Schema extends DatabaseDocument> {
   protected isLoaded = false
   protected readonly db: Database<Acceptable<Schema>>
+  protected readonly mutexes: { save: Mutex; load: Mutex }
 
   protected constructor(
     { path: fp, schema }: {
@@ -25,15 +27,24 @@ class BaseAloeDatabase<Schema extends DatabaseDocument> {
       autosave: false,
       optimize: false,
     })
+    this.mutexes = { save: new Mutex(), load: new Mutex() }
     debug(`Created new database: ${fp}`)
   }
 
   async save(): Promise<void> {
-    await this.load()
-    return this.db.save()
+    await this.mutexes.save.use(async () => {
+      await this._load()
+      return this.db.save()
+    })
   }
 
   protected async load(): Promise<void> {
+    await this.mutexes.load.use(async () => {
+      await this._load()
+    })
+  }
+
+  private async _load(): Promise<void> {
     if (this.isLoaded === false) {
       await this.db.load()
       this.isLoaded = true
