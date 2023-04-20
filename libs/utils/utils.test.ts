@@ -2,6 +2,8 @@ import { assertEquals, assertRejects, assertThrows } from "dev:asserts"
 import { FakeTime } from "dev:time"
 
 import { getFakePull } from "../github/testing.ts"
+import { withFakeTime } from "../dev-utils.ts"
+import { AbortError } from "../errors.ts"
 
 import {
   asyncSingle,
@@ -20,8 +22,6 @@ import {
   stringifyUpdatedPull,
   throttle,
 } from "./utils.ts"
-import { withFakeTime } from "../dev-utils.ts"
-import { AbortError } from "../errors.ts"
 
 Deno.test("asyncToArray", async (t) => {
   await t.step("converts AsyncGenerator", async () => {
