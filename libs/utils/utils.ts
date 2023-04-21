@@ -5,7 +5,7 @@ import { distinct } from "std:distinct"
 import { GithubPull } from "../github/mod.ts"
 
 import { AbortError } from "../errors.ts"
-import { Entries } from "../types.ts"
+import { Entries, ToTuple } from "../types.ts"
 
 export async function asyncToArray<T>(
   iter: AsyncIterable<T>,
@@ -310,4 +310,12 @@ export function mapFilter<From, To>(from: Array<From>, callbackfn: (el: From) =>
   return from
     .map((el) => callbackfn(el))
     .filter((el): el is To => el !== undefined)
+}
+
+export function arraySubtract<
+  T1 extends ReadonlyArray<unknown>,
+  T2 extends ReadonlyArray<unknown>,
+>(array1: T1, array2: T2): ToTuple<Exclude<T1[number], T2[number]>> {
+  const subtracted = array1.filter((element) => !array2.includes(element))
+  return subtracted as ToTuple<Exclude<T1[number], T2[number]>>
 }
