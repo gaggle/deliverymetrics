@@ -185,6 +185,16 @@ export async function* filterIter<T>(
   }
 }
 
+export async function* mapIter<TInput, TOut>(
+  transformer: (value: TInput, index: number) => TOut,
+  iter: AsyncGenerator<TInput>,
+): AsyncGenerator<TOut> {
+  let idx = 0
+  for await (const el of iter) {
+    yield transformer(el, idx++)
+  }
+}
+
 /**
  * A throttled function that will only be invoked at most once per
  * every `wait` milliseconds.

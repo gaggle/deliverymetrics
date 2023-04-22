@@ -6,7 +6,7 @@ import { withFakeTime } from "../dev-utils.ts"
 import { AbortError } from "../errors.ts"
 
 import {
-  arraySubtract,
+  arraySubtract, arrayToAsyncGenerator,
   asyncSingle,
   asyncToArray,
   first,
@@ -14,7 +14,7 @@ import {
   hasDupes,
   last,
   limit,
-  mapFilter,
+  mapFilter, mapIter,
   mergeAsyncGenerators,
   pluralize,
   regexIntersect,
@@ -114,7 +114,8 @@ Deno.test("single", async (t) => {
     })
 
     await t.step("throws if no elements are available", () => {
-      function* yielder(): Generator<string> {}
+      function* yielder(): Generator<string> {
+      }
 
       assertThrows(() => single(yielder()), Error, "not enough")
     })
@@ -155,7 +156,8 @@ Deno.test("asyncSingle", async (t) => {
     })
 
     await t.step("throws if no elements are available", async () => {
-      async function* yielder(): AsyncGenerator<string> {}
+      async function* yielder(): AsyncGenerator<string> {
+      }
 
       await assertRejects(() => asyncSingle(yielder()), Error, "not enough")
     })
@@ -183,7 +185,7 @@ Deno.test("sleep", async (t) => {
 
   await t.step("can be aborted", async () => {
     const signal = AbortSignal.timeout(1)
-    await assertRejects(() => sleep(50_000, { signal }), AbortError)
+    await assertRejects(() => sleep(50_000, {signal}), AbortError)
   })
 })
 
@@ -242,7 +244,7 @@ Deno.test("stringifyPull", async (t) => {
   await t.step("makes a nice string", () => {
     assertEquals(
       stringifyPull(getFakePull({
-        _links: { html: { href: "https://url" } },
+        _links: {html: {href: "https://url"}},
         number: 1,
         state: "open",
       })),
@@ -253,7 +255,7 @@ Deno.test("stringifyPull", async (t) => {
   await t.step("understands draft mode", () => {
     assertEquals(
       stringifyPull(getFakePull({
-        _links: { html: { href: "https://url" } },
+        _links: {html: {href: "https://url"}},
         draft: true,
         number: 1,
         state: "open",
@@ -268,12 +270,12 @@ Deno.test("stringifyUpdatedPull", async (t) => {
     assertEquals(
       stringifyUpdatedPull({
         prev: getFakePull({
-          _links: { html: { href: "https://url" } },
+          _links: {html: {href: "https://url"}},
           number: 1,
           state: "open",
         }),
         updated: getFakePull({
-          _links: { html: { href: "https://url" } },
+          _links: {html: {href: "https://url"}},
           number: 1,
           state: "closed",
         }),
@@ -286,13 +288,13 @@ Deno.test("stringifyUpdatedPull", async (t) => {
     assertEquals(
       stringifyUpdatedPull({
         prev: getFakePull({
-          _links: { html: { href: "https://url" } },
+          _links: {html: {href: "https://url"}},
           draft: true,
           number: 1,
           state: "open",
         }),
         updated: getFakePull({
-          _links: { html: { href: "https://url" } },
+          _links: {html: {href: "https://url"}},
           number: 1,
           state: "closed",
         }),
@@ -304,12 +306,12 @@ Deno.test("stringifyUpdatedPull", async (t) => {
   assertEquals(
     stringifyUpdatedPull({
       prev: getFakePull({
-        _links: { html: { href: "https://url" } },
+        _links: {html: {href: "https://url"}},
         number: 1,
         state: "open",
       }),
       updated: getFakePull({
-        _links: { html: { href: "https://url" } },
+        _links: {html: {href: "https://url"}},
         draft: true,
         number: 1,
         state: "open",
@@ -317,6 +319,13 @@ Deno.test("stringifyUpdatedPull", async (t) => {
     }),
     "#1 (open -> draft) https://url",
   )
+})
+
+Deno.test("mapIter", async (t) => {
+  await t.step("maps over an iterator", async () => {
+    const iter = await mapIter((el) => el * 2, arrayToAsyncGenerator([1, 2, 3]))
+    assertEquals(await asyncToArray(iter), [2, 4, 6])
+  })
 })
 
 Deno.test("throttle", async (t) => {
@@ -428,8 +437,8 @@ Deno.test("getDupes", async (t) => {
 
 Deno.test("mapFilter", async (t) => {
   await t.step("filters away undefined", () => {
-    const mapFiltered = mapFilter([{ name: "foo" }, { name: "bar" }], (el) => el.name === "foo" ? el : undefined)
-    assertEquals(mapFiltered, [{ name: "foo" }])
+    const mapFiltered = mapFilter([{name: "foo"}, {name: "bar"}], (el) => el.name === "foo" ? el : undefined)
+    assertEquals(mapFiltered, [{name: "foo"}])
   })
 })
 
