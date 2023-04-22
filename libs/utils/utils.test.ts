@@ -6,7 +6,8 @@ import { withFakeTime } from "../dev-utils.ts"
 import { AbortError } from "../errors.ts"
 
 import {
-  arraySubtract, arrayToAsyncGenerator,
+  arraySubtract,
+  arrayToAsyncGenerator,
   asyncSingle,
   asyncToArray,
   first,
@@ -14,7 +15,8 @@ import {
   hasDupes,
   last,
   limit,
-  mapFilter, mapIter,
+  mapFilter,
+  mapIter,
   mergeAsyncGenerators,
   pluralize,
   regexIntersect,
@@ -185,7 +187,7 @@ Deno.test("sleep", async (t) => {
 
   await t.step("can be aborted", async () => {
     const signal = AbortSignal.timeout(1)
-    await assertRejects(() => sleep(50_000, {signal}), AbortError)
+    await assertRejects(() => sleep(50_000, { signal }), AbortError)
   })
 })
 
@@ -244,7 +246,7 @@ Deno.test("stringifyPull", async (t) => {
   await t.step("makes a nice string", () => {
     assertEquals(
       stringifyPull(getFakePull({
-        _links: {html: {href: "https://url"}},
+        _links: { html: { href: "https://url" } },
         number: 1,
         state: "open",
       })),
@@ -255,7 +257,7 @@ Deno.test("stringifyPull", async (t) => {
   await t.step("understands draft mode", () => {
     assertEquals(
       stringifyPull(getFakePull({
-        _links: {html: {href: "https://url"}},
+        _links: { html: { href: "https://url" } },
         draft: true,
         number: 1,
         state: "open",
@@ -270,12 +272,12 @@ Deno.test("stringifyUpdatedPull", async (t) => {
     assertEquals(
       stringifyUpdatedPull({
         prev: getFakePull({
-          _links: {html: {href: "https://url"}},
+          _links: { html: { href: "https://url" } },
           number: 1,
           state: "open",
         }),
         updated: getFakePull({
-          _links: {html: {href: "https://url"}},
+          _links: { html: { href: "https://url" } },
           number: 1,
           state: "closed",
         }),
@@ -288,13 +290,13 @@ Deno.test("stringifyUpdatedPull", async (t) => {
     assertEquals(
       stringifyUpdatedPull({
         prev: getFakePull({
-          _links: {html: {href: "https://url"}},
+          _links: { html: { href: "https://url" } },
           draft: true,
           number: 1,
           state: "open",
         }),
         updated: getFakePull({
-          _links: {html: {href: "https://url"}},
+          _links: { html: { href: "https://url" } },
           number: 1,
           state: "closed",
         }),
@@ -306,12 +308,12 @@ Deno.test("stringifyUpdatedPull", async (t) => {
   assertEquals(
     stringifyUpdatedPull({
       prev: getFakePull({
-        _links: {html: {href: "https://url"}},
+        _links: { html: { href: "https://url" } },
         number: 1,
         state: "open",
       }),
       updated: getFakePull({
-        _links: {html: {href: "https://url"}},
+        _links: { html: { href: "https://url" } },
         draft: true,
         number: 1,
         state: "open",
@@ -437,8 +439,8 @@ Deno.test("getDupes", async (t) => {
 
 Deno.test("mapFilter", async (t) => {
   await t.step("filters away undefined", () => {
-    const mapFiltered = mapFilter([{name: "foo"}, {name: "bar"}], (el) => el.name === "foo" ? el : undefined)
-    assertEquals(mapFiltered, [{name: "foo"}])
+    const mapFiltered = mapFilter([{ name: "foo" }, { name: "bar" }], (el) => el.name === "foo" ? el : undefined)
+    assertEquals(mapFiltered, [{ name: "foo" }])
   })
 })
 
