@@ -15,6 +15,7 @@ import {
   last,
   limit,
   mapFilter,
+  mergeAsyncGenerators,
   pluralize,
   regexIntersect,
   single,
@@ -448,5 +449,22 @@ Deno.test("arraySubtract", async (t) => {
   await t.step("subtracts types", () => {
     const result = arraySubtract([1, 2, 3] as const, [1] as const)
     assert<IsExact<typeof result, [2, 3]>>(true)
+  })
+})
+
+Deno.test("mergeAsyncGenerators", async (t) => {
+  await t.step("merges trivial generators", async () => {
+    const gen1 = async function* () {
+      yield 1
+    }
+    const gen2 = async function* () {
+      yield 2
+    }
+    const merged = mergeAsyncGenerators(gen1(), gen2())
+    const result = []
+    for await (const el of merged) {
+      result.push(el)
+    }
+    assertEquals(result, [1, 2])
   })
 })

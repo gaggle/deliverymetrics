@@ -319,3 +319,11 @@ export function arraySubtract<
   const subtracted = array1.filter((element) => !array2.includes(element))
   return subtracted as ToTuple<Exclude<T1[number], T2[number]>>
 }
+
+export async function* mergeAsyncGenerators<T>(...asyncGenerators: Array<AsyncGenerator<T>>): AsyncGenerator<T> {
+  for (const gen of asyncGenerators) {
+    for await (const value of gen) {
+      yield value
+    }
+  }
+}
