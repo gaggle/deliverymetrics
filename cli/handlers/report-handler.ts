@@ -45,21 +45,21 @@ function* yieldHistogramTimeframes() {
 export interface ReportSpec {
   cacheRoot: string
   github: {
-    actionRuns: {
+    actionRuns?: {
       ignoreHeaders: Array<GithubActionRunHeaders[number]>
       headerOrder: Array<GithubActionRunHeaders[number]>
       branch?: string
     }
-    actionWorkflows: {
+    actionWorkflows?: {
       ignoreHeaders: Array<GithubActionWorkflowHeaders[number]>
       headerOrder: Array<GithubActionWorkflowHeaders[number]>
     }
     owner: string
-    pullCommits: {
+    pullCommits?: {
       ignoreHeaders: Array<GithubPullCommitHeaders[number]>
       headerOrder: Array<GithubPullCommitHeaders[number]>
     }
-    pulls: {
+    pulls?: {
       ignoreHeaders: Array<GithubPullHeaders[number]>
       headerOrder: Array<GithubPullHeaders[number]>
       ignoreLabels: Array<string | RegExp>
@@ -99,12 +99,12 @@ export async function reportHandler(
             workflow: el.actionWorkflow,
           }), el.actionRunGenerator))
           dot()
-        }, yieldActionData(gh, { actionRun: { maxDays: dataTimeframe, branch: github.actionRuns.branch }, signal })),
+        }, yieldActionData(gh, { actionRun: { maxDays: dataTimeframe, branch: github.actionRuns?.branch }, signal })),
       ),
       {
         header: reorganizeHeaders(githubActionWorkflowHeaders, {
-          ignoreHeaders: github.actionWorkflows.ignoreHeaders,
-          headerOrder: github.actionWorkflows.headerOrder,
+          ignoreHeaders: github.actionWorkflows?.ignoreHeaders,
+          headerOrder: github.actionWorkflows?.headerOrder,
         }),
       },
     )
@@ -114,8 +114,8 @@ export async function reportHandler(
       githubActionRunAsCsv(inspectIter(() => dot(), mergeAsyncGenerators(...actionRunGenerators))),
       {
         header: reorganizeHeaders(githubActionRunHeaders, {
-          ignoreHeaders: github.actionRuns.ignoreHeaders,
-          headerOrder: github.actionRuns.headerOrder,
+          ignoreHeaders: github.actionRuns?.ignoreHeaders,
+          headerOrder: github.actionRuns?.headerOrder,
         }),
       },
     )
@@ -133,16 +133,16 @@ export async function reportHandler(
           },
           yieldPullRequestData(gh, {
             maxDays: dataTimeframe,
-            excludeLabels: github.pulls.ignoreLabels,
-            includeCancelled: github.pulls.includeCancelled,
+            excludeLabels: github.pulls?.ignoreLabels,
+            includeCancelled: github.pulls?.includeCancelled,
             signal,
           }),
         ),
       ),
       {
         header: reorganizeHeaders(githubPullHeaders, {
-          ignoreHeaders: github.pulls.ignoreHeaders,
-          headerOrder: github.pulls.headerOrder,
+          ignoreHeaders: github.pulls?.ignoreHeaders,
+          headerOrder: github.pulls?.headerOrder,
         }),
       },
     )
@@ -164,8 +164,8 @@ export async function reportHandler(
       )),
       {
         header: reorganizeHeaders(githubPullCommitHeaders, {
-          ignoreHeaders: github.pullCommits.ignoreHeaders,
-          headerOrder: github.pullCommits.headerOrder,
+          ignoreHeaders: github.pullCommits?.ignoreHeaders,
+          headerOrder: github.pullCommits?.headerOrder,
         }),
       },
     )
@@ -181,7 +181,7 @@ export async function reportHandler(
             yieldPullRequestHistogram(gh, {
               mode,
               maxDays,
-              excludeLabels: github.pulls.ignoreLabels,
+              excludeLabels: github.pulls?.ignoreLabels,
               signal,
             }),
           ),
