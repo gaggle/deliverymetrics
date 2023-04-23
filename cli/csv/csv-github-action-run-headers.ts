@@ -19,7 +19,7 @@ export type GithubActionRunRow = Record<GithubActionRunHeaders[number], string>
 export async function* githubActionRunAsCsv(
   iter: AsyncGenerator<{ actionRun: ActionRun; workflow: ActionWorkflow }>,
 ): AsyncGenerator<GithubActionRunRow> {
-  for await (const { actionRun} of iter) {
+  for await (const { actionRun } of iter) {
     yield {
       id: actionRun.id?.toString(),
       name: actionRun.name || "",
