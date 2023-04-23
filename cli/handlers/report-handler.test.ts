@@ -118,7 +118,7 @@ Deno.test({
             "Commits Committers": "",
             "Commits Count": "0",
             "Head Ref": "fix/FOO-01",
-            "Lead Time (in days)": "",
+            "Lead Time (in days)": "1.0",
             "Time to Merge (in days)": "",
             "Was Cancelled?": "false",
           })

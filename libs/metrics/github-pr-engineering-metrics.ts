@@ -1,7 +1,8 @@
 import { BoundGithubPullCommit } from "../github/schemas/github-pull-commit.ts"
-import { MergedGithubPull } from "../github/schemas/github-pull.ts"
+import { GithubPull, MergedGithubPull } from "../github/schemas/github-pull.ts"
 
 import { dayStart, nextDayStart } from "../utils/date-utils.ts"
+import { Epoch } from "../types.ts"
 
 /**
  * ## Pull Request Lead Time
@@ -23,6 +24,13 @@ export function calculatePullRequestLeadTime(pull: MergedGithubPull): number {
 }
 
 /**
+ * ## Variant to calculate lead time for unmerged pull requests, up to latest sync time
+ */
+export function calculateUnmergedPullRequestLeadTime(pull: GithubPull, syncTime: Epoch): number {
+  return nextDayStart(syncTime).getTime() - dayStart(pull.created_at).getTime()
+}
+
+/**
  * ## Pull Request Time to Merge
  *
  * Time to Merge is how much time it takes for the first commit of a branch to reach main.
@@ -40,4 +48,18 @@ export function calculatePullRequestTimeToMerge(
     return undefined
   }
   return nextDayStart(pull.merged_at).getTime() - dayStart(earliestCommitDate).getTime()
+}
+
+/**
+ * ## Variant to calculate time to merge for unmerged pull requests, up to latest sync time
+ */
+export function calculateUnmergedPullRequestTimeToMerge(
+  earliestCommit: BoundGithubPullCommit,
+  syncTime: Epoch,
+): number | undefined {
+  const earliestCommitDate = earliestCommit?.commit?.author?.date
+  if (!earliestCommitDate) {
+    return undefined
+  }
+  return nextDayStart(syncTime).getTime() - dayStart(earliestCommitDate).getTime()
 }

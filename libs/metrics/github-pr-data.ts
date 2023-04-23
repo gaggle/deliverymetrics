@@ -6,7 +6,12 @@ import { asyncToArray, filterIter, regexIntersect } from "../utils/mod.ts"
 
 import { AbortError } from "../errors.ts"
 
-import { calculatePullRequestLeadTime, calculatePullRequestTimeToMerge } from "./github-pr-engineering-metrics.ts"
+import {
+  calculatePullRequestLeadTime,
+  calculatePullRequestTimeToMerge,
+  calculateUnmergedPullRequestLeadTime,
+  calculateUnmergedPullRequestTimeToMerge,
+} from "./github-pr-engineering-metrics.ts"
 
 type YieldPullRequestData = {
   pull: GithubPull
@@ -88,8 +93,12 @@ export async function* yieldPullRequestData(
     yield {
       pull,
       commits,
-      leadTime: isMergedGithubPull(pull) ? calculatePullRequestLeadTime(pull) : undefined,
-      timeToMerge: isMergedGithubPull(pull) ? calculatePullRequestTimeToMerge(pull, commits[0]) : undefined,
+      leadTime: isMergedGithubPull(pull)
+        ? calculatePullRequestLeadTime(pull)
+        : calculateUnmergedPullRequestLeadTime(pull, latestSync.createdAt),
+      timeToMerge: isMergedGithubPull(pull)
+        ? calculatePullRequestTimeToMerge(pull, commits[0])
+        : calculateUnmergedPullRequestTimeToMerge(commits[0], latestSync.createdAt),
       cancelled,
     }
   }
