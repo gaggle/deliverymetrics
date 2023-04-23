@@ -1,9 +1,11 @@
 import * as z from "zod"
 
-import { GithubPullHeaders, githubPullHeaders } from "../csv/csv-github-pull-headers.ts"
-import { GithubPullCommitHeaders, githubPullCommitHeaders } from "../csv/csv-github-pull-commit-headers.ts"
-import { GithubActionWorkflowHeaders, githubActionWorkflowHeaders } from "../csv/csv-github-action-workflows-headers.ts"
-import { GithubActionRunHeaders, githubActionRunHeaders } from "../csv/csv-github-action-run-headers.ts"
+import {
+  githubActionRunHeaders,
+  githubActionWorkflowHeaders,
+  githubPullCommitHeaders,
+  githubPullHeaders,
+} from "../csv/mod.ts"
 
 const positiveNumberOrInfinitySchema = z
   .union([z.number().positive(), z.literal("Infinity")])
@@ -30,57 +32,36 @@ const githubSyncSchema = z.object({
 
 export type GithubSync = z.infer<typeof githubSyncSchema>
 
+/**
+ * Create Zod schema specifying `ignore_headers` and `header_order` fields (matched to the given headers)
+ */
+function headerOptions<T extends readonly string[]>(headers: T): ReturnType<typeof z.object> {
+  return z.object({
+    ignore_headers: z.custom<Array<T[number]>>((v) => {
+      if (!Array.isArray(v)) return false
+      return v.every((el) => headers.includes(el))
+    }, { message: `Must be array with elements of: ${headers.join(", ")}` }).optional(),
+    header_order: z.custom<Array<T[number]>>((v) => {
+      if (!Array.isArray(v)) return false
+      return v.every((el) => headers.includes(el))
+    }, { message: `Must be array with elements of: ${headers.join(", ")}` }).optional(),
+  })
+}
+
 const configReportSchema = z.object({
-  type: z.literal("csv"),
-  outdir: z.string(),
   github: z.object({
-    actionRuns: z.object({
-      ignore_headers: z.custom<Array<GithubActionRunHeaders[number]>>((v) => {
-        if (!Array.isArray(v)) return false
-        return v.every((el) => githubActionRunHeaders.includes(el))
-      }, { message: `Must be array with elements of: ${githubActionRunHeaders.join(", ")}` }).optional(),
-      header_order: z.custom<Array<GithubActionRunHeaders[number]>>((v) => {
-        if (!Array.isArray(v)) return false
-        return v.every((el) => githubActionRunHeaders.includes(el))
-      }, { message: `Must be array with elements of: ${githubActionRunHeaders.join(", ")}` }).optional(),
+    actionRuns: headerOptions(githubActionRunHeaders).extend({
       branch: z.string().optional(),
     }).optional(),
-    actionWorkflows: z.object({
-      ignore_headers: z.custom<Array<GithubActionWorkflowHeaders[number]>>((v) => {
-        if (!Array.isArray(v)) return false
-        return v.every((el) => githubActionWorkflowHeaders.includes(el))
-      }, { message: `Must be array with elements of: ${githubActionWorkflowHeaders.join(", ")}` }).optional(),
-      header_order: z.custom<Array<GithubActionWorkflowHeaders[number]>>((v) => {
-        if (!Array.isArray(v)) return false
-        return v.every((el) => githubActionWorkflowHeaders.includes(el))
-      }, { message: `Must be array with elements of: ${githubActionWorkflowHeaders.join(", ")}` }).optional(),
-    }).optional(),
-    pullCommits: z.object({
-      ignore_headers: z.custom<Array<GithubPullCommitHeaders[number]>>((v) => {
-        if (!Array.isArray(v)) return false
-        return v.every((el) => githubPullCommitHeaders.includes(el))
-      }, { message: `Must be array with elements of: ${githubPullCommitHeaders.join(", ")}` }).optional(),
-      header_order: z.custom<Array<GithubPullCommitHeaders[number]>>((v) => {
-        if (!Array.isArray(v)) return false
-        return v.every((el) => githubPullCommitHeaders.includes(el))
-      }, { message: `Must be array with elements of: ${githubPullCommitHeaders.join(", ")}` }).optional(),
-    }).optional(),
-    pulls: z.object({
-      ignore_headers: z.custom<Array<GithubPullHeaders[number]>>((v) => {
-        if (!Array.isArray(v)) return false
-        return v.every((el) => githubPullHeaders.includes(el))
-      }, { message: `Must be array with elements of: ${githubPullHeaders.join(", ")}` }).optional(),
-      header_order: z.custom<Array<GithubPullHeaders[number]>>((v) => {
-        if (!Array.isArray(v)) return false
-        return v.every((el) => githubPullHeaders.includes(el))
-      }, { message: `Must be array with elements of: ${githubPullHeaders.join(", ")}` }).optional(),
+    actionWorkflows: headerOptions(githubActionWorkflowHeaders).optional(),
+    pullCommits: headerOptions(githubPullCommitHeaders).optional(),
+    pulls: headerOptions(githubPullHeaders).extend({
+      ignore_labels: z.array(z.union([z.string(), z.custom<RegExp>((v) => v instanceof RegExp)])).optional(),
       include_cancelled: z.boolean().optional(),
-      ignore_labels: z.array(z.union([
-        z.string(),
-        z.custom<RegExp>((v) => v instanceof RegExp),
-      ])).optional(),
     }).optional(),
   }).optional(),
+  outdir: z.string(),
+  type: z.literal("csv"),
 }).strict()
 
 export type ConfigReport = z.infer<typeof configReportSchema>
