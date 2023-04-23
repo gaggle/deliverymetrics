@@ -11,7 +11,7 @@ import {
   ActionWorkflow,
   actionWorkflowSchema,
   BoundGithubPullCommit,
-  boundGithubPullCommit,
+  boundGithubPullCommitSchema,
   GithubClient,
   GithubCommit,
   githubCommitSchema,
@@ -346,6 +346,7 @@ export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
 
 export function getFakeSyncInfo(partial: DeepPartial<SyncInfo> = {}): SyncInfo {
   const base: SyncInfo = {
+    type: "pull",
     createdAt: partial.updatedAt ? partial.updatedAt - 1 : new Date("2000-01-01T00:00:00Z").getTime(),
     updatedAt: partial.createdAt ? partial.createdAt + 1 : new Date("2000-01-01T00:01:00Z").getTime(),
   }
@@ -635,7 +636,7 @@ export async function createFakeReadonlyGithubClient(
         documents: commits,
       }),
       pullCommits: await MockAloeDatabase.new({
-        schema: boundGithubPullCommit,
+        schema: boundGithubPullCommitSchema,
         documents: pullCommits,
       }),
       pulls: await MockAloeDatabase.new({
@@ -678,7 +679,7 @@ export async function createFakeGithubClient(
         documents: commits,
       }),
       pullCommits: await MockAloeDatabase.new({
-        schema: boundGithubPullCommit,
+        schema: boundGithubPullCommitSchema,
         documents: pullCommits,
       }),
       pulls: await MockAloeDatabase.new({

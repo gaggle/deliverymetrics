@@ -5,11 +5,11 @@ import { fetchExhaustively } from "../../fetching/mod.ts"
 
 import { Epoch } from "../../types.ts"
 
+import { createGithubRequest } from "../utils/create-github-request.ts"
+
 import { GithubCommit, githubRestSpec } from "../types/mod.ts"
 
-import { createGithubRequest } from "./create-github-request.ts"
-
-type FetchCommitsOpts = { from?: Epoch; fetchLike: typeof fetch }
+type FetchCommitsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
 
 export async function* fetchCommits(
   owner: string,
@@ -17,12 +17,12 @@ export async function* fetchCommits(
   token?: string,
   opts: Partial<FetchCommitsOpts> = {},
 ): AsyncGenerator<GithubCommit> {
-  const { from, fetchLike }: FetchCommitsOpts = deepMerge({ fetchLike: fetch }, opts)
+  const { newerThan, fetchLike }: FetchCommitsOpts = deepMerge({ fetchLike: fetch }, opts)
 
   const req = createGithubRequest({
     method: "GET",
     token,
-    url: githubRestSpec.commits.getUrl(owner, repo, from ? toISOStringWithoutMs(from) : undefined),
+    url: githubRestSpec.commits.getUrl(owner, repo, newerThan ? toISOStringWithoutMs(newerThan) : undefined),
   })
 
   for await (const resp of fetchExhaustively(req, { fetchLike })) {

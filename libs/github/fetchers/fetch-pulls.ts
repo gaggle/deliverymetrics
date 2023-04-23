@@ -7,11 +7,11 @@ import { stringifyPull } from "../../utils/mod.ts"
 
 import { Epoch } from "../../types.ts"
 
+import { createGithubRequest } from "../utils/create-github-request.ts"
+
 import { GithubPull, githubRestSpec } from "../types/mod.ts"
 
-import { createGithubRequest } from "./create-github-request.ts"
-
-type FetchPullsOpts = { from?: Epoch; fetchLike: typeof fetch }
+type FetchPullsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
 
 export async function* fetchPulls(
   owner: string,
@@ -19,10 +19,7 @@ export async function* fetchPulls(
   token?: string,
   opts: Partial<FetchPullsOpts> = {},
 ): AsyncGenerator<GithubPull> {
-  const { from, fetchLike }: FetchPullsOpts = deepMerge({
-    from: undefined,
-    fetchLike: fetch,
-  }, opts)
+  const { newerThan, fetchLike }: FetchPullsOpts = deepMerge({ fetchLike: fetch }, opts)
 
   const req = createGithubRequest({
     method: "GET",
@@ -39,13 +36,10 @@ export async function* fetchPulls(
     githubRestSpec.pulls.schema.parse(data)
 
     for (const pull of data) {
-      if (from) {
+      if (newerThan) {
         const updatedAtDate = new Date(pull.updated_at)
-        if (updatedAtDate.getTime() < from) {
-          const fromDate = new Date(from)
-          debug(
-            `Reached pull not updated since ${fromDate.toLocaleString()}: ${stringifyPull(pull)}`,
-          )
+        if (updatedAtDate.getTime() < newerThan) {
+          debug(`Reached pull not updated since ${new Date(newerThan).toLocaleString()}: ${stringifyPull(pull)}`)
           return
         }
       }

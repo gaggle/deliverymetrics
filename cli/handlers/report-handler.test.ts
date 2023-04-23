@@ -15,14 +15,14 @@ import { asyncToArray, single } from "../../libs/utils/mod.ts"
 import { withFileOpen, withTempDir, yieldDir } from "../../libs/utils/path-and-file-utils.ts"
 import { withStubs } from "../../libs/dev-utils.ts"
 
-import { _internals, outputToCsv } from "./output-to-csv.ts"
+import { _internals, reportHandler } from "./report-handler.ts"
 
 /**
- * This sets up a test context and calls `outputToCsv`, passing back the output directory.
+ * This sets up a test context and calls `reportHandler`, passing back the output directory.
  *
  * Convenience function to slim down the tests.
  */
-async function withOutputToCsv(
+async function withReportHandler(
   t: Deno.TestContext,
   name: string,
   callable: (opts: { outputDir: string; t: Deno.TestContext }) => Promise<void>,
@@ -36,10 +36,10 @@ async function withOutputToCsv(
       await withStubs(
         async () => {
           await t.step("runs outputToCsv without error", async () => {
-            await outputToCsv({
+            await reportHandler({
               github: { owner: "owner", repo: "repo" },
               outputDir,
-              persistenceRoot: "persistenceRoot",
+              cacheRoot: "persistenceRoot",
             })
           })
 
@@ -82,7 +82,7 @@ Deno.test({
   // ↑ `progress` registers an exit-handler which gets flagged by sanitization, I... think it's harmless though 😬
   name: "outputToCsv",
   fn: async (t) => {
-    await withOutputToCsv(t, "with a simple pull", async ({ outputDir, t }) => {
+    await withReportHandler(t, "with a simple pull", async ({ outputDir, t }) => {
       await t.step("formats all pull request data as expected", async () => {
         await withCsvContent((content) => {
           assertEquals(content.length, 1)
@@ -117,6 +117,7 @@ Deno.test({
         ],
         syncInfos: [
           getFakeSyncInfo({
+            type: "pull",
             createdAt: new Date("1981-01-01T00:00:00Z").getTime(),
             updatedAt: new Date("1981-01-01T00:00:00Z").getTime(),
           }),
@@ -125,7 +126,7 @@ Deno.test({
       expectedFiles: ["pull-request-data-90d.csv"],
     })
 
-    await withOutputToCsv(t, "with a pull that's closed but not merged", async ({ outputDir, t }) => {
+    await withReportHandler(t, "with a pull that's closed but not merged", async ({ outputDir, t }) => {
       await t.step('sets "Was Cancelled?" to true', async () => {
         // ↑ encoded to avoid outputting literal newlines that can confuse the csv format
         await withCsvContent((content) => {
@@ -151,7 +152,7 @@ Deno.test({
       expectedFiles: ["pull-request-data-90d.csv"],
     })
 
-    await withOutputToCsv(t, "with two closed pulls", async ({ outputDir, t }) => {
+    await withReportHandler(t, "with two closed pulls", async ({ outputDir, t }) => {
       await t.step("formats daily pull-request lead times as expected", async () => {
         await withCsvContent((content) => {
           assertEquals(single(content), {
@@ -205,7 +206,7 @@ Deno.test({
       expectedFiles: pullOutputNames,
     })
 
-    await withOutputToCsv(t, "with a simple action run", async ({ outputDir, t }) => {
+    await withReportHandler(t, "with a simple action run", async ({ outputDir, t }) => {
       await t.step("formats workflow histogram as expected", async () => {
         await withCsvContent((content) => {
           assertEquals(content.length, 1)

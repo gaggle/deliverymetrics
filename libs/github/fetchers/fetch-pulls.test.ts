@@ -4,6 +4,7 @@ import { assertSpyCalls, returnsNext, spy } from "dev:mock"
 import { asyncToArray } from "../../utils/mod.ts"
 
 import { getFakePull } from "../testing.ts"
+
 import { fetchPulls } from "./fetch-pulls.ts"
 
 Deno.test("fetchPulls", async (t) => {
@@ -130,7 +131,7 @@ Deno.test("fetchPulls", async (t) => {
       ]))
 
       const res = await asyncToArray(fetchPulls("owner", "repo", "token", {
-        from: new Date("1995-01-01T00:00:00Z").getTime(),
+        newerThan: new Date("1995-01-01T00:00:00Z").getTime(),
         fetchLike,
       }))
 
@@ -186,7 +187,7 @@ Deno.test("fetchPulls", async (t) => {
       ]))
 
       const res = await asyncToArray(fetchPulls("owner", "repo", "token", {
-        from: new Date("1995-01-01T00:00:00Z").getTime(),
+        newerThan: new Date("1995-01-01T00:00:00Z").getTime(),
         fetchLike,
       }))
 

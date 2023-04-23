@@ -2,9 +2,9 @@ import * as z from "zod"
 
 import { fetchExhaustively } from "../../fetching/mod.ts"
 
-import { GithubPull, GithubPullCommit, githubRestSpec } from "../types/mod.ts"
+import { createGithubRequest } from "../utils/create-github-request.ts"
 
-import { createGithubRequest } from "./create-github-request.ts"
+import { GithubPull, GithubPullCommit, githubRestSpec } from "../types/mod.ts"
 
 type FetchPullCommitsOpts = { fetchLike: typeof fetch }
 

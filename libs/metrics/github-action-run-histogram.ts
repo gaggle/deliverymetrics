@@ -8,11 +8,12 @@
  * This metric is useful to answer how often deployments are made (by looking at the workflow that handles deploying),
  * or finding instabilities or bad work-practices that cause a workflow to fail.
  */
-import { ActionRun, ActionWorkflow, ReadonlyGithubClient } from "../github/mod.ts"
+import { dayEnd, dayStart, monthEnd, monthStart, weekEnd, weekStart } from "../utils/date-utils.ts"
 
+import { ActionRun, ActionWorkflow, ReadonlyGithubClient } from "../github/mod.ts"
 import { assertUnreachable } from "../utils/mod.ts"
 
-import { dayEnd, dayStart, monthEnd, monthStart, weekEnd, weekStart } from "./date-utils.ts"
+import { AbortError } from "../errors.ts"
 
 type ActionRunHistogram = {
   start: Date
@@ -25,11 +26,12 @@ type ActionRunHistogram = {
 
 export async function* yieldActionRunHistogram(
   gh: ReadonlyGithubClient,
-  { branch, conclusion, mode, workflow }: {
+  { branch, conclusion, mode, workflow, signal }: {
     branch: string
     conclusion: string | RegExp
     mode: "daily" | "weekly" | "monthly"
     workflow: { path: ActionWorkflow["path"] }
+    signal?: AbortSignal
   },
 ): AsyncGenerator<ActionRunHistogram> {
   let periodConf: {
@@ -85,6 +87,10 @@ export async function* yieldActionRunHistogram(
       sort: { key: "updated_at", order: "asc" },
     })
   ) {
+    if (signal?.aborted) {
+      throw new AbortError()
+    }
+
     const currentPeriod = periodConf.floor(new Date(run.updated_at))
 
     if (prevPeriod && prevPeriod.getTime() !== currentPeriod.getTime()) {

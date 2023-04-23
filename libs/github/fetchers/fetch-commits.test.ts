@@ -4,6 +4,7 @@ import { assertSpyCalls, returnsNext, spy } from "dev:mock"
 import { asyncToArray } from "../../utils/mod.ts"
 
 import { getFakeCommit } from "../testing.ts"
+
 import { fetchCommits } from "./fetch-commits.ts"
 
 Deno.test("fetchCommits", async (t) => {
@@ -102,7 +103,7 @@ Deno.test("fetchCommits", async (t) => {
       )]))
 
       await asyncToArray(
-        fetchCommits("owner", "repo", "token", { fetchLike, from: new Date("1981-01-01T00:00:00Z").getTime() }),
+        fetchCommits("owner", "repo", "token", { fetchLike, newerThan: new Date("1981-01-01T00:00:00Z").getTime() }),
       )
 
       assertSpyCalls(fetchLike, 1)

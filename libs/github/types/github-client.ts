@@ -1,13 +1,37 @@
+import { EventEmitter } from "event"
+
+import { Epoch } from "../../types.ts"
+
 import { ActionRun } from "./github-action-run.ts"
 import { ActionWorkflow } from "./github-action-workflow.ts"
-import { BoundGithubPullCommit, GithubPullCommit, GithubPullCommitDateKey } from "./github-pull-commit.ts"
-import { GithubDiff } from "./sync-diff.ts"
+import { BoundGithubPullCommit, GithubPullCommitDateKey } from "./github-pull-commit.ts"
+import { GithubCommit } from "./github-commit.ts"
 import { GithubPull, GithubPullDateKey } from "./github-pull.ts"
 import { SyncInfo } from "./sync-info.ts"
-import { GithubCommit } from "./github-commit.ts"
 
-export interface ReadonlyGithubClient {
+export type GithubClientEvents = {
+  "aborted": [
+    { type: "pull" | "pull-commit" | "commit" | "action-run" | "action-workflow" },
+  ]
+  "finished": [
+    { type: "pull" | "pull-commit" | "commit" | "action-run" | "action-workflow" },
+  ]
+  "progress": [
+    { type: "pull" | "pull-commit" | "commit" | "action-run" | "action-workflow" },
+  ]
+  "warning": [
+    {
+      type: "pull" | "pull-commit" | "commit" | "action-run" | "action-workflow"
+      category: "rate-limited"
+      duration: number
+    },
+  ]
+}
+
+export interface ReadonlyGithubClient extends EventEmitter<GithubClientEvents> {
   repoHtmlUrl: string
+
+  findLatestSync(opts?: Partial<{ type: SyncInfo["type"]; includeUnfinished: boolean }>): Promise<SyncInfo | undefined>
 
   findPulls(opts?: Sortable<GithubPullDateKey>): AsyncGenerator<GithubPull>
 
@@ -21,7 +45,7 @@ export interface ReadonlyGithubClient {
 
   findEarliestPullCommit(opts?: Partial<{ pr: GithubPull["number"] }>): Promise<BoundGithubPullCommit | undefined>
 
-  findLatestSync(): Promise<SyncInfo | undefined>
+  findCommits(): AsyncGenerator<GithubCommit>
 
   findActionRuns(
     opts?:
@@ -36,27 +60,21 @@ export interface ReadonlyGithubClient {
   findActionWorkflows(): AsyncGenerator<ActionWorkflow>
 }
 
-export type SyncProgressParams =
-  | { type: "actions-workflow"; workflow: ActionWorkflow }
-  | { type: "actions-run"; run: ActionRun }
-  | { type: "commit"; commit: GithubCommit }
-  | { type: "pull-commits"; commits: Array<GithubPullCommit | BoundGithubPullCommit>; pr: number }
-  | { type: "pull"; pull: GithubPull }
-  | {
-    type: "rate-limited"
-    target:
-      | "actions-workflow"
-      | "actions-run"
-      | "commit"
-      | "pull-commits"
-      | "pull"
-    duration: number
-  }
-
 export interface GithubClient extends ReadonlyGithubClient {
-  sync(
-    opts?: Partial<{ syncFromIfUnsynced: number; progress: (type: SyncProgressParams) => void }>,
-  ): Promise<GithubDiff>
+  syncPulls(
+    opts?: { signal?: AbortSignal; newerThan?: Epoch },
+  ): Promise<{
+    syncedAt: Epoch
+    syncedPulls: Array<GithubPull>
+  }>
+
+  syncPullCommits(pulls: Array<GithubPull>, opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }>
+
+  syncCommits(opts?: { signal?: AbortSignal; newerThan?: Epoch }): Promise<{ syncedAt: Epoch }>
+
+  syncActionRuns(opts?: { signal?: AbortSignal; newerThan?: Epoch }): Promise<{ syncedAt: Epoch }>
+
+  syncActionWorkflows(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }>
 }
 
 export type Sortable<T> = Partial<{ sort: { key: T; order?: "asc" | "desc" } }>

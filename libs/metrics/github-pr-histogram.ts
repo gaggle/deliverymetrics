@@ -1,11 +1,22 @@
 import { warning } from "std:log"
 
 import { GithubPull, MergedGithubPull, ReadonlyGithubClient } from "../github/mod.ts"
+import {
+  assertUnreachable,
+  dayEnd,
+  daysBetween,
+  dayStart,
+  filterIter,
+  monthEnd,
+  monthStart,
+  regexIntersect,
+  weekEnd,
+  weekStart,
+} from "../utils/mod.ts"
 
-import { assertUnreachable, filterIter, regexIntersect } from "../utils/mod.ts"
+import { AbortError } from "../errors.ts"
 
 import { calculatePullRequestLeadTime, calculatePullRequestTimeToMerge } from "./github-pr-engineering-metrics.ts"
-import { dayEnd, daysBetween, dayStart, monthEnd, monthStart, weekEnd, weekStart } from "./date-utils.ts"
 
 type PullRequestLeadTime = {
   start: Date
@@ -17,13 +28,14 @@ type PullRequestLeadTime = {
 
 export async function* yieldPullRequestHistogram(
   gh: ReadonlyGithubClient,
-  { mode, maxDays, includeLabels, excludeLabels, excludeBranches, includeBranches }: {
+  { mode, maxDays, includeLabels, excludeLabels, excludeBranches, includeBranches, signal }: {
     mode: "daily" | "weekly" | "monthly"
     maxDays?: number
     includeBranches?: Array<string | RegExp>
     excludeBranches?: Array<string | RegExp>
     includeLabels?: Array<string | RegExp>
     excludeLabels?: Array<string | RegExp>
+    signal?: AbortSignal
   },
 ): AsyncGenerator<PullRequestLeadTime> {
   let leadTimes: Array<{ leadTime: number; timeToMerge?: number; number: GithubPull["number"] }> = []
@@ -74,7 +86,7 @@ export async function* yieldPullRequestHistogram(
     }
   }
 
-  const latestSync = await gh.findLatestSync()
+  const latestSync = await gh.findLatestSync({ type: "pull" })
   if (!latestSync) return
 
   for await (
@@ -119,6 +131,10 @@ export async function* yieldPullRequestHistogram(
       gh.findPulls({ sort: { key: "merged_at", order: "asc" } }),
     ) as AsyncGenerator<MergedGithubPull>
   ) {
+    if (signal?.aborted) {
+      throw new AbortError()
+    }
+
     const currentPeriod = periodConf.floor(new Date(pull.merged_at))
 
     if (prevPeriod && prevPeriod.getTime() !== currentPeriod.getTime()) {

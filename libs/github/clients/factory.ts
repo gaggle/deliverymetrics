@@ -7,7 +7,7 @@ import { assertUnreachable } from "../../utils/mod.ts"
 import {
   actionRunSchema,
   actionWorkflowSchema,
-  boundGithubPullCommit,
+  boundGithubPullCommitSchema,
   GithubClient,
   githubCommitSchema,
   githubPullSchema,
@@ -57,7 +57,7 @@ export async function getGithubClient(
     }),
     pullCommits: await AloeDatabase.new({
       path: join(opts.persistenceDir, "pull-commits.json"),
-      schema: boundGithubPullCommit,
+      schema: boundGithubPullCommitSchema,
     }),
     syncs: await AloeDatabase.new({
       path: join(opts.persistenceDir, "syncs.json"),

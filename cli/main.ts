@@ -1,10 +1,12 @@
-import { ensureDir } from "std:fs"
 import { handlers, setup as logSetup } from "std:log"
-import { join, normalize, resolve } from "std:path"
+import { dirname, join, resolve } from "std:path"
 
-import { githubSyncHandler, outputToCsv } from "../cli/handlers/mod.ts"
 import { parseGithubUrl } from "../libs/github/mod.ts"
+
 import { yargs, YargsArguments, YargsInstance } from "../cli/yargs.ts"
+
+import { reportHandler, ReportSpec, syncHandler, SyncSpec } from "./handlers/mod.ts"
+import { GithubSync, loadConfiguration } from "./configuration/mod.ts"
 
 const logLevels = ["DEBUG", "INFO", "WARNING"] as const
 type LogLevel = typeof logLevels[number]
@@ -24,8 +26,24 @@ function setupLogging(level: LogLevel) {
   })
 }
 
-/** Where to pull to/read from cached data? */
-const persistenceRoot = join(Deno.cwd(), ".deliverymetrics-data")
+/**
+ * Global counter of SIGINT attempts
+ */
+let sigints = 0
+
+function interceptSigint() {
+  const abortController = new AbortController()
+  Deno.addSignalListener("SIGINT", () => {
+    sigints += 1
+
+    if (sigints > 1) {
+      Deno.exit(2)
+    }
+    console.log(" Shutting down...")
+    abortController.abort()
+  })
+  return { signal: abortController.signal }
+}
 
 /**
  * Parse args and execute commands
@@ -33,7 +51,13 @@ const persistenceRoot = join(Deno.cwd(), ".deliverymetrics-data")
 export function main(args: Array<string>) {
   yargs(args)
     .scriptName("dm")
-    .option("loglevel").describe(
+    .option("cache", {
+      default: join(Deno.cwd(), ".deliverymetrics-data"),
+      describe: "Where to store cached information from syncing",
+      type: "string",
+    })
+    .option("loglevel")
+    .describe(
       "loglevel",
       `One of ${logLevels.join(", ")}, defaults to ${defaultLogLevel}`,
     )
@@ -43,103 +67,105 @@ export function main(args: Array<string>) {
       return loglevel
     })
     .command(
-      "pull github <repo-id> [--token] [--max-days]",
-      "Pull data from Github",
+      "sync",
+      "Sync data as specified in configuration file",
       (inst: YargsInstance) => {
-        inst.positional("repo-id", {
-          describe: "Repository identifier, e.g: octokit/octokit.js",
+        inst.option("config", {
+          alias: "c",
+          default: undefined,
+          describe: "Configuration file for what and how to sync, defaults: dm.json, dm.jsonc",
           type: "string",
-          coerce: (repoId: string) => parseGithubUrl(repoId),
-        })
-        inst.option("token", {
-          describe: "GitHub Personal Access Token, one can be created at https://github.com/settings/tokens",
-          type: "string",
-        })
-        inst.option("max-days", {
-          default: 90,
-          describe: "Max number of days back to sync for the initial sync",
-          type: "number",
-          coerce: (maxDays: number) => {
-            if (maxDays === Infinity) {
-              // Users are allowed to specify infinity, which internally means no max days
-              return undefined
-            }
-
-            if (!Number.isFinite(maxDays)) {
-              throw new Error(`--max-days must be a number, got: ${maxDays}`)
-            }
-            return maxDays
-          },
+          coerce: (fp: string) => loadConfiguration(fp, ["dm.json", "dm.jsonc"]),
         })
       },
-      async (
-        argv: YargsArguments & {
-          repoId: ReturnType<typeof parseGithubUrl>
-          token?: string
-          maxDays?: number
-        },
-      ) => {
-        await githubSyncHandler({
-          ...argv.repoId,
-          token: argv.token,
-          maxDays: argv.maxDays,
-          persistenceRoot,
+      async (argv: YargsArguments & { config: ReturnType<typeof loadConfiguration>; cache: string }) => {
+        const { signal } = interceptSigint()
+
+        const xformToSyncSpec = (el: GithubSync): SyncSpec => {
+          const { owner, repo } = parseGithubUrl(el.repo)
+          return {
+            type: "github",
+            owner,
+            repo,
+            token: el.token,
+            maxDays: el.max_days === "Infinity" ? undefined : el.max_days || 90,
+            //                                   ↑ no max days means infinite days 👍
+          }
+        }
+        const syncSpecs: Array<SyncSpec> = []
+        if (argv.config.sync?.github) {
+          syncSpecs.push(xformToSyncSpec(argv.config.sync.github))
+        }
+
+        await syncHandler({
+          cacheRoot: argv.cache,
+          signal,
+          syncSpecs,
         })
+        if (sigints > 0) {
+          Deno.exit(1)
+        }
       },
     )
     .command(
-      "output <format> <output-dir> <repo-id>",
-      "Output synced data, generating metrics and reports",
+      "report",
+      "Generate report as specified in configuration file",
       (inst: YargsInstance) => {
-        inst.positional("format", {
-          describe: `Output format, e.g.: csv`,
+        inst.option("config", {
+          alias: "c",
+          default: undefined,
+          describe: "Configuration file for what and how to sync, defaults: dm.json, dm.jsonc",
           type: "string",
-          choices: ["csv"],
-        })
-        inst.positional("output-dir", {
-          describe: "Output directory, e.g.: ./output",
-          type: "string",
-          normalize: true,
-          coerce: async (arg: string) => {
-            const resolved = resolve(normalize(arg))
-            await ensureDir(resolved)
-
-            // Test write access
-            const f = await Deno.makeTempFile({ dir: resolved })
-            await Deno.remove(f)
-
-            return resolved
-          },
-        })
-        inst.positional("repo-id", {
-          describe: "Repository identifier, e.g: octokit/octokit.js",
-          type: "string",
-          coerce: (repoId: string) => parseGithubUrl(repoId),
-        })
-        inst.option("ignore-label", {
-          describe:
-            'Pull-request label to ignore, e.g. "CI". Supports regex. Can be repeated, e.g. --ignore-label=CI --ignore-label=Foo',
-          type: "array",
-          coerce: (values: Array<string>) => {
-            if (values.length === 0) return undefined
-            return values.map((el) => /^\/.*\/$/.test(el) ? new RegExp(el.slice(1, -1)) : el)
-          },
+          coerce: (fp: string) => loadConfiguration(fp, ["dm.json", "dm.jsonc"]),
         })
       },
-      async (
-        argv: YargsArguments & {
-          format: string
-          outputDir: string
-          repoId: ReturnType<typeof parseGithubUrl>
-          ignoreLabel?: Array<string | RegExp>
-        },
-      ) => {
-        await outputToCsv({
-          github: argv.repoId,
-          outputDir: argv.outputDir,
-          persistenceRoot,
-          excludeLabels: argv.ignoreLabel,
-        })
+      async (argv: YargsArguments & { config: ReturnType<typeof loadConfiguration>; cache: string }) => {
+        const configReport = argv.config.report
+
+        if (!configReport) {
+          console.error("No report configuration found in config file")
+          Deno.exit(1)
+        }
+
+        const githubSync = argv.config.sync.github
+        if (!githubSync) {
+          console.error("No GitHub sync found in config file, so no report can be created")
+          Deno.exit(1)
+        }
+
+        const { signal } = interceptSigint()
+
+        const reportSpec: ReportSpec = {
+          cacheRoot: argv.cache,
+          github: {
+            ...parseGithubUrl(githubSync.repo),
+            actionRuns: {
+              branch: configReport.github?.actionRuns?.branch,
+              ignoreHeaders: configReport.github?.actionRuns?.ignore_headers || [],
+              headerOrder: configReport.github?.actionRuns?.header_order || [],
+            },
+            actionWorkflows: {
+              ignoreHeaders: configReport.github?.actionWorkflows?.ignore_headers || [],
+              headerOrder: configReport.github?.actionWorkflows?.header_order || [],
+            },
+            pullCommits: {
+              ignoreHeaders: configReport.github?.pullCommits?.ignore_headers || [],
+              headerOrder: configReport.github?.pullCommits?.header_order || [],
+            },
+            pulls: {
+              ignoreHeaders: configReport.github?.pulls?.ignore_headers || [],
+              ignoreLabels: configReport.github?.pulls?.ignore_labels || [],
+              includeCancelled: configReport.github?.pulls?.include_cancelled || false,
+              headerOrder: configReport.github?.pulls?.header_order || [],
+            },
+          },
+          outputDir: resolve(dirname(argv.config.fp), configReport.outdir),
+          signal,
+        }
+        await reportHandler(reportSpec)
+        if (sigints > 0) {
+          Deno.exit(1)
+        }
       },
     )
     .strictCommands()

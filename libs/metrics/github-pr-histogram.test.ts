@@ -22,6 +22,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           }),
         ],
         syncInfos: [getFakeSyncInfo({
+          type: "pull",
           createdAt: new Date("2022-01-20T00:00:00Z").getTime(),
           updatedAt: new Date("2022-01-20T00:00:00Z").getTime(),
         })],
@@ -84,6 +85,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
             }),
           ],
           syncInfos: [getFakeSyncInfo({
+            type: "pull",
             createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
             updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
           })],
@@ -138,6 +140,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
             }),
           ],
           syncInfos: [getFakeSyncInfo({
+            type: "pull",
             createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
             updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
           })],
@@ -217,6 +220,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
             }),
           ],
           syncInfos: [getFakeSyncInfo({
+            type: "pull",
             createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
             updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
           })],
@@ -266,6 +270,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           }),
         ],
         syncInfos: [getFakeSyncInfo({
+          type: "pull",
           createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
           updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
         })],
@@ -299,6 +304,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           }),
         ],
         syncInfos: [getFakeSyncInfo({
+          type: "pull",
           createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
           updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
         })],
@@ -344,6 +350,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           }),
         ],
         syncInfos: [getFakeSyncInfo({
+          type: "pull",
           createdAt: new Date("2022-01-01T00:00:00Z").getTime(),
           updatedAt: new Date("2022-01-01T00:00:00Z").getTime(),
         })],

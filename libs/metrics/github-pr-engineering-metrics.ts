@@ -1,7 +1,7 @@
 import { BoundGithubPullCommit } from "../github/types/github-pull-commit.ts"
 import { MergedGithubPull } from "../github/types/github-pull.ts"
 
-import { dayStart, nextDayStart } from "./date-utils.ts"
+import { dayStart, nextDayStart } from "../utils/date-utils.ts"
 
 /**
  * ## Pull Request Lead Time

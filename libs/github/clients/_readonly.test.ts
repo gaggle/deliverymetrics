@@ -22,28 +22,52 @@ Deno.test("Github Client shared tests", async (t) => {
     await t.step("should say when it was last updated at", async (t) => {
       for await (
         const client of yieldGithubClient({
-          syncInfos: [{ createdAt: 0, updatedAt: 5_000 }, { createdAt: 10_000, updatedAt: 15_000 }],
+          syncInfos: [
+            { type: "pull", createdAt: 0, updatedAt: 5_000 },
+            { type: "pull", createdAt: 10_000, updatedAt: 15_000 },
+          ],
         })
       ) {
         await t.step(`for ${client.constructor.name}`, async () => {
           assertEquals(
-            (await client.findLatestSync() || {}).updatedAt,
+            (await client.findLatestSync({ type: "pull" }) || {}).updatedAt,
             15_000,
           )
         })
       }
     })
 
-    await t.step("should only find latest completed sync", async (t) => {
+    await t.step("should find latest finished sync", async (t) => {
       for await (
         const client of yieldGithubClient({
-          syncInfos: [{ createdAt: 0, updatedAt: 5_000 }, { createdAt: 10_000 }],
+          syncInfos: [
+            { type: "pull", createdAt: 0, updatedAt: 5_000 },
+            { type: "pull", createdAt: 10_000 },
+          ],
         })
       ) {
         await t.step(`for ${client.constructor.name}`, async () => {
           assertEquals(
-            (await client.findLatestSync() || {}).updatedAt,
+            (await client.findLatestSync({ type: "pull" }) || {}).updatedAt,
             5_000,
+          )
+        })
+      }
+    })
+
+    await t.step("should allow finding unfinished syncs", async (t) => {
+      for await (
+        const client of yieldGithubClient({
+          syncInfos: [
+            { type: "pull", createdAt: 0, updatedAt: 5_000 },
+            { type: "pull", createdAt: 10_000 },
+          ],
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          assertEquals(
+            (await client.findLatestSync({ type: "pull", includeUnfinished: true }) || {}).createdAt,
+            10_000,
           )
         })
       }

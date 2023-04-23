@@ -1,2 +1,4 @@
-export { githubSyncHandler } from "./sync-github.ts"
-export { outputToCsv } from "./output-to-csv.ts"
+export type { ReportSpec } from "./report-handler.ts"
+export type { SyncSpec } from "./sync-handler.ts"
+export { reportHandler } from "./report-handler.ts"
+export { syncHandler } from "./sync-handler.ts"

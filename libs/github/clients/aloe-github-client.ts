@@ -1,18 +1,14 @@
+import { EventEmitter } from "event"
 import { debug } from "std:log"
-import { equal } from "equal"
-import { exists, Query } from "aloedb"
-import { groupBy } from "std:group-by"
+import { Acceptable, exists, Query } from "aloedb"
 
 import { AloeDatabase } from "../../db/mod.ts"
+import { arrayToAsyncGenerator, asyncToArray, first } from "../../utils/mod.ts"
+import { retrierFactory } from "../../fetching/mod.ts"
 
-import { asyncToArray, first } from "../../utils/mod.ts"
+import { AbortError } from "../../errors.ts"
+import { Epoch } from "../../types.ts"
 
-import { fetchActionRuns } from "../utils/fetch-action-runs.ts"
-import { fetchActionWorkflows } from "../utils/fetch-action-workflows.ts"
-import { fetchCommits } from "../utils/fetch-commits.ts"
-import { fetchPullCommits } from "../utils/fetch-pull-commits.ts"
-import { fetchPulls } from "../utils/fetch-pulls.ts"
-import { retrierFactory } from "../../fetching/retrier-factory.ts"
 import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../utils/sorting.ts"
 
 import {
@@ -20,16 +16,16 @@ import {
   ActionWorkflow,
   BoundGithubPullCommit,
   GithubClient,
+  GithubClientEvents,
   GithubCommit,
-  GithubDiff,
   GithubPull,
   GithubPullCommitDateKey,
   GithubPullDateKey,
   ReadonlyGithubClient,
   Sortable,
   SyncInfo,
-  SyncProgressParams,
 } from "../types/mod.ts"
+import { fetchActionRuns, fetchActionWorkflows, fetchCommits, fetchPullCommits, fetchPulls } from "../fetchers/mod.ts"
 
 interface AloeGithubClientDb {
   actionRuns: AloeDatabase<ActionRun>
@@ -40,14 +36,26 @@ interface AloeGithubClientDb {
   syncs: AloeDatabase<SyncInfo>
 }
 
-export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
+export class ReadonlyAloeGithubClient extends EventEmitter<GithubClientEvents> implements ReadonlyGithubClient {
   readonly repoHtmlUrl: string
 
   protected readonly db: AloeGithubClientDb
 
   constructor(opts: { db: AloeGithubClientDb; owner: string; repo: string }) {
+    super()
     this.repoHtmlUrl = `https://github.com/${opts.owner}/${opts.repo}`
     this.db = opts.db
+  }
+
+  async findLatestSync(
+    opts: Partial<{ type: SyncInfo["type"]; includeUnfinished: boolean }> = {},
+  ): Promise<SyncInfo | undefined> {
+    const args: Query<Acceptable<SyncInfo>> = { type: opts.type, updatedAt: exists() }
+    if (opts.includeUnfinished) {
+      delete args["updatedAt"]
+    }
+    const syncs = await this.db.syncs.findMany(args)
+    return syncs[syncs.length - 1]
   }
 
   /**
@@ -103,9 +111,10 @@ export class ReadonlyAloeGithubClient implements ReadonlyGithubClient {
     return first(this.findPullCommits({ pr, sort: { key: "commit.author", order: "asc" } }))
   }
 
-  async findLatestSync(): Promise<SyncInfo | undefined> {
-    const syncs = await this.db.syncs.findMany({ updatedAt: exists() })
-    return syncs[syncs.length - 1]
+  async *findCommits(): AsyncGenerator<GithubCommit> {
+    for (const el of await this.db.commits.findMany()) {
+      yield el
+    }
   }
 
   async *findActionRuns(opts: Partial<{
@@ -161,166 +170,155 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     this.token = opts.token
   }
 
-  async sync(
-    opts: Partial<{ syncFromIfUnsynced: number; progress: (type: SyncProgressParams) => void }> = {},
-  ): Promise<GithubDiff> {
-    const { progress, syncFromIfUnsynced } = { progress: () => {}, ...opts }
-
-    const lastSync = await this.findLatestSync()
-    const from = lastSync?.updatedAt || syncFromIfUnsynced
-
-    let sync: SyncInfo = await this.db.syncs.insertOne({
-      createdAt: Date.now(),
-      updatedAt: undefined,
-    })
-    await this.db.syncs.save()
-
-    const prevPullsByNumber = (await asyncToArray(this.findPulls()))
-      .reduce(function (acc, curr) {
-        acc[curr.number] = curr
-        return acc
-      }, {} as Record<number, GithubPull>)
-
-    const fetchedPulls: Array<GithubPull> = []
-
-    const handleCommits = async () => {
-      const rateLimitAwareRetrier = retrierFactory({ strategy: "rate-limit-exponential" })
-      rateLimitAwareRetrier.on(
-        "rate-limited",
-        async (args) => {
-          await progress({ type: "rate-limited", target: "commit", duration: args.duration })
-        },
-      )
-      for await (
-        const commit of _internals.fetchCommits(this.owner, this.repo, this.token, {
-          from,
-          fetchLike: rateLimitAwareRetrier.fetch.bind(rateLimitAwareRetrier),
-        })
-      ) {
-        await this.db.commits.deleteOne({ node_id: commit.node_id })
-        await this.db.commits.insertOne(commit)
-        await progress({ type: "commit", commit })
-      }
-      await this.db.commits.save()
-    }
-
-    const handlePulls = async () => {
-      const rateLimitAwareRetrier = retrierFactory({ strategy: "rate-limit-exponential" })
-      rateLimitAwareRetrier.on(
-        "rate-limited",
-        async (args) => {
-          await progress({ type: "rate-limited", target: "pull", duration: args.duration })
-        },
-      )
-      for await (
-        const pull of _internals.fetchPulls(this.owner, this.repo, this.token, {
-          from,
-          fetchLike: rateLimitAwareRetrier.fetch.bind(rateLimitAwareRetrier),
-        })
-      ) {
-        fetchedPulls.push(pull)
+  async syncPulls(opts: { signal?: AbortSignal; newerThan?: Epoch } = {}): Promise<{
+    syncedAt: Epoch
+    syncedPulls: Array<GithubPull>
+  }> {
+    const syncedPulls: Array<GithubPull> = []
+    const result = await this.internalFetch({
+      type: "pull",
+      iteratorFn: (context) => _internals.fetchPulls(this.owner, this.repo, this.token, context),
+      upsertFn: async (pull) => {
         await this.db.pulls.deleteOne({ number: pull.number })
         await this.db.pulls.insertOne(pull)
-        await progress({ type: "pull", pull })
-      }
-      await this.db.pulls.save()
-    }
+        syncedPulls.push(pull)
+      },
+      saveFn: () => this.db.pulls.save(),
+      ...opts,
+    })
+    return { syncedAt: result.syncInfo.createdAt, syncedPulls }
+  }
 
-    const handlePullCommits = async () => {
-      const rateLimitAwareRetrier = retrierFactory({ strategy: "rate-limit-exponential" })
-      rateLimitAwareRetrier.on(
-        "rate-limited",
-        async (args) => {
-          await progress({ type: "rate-limited", target: "pull-commits", duration: args.duration })
-        },
-      )
-      for (const pull of fetchedPulls) {
+  async syncPullCommits(
+    pulls: Array<GithubPull>,
+    opts: { signal?: AbortSignal } = {},
+  ): Promise<{ syncedAt: Epoch }> {
+    const result = await this.internalFetch({
+      type: "pull-commit",
+      iteratorFn: () => arrayToAsyncGenerator(pulls),
+      upsertFn: async (pull, context) => {
         const commits = await asyncToArray(
-          _internals.fetchPullCommits({ commits_url: pull.commits_url }, this.token, {
-            fetchLike: rateLimitAwareRetrier.fetch.bind(rateLimitAwareRetrier),
-          }),
+          _internals.fetchPullCommits({ commits_url: pull.commits_url }, this.token, context),
         )
+        debug(`Upserting pull commits bound to pr ${pull.number}`)
         await this.db.pullCommits.deleteMany({ pr: pull.number })
-        debug(`Deleted pull commits bound to pr ${pull.number}`)
         await this.db.pullCommits.insertMany(commits.map((commit) => ({ ...commit, pr: pull.number })))
-        await progress({
-          type: "pull-commits",
-          commits,
-          pr: pull.number,
-        })
-      }
-      await this.db.pullCommits.save()
-    }
+      },
+      saveFn: () => this.db.pullCommits.save(),
+      ...opts,
+    })
 
-    const handleActionWorkflows = async () => {
-      const rateLimitAwareRetrier = retrierFactory({ strategy: "rate-limit-exponential" })
-      rateLimitAwareRetrier.on(
-        "rate-limited",
-        async (args) => {
-          await progress({ type: "rate-limited", target: "actions-workflow", duration: args.duration })
-        },
-      )
-      for await (
-        const workflow of _internals.fetchActionWorkflows(this.owner, this.repo, this.token, {
-          fetchLike: rateLimitAwareRetrier.fetch.bind(rateLimitAwareRetrier),
-        })
-      ) {
-        const current = await this.db.actionWorkflows.findOne({ node_id: workflow.node_id })
-        await progress({ type: "actions-workflow", workflow })
-        if (JSON.stringify(current) !== JSON.stringify(workflow)) {
-          await this.db.actionWorkflows.deleteOne({ node_id: workflow.node_id })
-          await this.db.actionWorkflows.insertOne(workflow)
-        }
-      }
-      await this.db.actionWorkflows.save()
-    }
+    return { syncedAt: result.syncInfo.createdAt }
+  }
 
-    const handleActionRuns = async () => {
-      const rateLimitAwareRetrier = retrierFactory({ strategy: "rate-limit-exponential" })
-      rateLimitAwareRetrier.on(
-        "rate-limited",
-        async (args) => {
-          await progress({ type: "rate-limited", target: "actions-run", duration: args.duration })
-        },
-      )
-      for await (
-        const run of _internals.fetchActionRuns(this.owner, this.repo, this.token, {
-          from,
-          fetchLike: rateLimitAwareRetrier.fetch.bind(rateLimitAwareRetrier),
-        })
-      ) {
+  async syncCommits(opts: { signal?: AbortSignal; newerThan?: Epoch } = {}): Promise<{ syncedAt: Epoch }> {
+    const result = await this.internalFetch({
+      type: "commit",
+      iteratorFn: (context) => _internals.fetchCommits(this.owner, this.repo, this.token, context),
+      upsertFn: async (commit) => {
+        await this.db.commits.deleteOne({ node_id: commit.node_id })
+        await this.db.commits.insertOne(commit)
+      },
+      saveFn: () => this.db.commits.save(),
+      ...opts,
+    })
+
+    return { syncedAt: result.syncInfo.createdAt }
+  }
+
+  async syncActionRuns(opts: { signal?: AbortSignal; newerThan?: Epoch } = {}): Promise<{ syncedAt: Epoch }> {
+    const result = await this.internalFetch({
+      type: "action-run",
+      iteratorFn: (context) => _internals.fetchActionRuns(this.owner, this.repo, this.token, context),
+      upsertFn: async (run) => {
         await this.db.actionRuns.deleteOne({ node_id: run.node_id })
         await this.db.actionRuns.insertOne(run)
-        await progress({ type: "actions-run", run })
-      }
-      await this.db.actionRuns.save()
+      },
+      saveFn: () => this.db.actionRuns.save(),
+      ...opts,
+    })
+
+    return { syncedAt: result.syncInfo.createdAt }
+  }
+
+  async syncActionWorkflows(opts: { signal?: AbortSignal } = {}): Promise<{ syncedAt: Epoch }> {
+    const result = await this.internalFetch({
+      type: "action-workflow",
+      iteratorFn: (context) => _internals.fetchActionWorkflows(this.owner, this.repo, this.token, context),
+      upsertFn: async (workflow) => {
+        await this.db.actionWorkflows.deleteOne({ node_id: workflow.node_id })
+        await this.db.actionWorkflows.insertOne(workflow)
+      },
+      saveFn: () => this.db.actionWorkflows.save(),
+      ...opts,
+    })
+
+    return { syncedAt: result.syncInfo.createdAt }
+  }
+
+  private async calcNewerThanBasedOnLatestSync(
+    opts: { type: SyncInfo["type"]; max?: number },
+  ): Promise<number | undefined> {
+    const syncInfo = await this.findLatestSync({ type: opts.type })
+    if (syncInfo === undefined && opts.max === undefined) {
+      // No sync info and no max so there's nothing to calculate
+      return
     }
+    if (syncInfo && opts.max) {
+      // If both are defined return the most recent
+      // e.g. if max is Epoch 10 day ago, and latest sync is Epoch 1 day ago, then return latest sync Epoch
+      return Math.max(
+        syncInfo.createdAt,
+        opts.max,
+      )
+    }
+    return syncInfo?.createdAt ?? opts.max
+  }
 
-    await Promise.all([
-      handleCommits(),
-      handlePulls().then(() => handlePullCommits()),
-      handleActionWorkflows(),
-      handleActionRuns(),
-    ])
-
-    sync = await this.db.syncs.updateOne(sync, {
-      ...sync,
-      updatedAt: Date.now(),
-    }) as SyncInfo
-    await this.db.syncs.save()
-
-    const bucket = groupBy(
-      fetchedPulls,
-      (pull) => pull.number in prevPullsByNumber ? "updatedPulls" : "newPulls",
+  private async internalFetch<T>(
+    opts: {
+      iteratorFn: (context: { fetchLike: typeof fetch; newerThan?: Epoch }) => AsyncGenerator<T>
+      type: SyncInfo["type"]
+      upsertFn: (el: T, context: { fetchLike: typeof fetch; newerThan?: Epoch }) => Promise<void>
+      saveFn: (context: { fetchLike: typeof fetch; newerThan?: Epoch }) => Promise<void>
+      signal?: AbortSignal
+      newerThan?: Epoch
+    },
+  ): Promise<{ syncInfo: SyncInfo }> {
+    const rateLimitAwareRetrier = retrierFactory({ strategy: "rate-limit-exponential" })
+    rateLimitAwareRetrier.on(
+      "rate-limited",
+      async (args) =>
+        await this.emit("warning", { type: opts.type, category: "rate-limited", duration: args.duration }),
     )
 
-    return {
-      syncedAt: sync.createdAt,
-      newPulls: sortPullsByKey(bucket.newPulls || []),
-      updatedPulls: sortPullsByKey(bucket.updatedPulls || [])
-        .map((updated) => ({ prev: prevPullsByNumber[updated.number], updated }))
-        .filter((el) => !equal(el.prev, el.updated)),
+    let syncMarker = await this.db.syncs.insertOne({ type: opts.type, createdAt: Date.now(), updatedAt: undefined })
+    await this.db.syncs.save()
+
+    const context = {
+      fetchLike: rateLimitAwareRetrier.fetch.bind(rateLimitAwareRetrier),
+      newerThan: await this.calcNewerThanBasedOnLatestSync({ type: opts.type, max: opts.newerThan }),
     }
+    try {
+      for await (
+        const el of opts.iteratorFn(context)
+      ) {
+        if (opts.signal?.aborted) {
+          await this.emit("aborted", { type: opts.type })
+          throw new AbortError()
+        }
+        await opts.upsertFn(el, context)
+        await this.emit("progress", { type: opts.type })
+      }
+    } finally {
+      await opts.saveFn(context)
+    }
+    await this.emit("finished", { type: opts.type })
+
+    syncMarker = await this.db.syncs.updateOne(syncMarker, { ...syncMarker, updatedAt: Date.now() }) as SyncInfo
+    await this.db.syncs.save()
+
+    return { syncInfo: syncMarker }
   }
 }
 

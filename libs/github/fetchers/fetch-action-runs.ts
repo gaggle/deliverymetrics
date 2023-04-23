@@ -6,11 +6,11 @@ import { fetchExhaustively } from "../../fetching/mod.ts"
 
 import { Epoch } from "../../types.ts"
 
+import { createGithubRequest } from "../utils/create-github-request.ts"
+
 import { ActionRun, githubRestSpec } from "../types/mod.ts"
 
-import { createGithubRequest } from "./create-github-request.ts"
-
-type FetchRunsOpts = { from?: Epoch; fetchLike: typeof fetch }
+type FetchRunsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
 
 export async function* fetchActionRuns(
   owner: string,
@@ -18,10 +18,7 @@ export async function* fetchActionRuns(
   token?: string,
   opts: Partial<FetchRunsOpts> = {},
 ): AsyncGenerator<ActionRun> {
-  const { from, fetchLike }: FetchRunsOpts = deepMerge({
-    from: undefined,
-    fetchLike: fetch,
-  }, opts)
+  const { newerThan, fetchLike }: FetchRunsOpts = deepMerge({ fetchLike: fetch }, opts)
 
   const req = createGithubRequest({
     method: "GET",
@@ -44,10 +41,10 @@ export async function* fetchActionRuns(
     githubRestSpec.actionRuns.schema.parse(data)
 
     for (const el of data.workflow_runs) {
-      if (from) {
+      if (newerThan) {
         const updatedAtDate = new Date(el.updated_at)
-        if (updatedAtDate.getTime() < from) {
-          const fromDate = new Date(from)
+        if (updatedAtDate.getTime() < newerThan) {
+          const fromDate = new Date(newerThan)
           debug(
             `Reached run not updated since ${fromDate.toLocaleString()}: ${el.html_url}`,
           )
