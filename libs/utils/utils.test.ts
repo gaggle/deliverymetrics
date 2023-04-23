@@ -1,5 +1,6 @@
-import { assertEquals, assertRejects, assertThrows } from "dev:asserts"
 import { FakeTime } from "dev:time"
+import { assert, IsExact } from "dev:conditional-type-checks"
+import { assertEquals, assertRejects, assertThrows } from "dev:asserts"
 
 import { getFakePull } from "../github/testing.ts"
 import { withFakeTime } from "../dev-utils.ts"
@@ -26,7 +27,6 @@ import {
   stringifyUpdatedPull,
   throttle,
 } from "./utils.ts"
-import { assert, IsExact } from "dev:conditional-type-checks"
 
 Deno.test("asyncToArray", async (t) => {
   await t.step("converts AsyncGenerator", async () => {
