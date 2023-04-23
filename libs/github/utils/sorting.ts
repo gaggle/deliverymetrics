@@ -4,7 +4,7 @@ import {
   GithubPull,
   GithubPullCommitDateKey,
   GithubPullDateKey,
-} from "../types/mod.ts"
+} from "../schemas/mod.ts"
 import { assertUnreachable } from "../../utils/mod.ts"
 
 export function sortPullsByKey(

@@ -1,5 +1,5 @@
-import { ActionRun, actionRunSchema } from "../../libs/github/types/github-action-run.ts"
-import { ActionWorkflow } from "../../libs/github/types/github-action-workflow.ts"
+import { ActionRun, actionRunSchema } from "../../libs/github/schemas/github-action-run.ts"
+import { ActionWorkflow } from "../../libs/github/schemas/github-action-workflow.ts"
 
 import { ToTuple } from "../../libs/types.ts"
 

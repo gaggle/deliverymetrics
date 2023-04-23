@@ -1,4 +1,4 @@
-import { BoundGithubPullCommit, GithubPull, isMergedGithubPull, ReadonlyGithubClient } from "../github/types/mod.ts"
+import { BoundGithubPullCommit, GithubPull, isMergedGithubPull, ReadonlyGithubClient } from "../github/schemas/mod.ts"
 
 import { daysBetween } from "../utils/date-utils.ts"
 

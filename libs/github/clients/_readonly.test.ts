@@ -2,7 +2,7 @@ import { assertEquals } from "dev:asserts"
 
 import { asyncToArray } from "../../utils/mod.ts"
 
-import { BoundGithubPullCommit, GithubPull, ReadonlyGithubClient, SyncInfo } from "../types/mod.ts"
+import { BoundGithubPullCommit, GithubPull, ReadonlyGithubClient, SyncInfo } from "../schemas/mod.ts"
 
 import { createFakeGithubClient, createFakeReadonlyGithubClient, getFakePull } from "../testing.ts"
 

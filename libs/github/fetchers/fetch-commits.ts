@@ -7,7 +7,7 @@ import { Epoch } from "../../types.ts"
 
 import { createGithubRequest } from "../utils/create-github-request.ts"
 
-import { GithubCommit, githubRestSpec } from "../types/mod.ts"
+import { GithubCommit, githubRestSpec } from "../schemas/mod.ts"
 
 type FetchCommitsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
 

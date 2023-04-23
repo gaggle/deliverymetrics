@@ -15,7 +15,7 @@ import {
   GithubCommit,
   GithubPull,
   SyncInfo,
-} from "../types/mod.ts"
+} from "../schemas/mod.ts"
 
 import {
   createFakeGithubClient,

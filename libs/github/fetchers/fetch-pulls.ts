@@ -9,7 +9,7 @@ import { Epoch } from "../../types.ts"
 
 import { createGithubRequest } from "../utils/create-github-request.ts"
 
-import { GithubPull, githubRestSpec } from "../types/mod.ts"
+import { GithubPull, githubRestSpec } from "../schemas/mod.ts"
 
 type FetchPullsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
 

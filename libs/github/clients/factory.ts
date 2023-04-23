@@ -13,7 +13,7 @@ import {
   githubPullSchema,
   ReadonlyGithubClient,
   syncInfoSchema,
-} from "../types/mod.ts"
+} from "../schemas/mod.ts"
 
 import { AloeGithubClient, ReadonlyAloeGithubClient } from "./aloe-github-client.ts"
 

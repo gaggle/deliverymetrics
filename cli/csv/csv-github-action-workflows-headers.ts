@@ -1,4 +1,4 @@
-import { ActionWorkflow, actionWorkflowSchema } from "../../libs/github/types/github-action-workflow.ts"
+import { ActionWorkflow, actionWorkflowSchema } from "../../libs/github/schemas/github-action-workflow.ts"
 
 import { yieldActionData } from "../../libs/metrics/github-action-data.ts"
 

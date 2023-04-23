@@ -21,7 +21,7 @@ import {
   ReadonlyGithubClient,
   SyncInfo,
   syncInfoSchema,
-} from "./types/mod.ts"
+} from "./schemas/mod.ts"
 
 export function getFakeCommit(partial: DeepPartial<GithubCommit> = {}): GithubCommit {
   const base: GithubCommit = {

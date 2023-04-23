@@ -24,7 +24,7 @@ import {
   ReadonlyGithubClient,
   Sortable,
   SyncInfo,
-} from "../types/mod.ts"
+} from "../schemas/mod.ts"
 import { fetchActionRuns, fetchActionWorkflows, fetchCommits, fetchPullCommits, fetchPulls } from "../fetchers/mod.ts"
 
 interface AloeGithubClientDb {

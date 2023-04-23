@@ -1,5 +1,5 @@
-import { BoundGithubPullCommit } from "../github/types/github-pull-commit.ts"
-import { MergedGithubPull } from "../github/types/github-pull.ts"
+import { BoundGithubPullCommit } from "../github/schemas/github-pull-commit.ts"
+import { MergedGithubPull } from "../github/schemas/github-pull.ts"
 
 import { dayStart, nextDayStart } from "../utils/date-utils.ts"
 

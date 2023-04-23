@@ -8,7 +8,7 @@ import { Epoch } from "../../types.ts"
 
 import { createGithubRequest } from "../utils/create-github-request.ts"
 
-import { ActionRun, githubRestSpec } from "../types/mod.ts"
+import { ActionRun, githubRestSpec } from "../schemas/mod.ts"
 
 type FetchRunsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
 
