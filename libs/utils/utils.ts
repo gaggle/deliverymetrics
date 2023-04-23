@@ -337,3 +337,36 @@ export async function* mergeAsyncGenerators<T>(...asyncGenerators: Array<AsyncGe
     }
   }
 }
+
+/**
+ * Flatten an object to a single level, with sub-object keys separated by a dot
+ */
+export function flattenObject<T extends NestedObject<unknown>>(obj: T): Record<string, z.Scalars> {
+  function inner<T extends Record<string, unknown>>(
+    obj: T,
+    prefix = "",
+    result: Record<string, z.Scalars> = {},
+  ): Record<string, z.Scalars> {
+    for (const key in obj) {
+      if (Object.hasOwn(obj, key)) {
+        const newKey = prefix ? `${prefix}.${key}` : key
+        const value = obj[key as keyof T]
+
+        if (
+          typeof value === "object" &&
+          value !== null &&
+          !Array.isArray(value) &&
+          value instanceof Object
+        ) {
+          inner(value as Record<string, z.Scalars>, newKey, result)
+        } else {
+          result[newKey] = value as unknown as z.Scalars
+        }
+      }
+    }
+
+    return result
+  }
+
+  return inner(obj)
+}

@@ -12,6 +12,7 @@ import {
   asyncSingle,
   asyncToArray,
   first,
+  flattenObject,
   getEnv,
   hasDupes,
   last,
@@ -477,5 +478,64 @@ Deno.test("mergeAsyncGenerators", async (t) => {
       result.push(el)
     }
     assertEquals(result, [1, 2])
+  })
+})
+
+Deno.test("flattenObject", async (t) => {
+  await t.step("flattens trivial object", () => {
+    assertEquals(flattenObject({ foo: "bar" }), { foo: "bar" })
+  })
+
+  await t.step("flattens multiple nested object", () => {
+    assertEquals(
+      flattenObject({
+        foo: { bar: "baz", qux: { quux: 42 } },
+        hello: { world: true },
+      }),
+      {
+        "foo.bar": "baz",
+        "foo.qux.quux": 42,
+        "hello.world": true,
+      },
+    )
+  })
+
+  await t.step("flattens objects with arrays", () => {
+    assertEquals(
+      flattenObject({
+        foo: { bar: ["a", "b"], qux: { quux: [1, 2] } },
+        hello: { world: [true, false] },
+      }),
+      {
+        "foo.bar": ["a", "b"],
+        "foo.qux.quux": [1, 2],
+        "hello.world": [true, false],
+      },
+    )
+  })
+
+  await t.step("handles nulls and undefined values", () => {
+    assertEquals(
+      flattenObject({
+        foo: { bar: null, qux: { quux: undefined } },
+        hello: { world: undefined },
+      }),
+      {
+        "foo.bar": null,
+        "foo.qux.quux": undefined,
+        "hello.world": undefined,
+      },
+    )
+  })
+
+  await t.step("flattens a deeply nested object", () => {
+    assertEquals(
+      flattenObject({
+        a: { b: { c: { d: { e: { f: { g: { h: { i: { j: "deep" } } } } } } } } },
+      }),
+      {
+        "a.b.c.d.e.f.g.h.i.j": "deep",
+      },
+    )
   })
 })
