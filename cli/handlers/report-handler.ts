@@ -1,10 +1,10 @@
 import { join } from "std:path"
 import { makeRunWithLimit as makeLimit } from "run-with-limit"
 
-import { yieldActionData } from "../../libs/metrics/github-action-data.ts"
+import { sortPullCommitsByKey } from "../../libs/github/utils/mod.ts"
 
 import { ActionRun, ActionWorkflow, BoundGithubPullCommit, getGithubClient } from "../../libs/github/mod.ts"
-import { yieldPullRequestData, yieldPullRequestHistogram } from "../../libs/metrics/mod.ts"
+import { yieldPullRequestData, yieldPullRequestHistogram, yieldActionData } from "../../libs/metrics/mod.ts"
 import {
   arraySubtract,
   arrayToAsyncGenerator,
@@ -151,16 +151,7 @@ export async function reportHandler(
       join(outputDir, `github-pull-commits-data.csv`),
       githubPullCommitsAsCsv(inspectIter(
         () => dot(),
-        arrayToAsyncGenerator(pullCommits.sort((a, b) => {
-          const aVal = a.commit?.author?.date
-          const aT = aVal ? new Date(aVal).getTime() : 0
-          const bVal = b.commit?.author?.date
-          const bT = bVal ? new Date(bVal).getTime() : 0
-          if (aT === bT) return 0
-          if (aT < bT) return -1
-          if (aT > bT) return 1
-          throw new Error("Error sorting")
-        })),
+        arrayToAsyncGenerator(sortPullCommitsByKey(pullCommits, "commit.author")),
       )),
       {
         header: reorganizeHeaders(githubPullCommitHeaders, {
