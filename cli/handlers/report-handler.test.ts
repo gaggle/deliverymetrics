@@ -74,7 +74,7 @@ function getPullOutputName(el: PullOutputName): PullOutputName {
 
 Deno.test({
   fn: async (t) => {
-    await withReportHandler(t, "with a simple pull", async ({outputDir, t}) => {
+    await withReportHandler(t, "with a simple pull", async ({ outputDir, t }) => {
       await t.step("formats all pull request data as expected", async () => {
         await withCsvContent((content) => {
           assertEquals(content.length, 1)
@@ -127,7 +127,7 @@ Deno.test({
     }, {
       githubClientData: {
         pulls: [
-          getFakePull({number: 1, created_at: "1981-01-01T00:00:00Z"}),
+          getFakePull({ number: 1, created_at: "1981-01-01T00:00:00Z" }),
         ],
         syncInfos: [
           getFakeSyncInfo({
@@ -140,7 +140,7 @@ Deno.test({
       expectedFiles: ["github-pulls-data.csv"],
     })
 
-    await withReportHandler(t, "with a pull that's closed but not merged", async ({outputDir, t}) => {
+    await withReportHandler(t, "with a pull that's closed but not merged", async ({ outputDir, t }) => {
       await t.step('sets "Was Cancelled?" to true', async () => {
         // ↑ encoded to avoid outputting literal newlines that can confuse the csv format
         await withCsvContent((content) => {
@@ -166,7 +166,7 @@ Deno.test({
       expectedFiles: ["github-pulls-data.csv"],
     })
 
-    await withReportHandler(t, "with two closed pulls", async ({outputDir, t}) => {
+    await withReportHandler(t, "with two closed pulls", async ({ outputDir, t }) => {
       await t.step("formats daily pull-request lead times as expected", async () => {
         await withCsvContent((content) => {
           assertEquals(single(content), {
@@ -208,7 +208,7 @@ Deno.test({
     }, {
       githubClientData: {
         pulls: [
-          getFakePull({number: 4, created_at: "1984-01-01T00:00:00Z", merged_at: "1984-01-05T00:00:00Z"}),
+          getFakePull({ number: 4, created_at: "1984-01-01T00:00:00Z", merged_at: "1984-01-05T00:00:00Z" }),
         ],
         syncInfos: [
           getFakeSyncInfo({
