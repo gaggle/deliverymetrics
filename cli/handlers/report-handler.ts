@@ -4,7 +4,7 @@ import { makeRunWithLimit as makeLimit } from "run-with-limit"
 import { sortPullCommitsByKey } from "../../libs/github/utils/mod.ts"
 
 import { ActionRun, ActionWorkflow, BoundGithubPullCommit, getGithubClient } from "../../libs/github/mod.ts"
-import { yieldPullRequestData, yieldPullRequestHistogram, yieldActionData } from "../../libs/metrics/mod.ts"
+import { yieldActionData, yieldPullRequestData, yieldPullRequestHistogram } from "../../libs/metrics/mod.ts"
 import {
   arraySubtract,
   arrayToAsyncGenerator,
