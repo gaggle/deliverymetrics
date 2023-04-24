@@ -1,3 +1,4 @@
+import * as z from "zod"
 import { FakeTime } from "dev:time"
 import { assert, IsExact } from "dev:conditional-type-checks"
 import { assertEquals, assertRejects, assertThrows } from "dev:asserts"
@@ -11,6 +12,7 @@ import {
   arrayToAsyncGenerator,
   asyncSingle,
   asyncToArray,
+  extractZodSchemaKeys,
   first,
   flattenObject,
   getEnv,
@@ -24,6 +26,7 @@ import {
   regexIntersect,
   single,
   sleep,
+  stringifyObject,
   stringifyPull,
   stringifyUpdatedPull,
   throttle,
@@ -537,5 +540,126 @@ Deno.test("flattenObject", async (t) => {
         "a.b.c.d.e.f.g.h.i.j": "deep",
       },
     )
+  })
+})
+
+Deno.test("extractZodSchemaKeys", async (t) => {
+  await t.step("extracts trivial schema", () => {
+    assertEquals(extractZodSchemaKeys(z.string()), "ZodString")
+    assertEquals(extractZodSchemaKeys(z.object({ foo: z.string() })), { foo: "ZodString" })
+  })
+
+  await t.step("extracts nested schema", () => {
+    assertEquals(
+      extractZodSchemaKeys(z.object({ foo: z.object({ bar: z.string() }) })),
+      { foo: { bar: "ZodString" } },
+    )
+    assertEquals(
+      extractZodSchemaKeys(z.object({ foo: z.object({ bar: z.object({ baz: z.string() }) }) })),
+      { foo: { bar: { baz: "ZodString" } } },
+    )
+  })
+
+  await t.step("extracts simple array schema", () => {
+    assertEquals(extractZodSchemaKeys(z.array(z.string())), "ZodArray")
+    assertEquals(extractZodSchemaKeys(z.object({ foo: z.array(z.string()) })), { foo: "ZodArray" })
+  })
+
+  await t.step("extracts deeply nested array schema", () => {
+    assertEquals(
+      extractZodSchemaKeys(z.object({ foo: z.array(z.object({ bar: z.object({ baz: z.string() }) })) })),
+      { foo: "ZodArray" },
+    )
+  })
+
+  await t.step("extracts simple number", () => {
+    assertEquals(
+      extractZodSchemaKeys(z.object({ foo: z.number().positive().min(1).max(100) })),
+      { foo: "ZodNumber" },
+    )
+  })
+
+  await t.step("extracts simple literal", () => {
+    assertEquals(extractZodSchemaKeys(z.literal("foo")), "ZodLiteral(foo)")
+    assertEquals(extractZodSchemaKeys(z.object({ foo: z.literal("foo") })), { foo: "ZodLiteral(foo)" })
+  })
+
+  await t.step("extracts simple unioned literals", () => {
+    const schema = z.union([z.literal("bar"), z.literal("baz")])
+    const expected = "ZodUnion ZodLiteral(bar) ZodLiteral(baz)"
+    assertEquals(extractZodSchemaKeys(schema), expected)
+    assertEquals(extractZodSchemaKeys(z.object({ foo: schema })), { foo: expected })
+  })
+
+  await t.step("extracts simple union details", () => {
+    const schema = z.union([z.string(), z.null()])
+    const expected = "ZodString"
+    assertEquals(extractZodSchemaKeys(schema), expected)
+    assertEquals(extractZodSchemaKeys(z.object({ foo: schema })), { foo: expected })
+  })
+
+  await t.step("extracts nested nullable schema", () => {
+    const schema = z.object({ ham: z.object({ spam: z.string() }) })
+    const expected = { ham: { spam: "ZodString" } }
+    assertEquals(extractZodSchemaKeys(schema.nullable()), expected)
+    assertEquals(extractZodSchemaKeys(z.union([schema, z.null()])), expected)
+    assertEquals(extractZodSchemaKeys(z.union([z.null(), schema])), expected)
+    assertEquals(extractZodSchemaKeys(z.object({ foo: z.union([schema, z.null()]) })), { foo: expected })
+  })
+
+  await t.step("extracts nested optional schema", () => {
+    const schema = z.object({ ham: z.object({ spam: z.string() }) })
+    const expected = { ham: { spam: "ZodString" } }
+    assertEquals(extractZodSchemaKeys(schema.optional()), expected)
+    assertEquals(extractZodSchemaKeys(z.object({ foo: schema.optional() })), { foo: expected })
+  })
+
+  await t.step("extracts nested nullable & optional schema", () => {
+    const schema = z.object({ ham: z.object({ spam: z.string() }) })
+    const expected = { ham: { spam: "ZodString" } }
+    assertEquals(extractZodSchemaKeys(schema.nullable().optional()), expected)
+    assertEquals(extractZodSchemaKeys(z.union([schema, z.null()]).optional()), expected)
+    assertEquals(extractZodSchemaKeys(z.object({ foo: z.union([schema, z.null()]).optional() })), { foo: expected })
+  })
+})
+
+Deno.test("stringifyObject", async (t) => {
+  await t.step("handles empty object", () => {
+    assertEquals(stringifyObject({}), {})
+  })
+
+  await t.step("handles string value", () => {
+    assertEquals(stringifyObject({ foo: "bar" }), { foo: "bar" })
+  })
+
+  await t.step("handles number", () => {
+    assertEquals(stringifyObject({ foo: 1 }), { foo: "1" })
+  })
+
+  await t.step("handles boolean", () => {
+    assertEquals(stringifyObject({ foo: true }), { foo: "true" })
+  })
+
+  await t.step("handles date", () => {
+    assertEquals(stringifyObject({ foo: new Date(0) }), { foo: "1970-01-01T00:00:00.000Z" })
+  })
+
+  await t.step("handles nested object", () => {
+    assertEquals(
+      stringifyObject({ foo: { bar: 42, baz: "test", ham: true, spam: { eggs: 1 } } }),
+      { foo: { bar: "42", baz: "test", ham: "true", spam: { eggs: "1" } } },
+    )
+  })
+
+  await t.step("handles array values", () => {
+    assertEquals(stringifyObject({ foo: [1, "bar", true, { a: 42 }] }), { foo: '"1"; "bar"; "true"; {"a":"42"}' })
+  })
+
+  await t.step("discards undefined without stringifyUndefined option", () => {
+    assertEquals(stringifyObject({ foo: undefined }), {})
+  })
+
+  await t.step("considers undefined an empty string with stringifyUndefined option", () => {
+    assertEquals(stringifyObject({ foo: undefined }, { stringifyUndefined: true }), { foo: "" })
   })
 })

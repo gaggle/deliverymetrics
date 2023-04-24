@@ -370,3 +370,93 @@ export function flattenObject<T extends NestedObject<unknown>>(obj: T): Record<s
 
   return inner(obj)
 }
+
+type NestedObject<T> = { [key: string]: NestedObject<T> | T } | Record<string, T>
+
+export function extractZodSchemaKeys<T extends z.ZodObject<Shape>, Shape extends z.ZodRawShape>(
+  schema: T,
+): NestedObject<string>
+export function extractZodSchemaKeys<T extends z.ZodTypeAny>(schema: T): NestedObject<string> | string
+export function extractZodSchemaKeys<T extends z.ZodTypeAny>(schema: T): NestedObject<string> | string {
+  /**
+   * Recursively extracts the inner types of a Zod schema.
+   */
+  function inner<U extends z.ZodTypeAny>(schema: U): NestedObject<string> | string {
+    // There is a special union edge-case where it has a single proper type and one ZodNull,
+    // in that case we should recursively extract the inner type because it mirrors the .nullable()/.optional() behavior
+    if (
+      schema instanceof z.ZodUnion &&
+      schema._def.options.length === 2 &&
+      schema._def.options.some((el: unknown) => el instanceof z.ZodNull)
+    ) {
+      return inner(schema._def.options[schema._def.options[0] instanceof z.ZodNull ? 1 : 0])
+    }
+
+    // An optional or nullable type covers up a proper inner type which we need to extract
+    if (schema instanceof z.ZodOptional || schema instanceof z.ZodNullable) {
+      return inner(schema._def.innerType)
+    }
+
+    // An object needs to be recursively extracted
+    if (schema instanceof z.ZodObject) {
+      const shape = schema.shape
+      const result: NestedObject<string> = {}
+      for (const key in shape) {
+        if (!Object.hasOwn(shape, key)) continue
+        result[key] = inner(shape[key])
+      }
+      return result
+    }
+
+    // Normal unions can't be extracted because they could contain anything, so we just return the union name
+    if (schema instanceof z.ZodUnion) {
+      return `${getZodName(schema)} ${schema._def.options.map((el: z.ZodTypeAny) => getZodName(el)).join(" ")}`
+    }
+
+    // In all other cases just return the name of the type
+    return getZodName(schema)
+  }
+  return inner(schema)
+}
+
+function getZodName(schema: z.ZodTypeAny): string {
+  let msg = schema.constructor.name
+
+  if (schema instanceof z.ZodLiteral) {
+    msg += `(${schema._def.value})`
+  }
+
+  return msg
+}
+
+type StringifyObjectOpts = Partial<{ stringifyUndefined: boolean }>
+
+export function stringifyObject<T>(obj: Record<string, z.Scalars>, opts?: StringifyObjectOpts): Record<string, string>
+export function stringifyObject<T>(obj: NestedObject<T>, opts?: StringifyObjectOpts): NestedObject<string>
+export function stringifyObject<T>(obj: NestedObject<T>, opts: StringifyObjectOpts = {}): NestedObject<string> {
+  function stringifyLeafNode(value: unknown): NestedObject<string> | string {
+    if (typeof value === "string") {
+      return value
+    } else if (value instanceof Date) {
+      return value.toISOString()
+    } else if (Array.isArray(value)) {
+      return value.map((el) => JSON.stringify(stringifyLeafNode(el))).join("; ")
+    } else if (isPlainObject(value)) {
+      return stringifyObject(value)
+    } else if (value === undefined && opts.stringifyUndefined) {
+      return ""
+    } else {
+      return JSON.stringify(value)
+    }
+  }
+
+  const result: NestedObject<string> = {}
+  for (const [key, val] of Object.entries(obj)) {
+    result[key] = stringifyLeafNode(val)
+  }
+  return JSON.parse(JSON.stringify(result))
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value) && !(value instanceof Date)
+}
