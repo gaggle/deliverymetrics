@@ -17,22 +17,17 @@ import {
 import { AbortError } from "../../libs/errors.ts"
 
 import {
-  GithubPullCommitHeaders,
+  githubActionRunAsCsv,
+  githubActionRunHeaders,
+  githubActionWorkflowAsCsv,
+  githubActionWorkflowHeaders,
   githubPullCommitHeaders,
   githubPullCommitsAsCsv,
-} from "../csv/csv-github-pull-commit-headers.ts"
-import { GithubPullHeaders, githubPullHeaders, githubPullsAsCsv } from "../csv/csv-github-pull-headers.ts"
-import {
-  githubActionRunAsCsv,
-  GithubActionRunHeaders,
-  githubActionRunHeaders,
-} from "../csv/csv-github-action-run-headers.ts"
-import {
-  githubActionWorkflowAsCsv,
-  GithubActionWorkflowHeaders,
-  githubActionWorkflowHeaders,
-} from "../csv/csv-github-action-workflows-headers.ts"
-import { pullRequestHistogramAsCsv, pullRequestHistogramHeaders } from "../csv/csv-pull-request-histogram-headers.ts"
+  githubPullHeaders,
+  githubPullsAsCsv,
+  pullRequestHistogramAsCsv,
+  pullRequestHistogramHeaders,
+} from "../csv/mod.ts"
 
 import { dot, formatGithubClientStatus } from "./formatting.ts"
 
@@ -46,22 +41,22 @@ export interface ReportSpec {
   cacheRoot: string
   github: {
     actionRuns?: {
-      ignoreHeaders: Array<GithubActionRunHeaders[number]>
-      headerOrder: Array<GithubActionRunHeaders[number]>
+      ignoreHeaders: Array<typeof githubActionRunHeaders[number]>
+      headerOrder: Array<typeof githubActionRunHeaders[number]>
       branch?: string
     }
     actionWorkflows?: {
-      ignoreHeaders: Array<GithubActionWorkflowHeaders[number]>
-      headerOrder: Array<GithubActionWorkflowHeaders[number]>
+      ignoreHeaders: Array<typeof githubActionWorkflowHeaders[number]>
+      headerOrder: Array<typeof githubActionWorkflowHeaders[number]>
     }
     owner: string
     pullCommits?: {
-      ignoreHeaders: Array<GithubPullCommitHeaders[number]>
-      headerOrder: Array<GithubPullCommitHeaders[number]>
+      ignoreHeaders: Array<typeof githubPullCommitHeaders[number]>
+      headerOrder: Array<typeof githubPullCommitHeaders[number]>
     }
     pulls?: {
-      ignoreHeaders: Array<GithubPullHeaders[number]>
-      headerOrder: Array<GithubPullHeaders[number]>
+      ignoreHeaders: Array<typeof githubPullHeaders[number]>
+      headerOrder: Array<typeof githubPullHeaders[number]>
       ignoreLabels: Array<string | RegExp>
       includeCancelled: boolean
     }
