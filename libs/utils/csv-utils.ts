@@ -2,7 +2,7 @@ import { CSVWriteCellOptions, CSVWriterOptions, writeCSVObjects } from "csv"
 import { ensureFile } from "std:fs"
 
 import { withFileOpen, withTempFile } from "./path-and-file-utils.ts"
-import { inspectIter } from "./utils.ts"
+import { arraySubtract, mapIter } from "./utils.ts"
 
 export async function writeCSVToFile(
   fp: string,
@@ -15,7 +15,15 @@ export async function writeCSVToFile(
       async (f) => {
         await writeCSVObjects(
           f,
-          inspectIter(() => hasIterated = true, iter),
+          mapIter((el) => {
+            hasIterated = true
+
+            const missingKeys = arraySubtract(options.header, Object.keys(el))
+            for (const key of missingKeys) {
+              el[key] = ""
+            }
+            return el
+          }, iter),
           options,
         )
       },
