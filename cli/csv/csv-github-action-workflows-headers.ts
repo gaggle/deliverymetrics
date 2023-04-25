@@ -1,38 +1,23 @@
-import { ActionWorkflow, actionWorkflowSchema } from "../../libs/github/schemas/github-action-workflow.ts"
+import { actionWorkflowSchema } from "../../libs/github/schemas/mod.ts"
 
-import { yieldActionData } from "../../libs/metrics/github-action-data.ts"
-
-import { ToTuple } from "../../libs/types.ts"
+import { yieldActionData } from "../../libs/metrics/mod.ts"
+import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../libs/utils/mod.ts"
 
 const extraHeaders = [] as const
 
 export const githubActionWorkflowHeaders = [
   ...extraHeaders,
-  ...Object.keys(actionWorkflowSchema.shape).sort(),
-] as unknown as GithubActionWorkflowHeaders
+  ...Object.keys(flattenObject(extractZodSchemaKeys(actionWorkflowSchema))).sort(),
+]
 
-type GithubActionWorkflowHeader = typeof extraHeaders[number] | keyof ActionWorkflow
-
-export type GithubActionWorkflowHeaders = ToTuple<GithubActionWorkflowHeader>
-
-export type GithubActionWorkflowRow = Record<GithubActionWorkflowHeaders[number], string>
+export type GithubActionWorkflowRow = Record<typeof githubActionWorkflowHeaders[number], string>
 
 export async function* githubActionWorkflowAsCsv(
   iter: ReturnType<typeof yieldActionData>,
 ): AsyncGenerator<GithubActionWorkflowRow> {
   for await (const { actionWorkflow } of iter) {
     yield {
-      id: actionWorkflow.id.toString(),
-      node_id: actionWorkflow.node_id,
-      name: actionWorkflow.name,
-      path: actionWorkflow.path,
-      state: actionWorkflow.state,
-      created_at: actionWorkflow.created_at,
-      updated_at: actionWorkflow.updated_at,
-      url: actionWorkflow.url,
-      html_url: actionWorkflow.html_url,
-      badge_url: actionWorkflow.badge_url,
-      deleted_at: actionWorkflow.deleted_at || "",
+      ...stringifyObject(flattenObject(actionWorkflow), { stringifyUndefined: true }),
     }
   }
 }
