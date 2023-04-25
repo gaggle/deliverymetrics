@@ -3,8 +3,7 @@ import { deepMerge } from "std:deep-merge"
 
 import { fetchExhaustively } from "../../fetching/mod.ts"
 
-import { createGithubRequest } from "../utils/create-github-request.ts"
-
+import { createGithubRequest } from "../utils/mod.ts"
 import { ActionWorkflow, githubRestSpec } from "../schemas/mod.ts"
 
 type FetchWorkflowsOpts = { fetchLike: typeof fetch }

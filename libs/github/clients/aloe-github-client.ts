@@ -9,7 +9,7 @@ import { retrierFactory } from "../../fetching/mod.ts"
 import { AbortError } from "../../errors.ts"
 import { Epoch } from "../../types.ts"
 
-import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../utils/sorting.ts"
+import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../utils/mod.ts"
 
 import {
   ActionRun,

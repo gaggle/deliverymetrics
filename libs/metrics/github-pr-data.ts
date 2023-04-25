@@ -1,8 +1,6 @@
 import { BoundGithubPullCommit, GithubPull, isMergedGithubPull, ReadonlyGithubClient } from "../github/schemas/mod.ts"
 
-import { daysBetween } from "../utils/date-utils.ts"
-
-import { asyncToArray, filterIter, regexIntersect } from "../utils/mod.ts"
+import { asyncToArray, daysBetween, filterIter, regexIntersect } from "../utils/mod.ts"
 
 import { AbortError } from "../errors.ts"
 

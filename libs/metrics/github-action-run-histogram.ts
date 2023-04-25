@@ -8,10 +8,8 @@
  * This metric is useful to answer how often deployments are made (by looking at the workflow that handles deploying),
  * or finding instabilities or bad work-practices that cause a workflow to fail.
  */
-import { dayEnd, dayStart, monthEnd, monthStart, weekEnd, weekStart } from "../utils/date-utils.ts"
-
+import { assertUnreachable, dayEnd, dayStart, monthEnd, monthStart, weekEnd, weekStart } from "../utils/mod.ts"
 import { ActionRun, ActionWorkflow, ReadonlyGithubClient } from "../github/mod.ts"
-import { assertUnreachable } from "../utils/mod.ts"
 
 import { AbortError } from "../errors.ts"
 

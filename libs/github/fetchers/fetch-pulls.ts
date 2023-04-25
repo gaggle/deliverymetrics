@@ -7,8 +7,7 @@ import { stringifyPull } from "../../utils/mod.ts"
 
 import { Epoch } from "../../types.ts"
 
-import { createGithubRequest } from "../utils/create-github-request.ts"
-
+import { createGithubRequest } from "../utils/mod.ts"
 import { GithubPull, githubRestSpec } from "../schemas/mod.ts"
 
 type FetchPullsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
