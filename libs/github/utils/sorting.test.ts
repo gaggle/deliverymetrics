@@ -6,8 +6,14 @@ import { sortPullCommitsByKey, sortPullsByKey } from "./sorting.ts"
 
 Deno.test("sortPullsByKey", async (t) => {
   await t.step("should sort by created_at by default", function () {
-    const fakePull1 = getFakePull({ created_at: "1999-01-01T00:00:00Z" })
-    const fakePull2 = getFakePull({ created_at: "2000-01-01T00:00:00Z" })
+    const fakePull1 = getFakePull({
+      created_at: "1999-01-01T00:00:00Z",
+      updated_at: "1990-01-01T00:00:00Z",
+    })
+    const fakePull2 = getFakePull({
+      created_at: "2000-01-01T00:00:00Z",
+      updated_at: "1991-01-01T00:00:00Z",
+    })
     assertEquals(sortPullsByKey([fakePull2, fakePull1]), [
       fakePull1,
       fakePull2,

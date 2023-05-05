@@ -337,7 +337,7 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
 
             assertSpyCalls(fetchPullCommitsStub, 1)
             assertObjectMatch(fetchPullCommitsStub.calls[0].args, {
-              "0": { commits_url: "https://api.github.com/repos/owner/repo/pulls/2/commits" },
+              "0": { commits_url: "https://api.github.com/repos/octocat/Hello-World/pulls/2/commits" },
               "1": "token",
             })
           }, {
