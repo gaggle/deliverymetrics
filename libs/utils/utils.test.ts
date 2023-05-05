@@ -20,6 +20,7 @@ import {
   mapFilter,
   mapIter,
   mergeAsyncGenerators,
+  parseRegexLike,
   pluralize,
   regexIntersect,
   single,
@@ -640,5 +641,15 @@ Deno.test("stringifyObject", async (t) => {
 
   await t.step("considers undefined an empty string with stringifyUndefined option", () => {
     assertEquals(stringifyObject({ foo: undefined }, { stringifyUndefined: true }), { foo: "" })
+  })
+})
+
+Deno.test("parseRegexLike", async (t) => {
+  await t.step("parses a regex-like string to a RegExp", () => {
+    assertEquals(parseRegexLike("/.*/"), new RegExp(".*"))
+  })
+
+  await t.step("throws if not regex-like", () => {
+    assertThrows(() => parseRegexLike("foo/"), Deno.errors.InvalidData)
   })
 })

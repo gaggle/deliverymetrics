@@ -452,3 +452,36 @@ export function stringifyObject<T>(obj: NestedObject<T>, opts: StringifyObjectOp
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value) && !(value instanceof Date)
 }
+
+/**
+ * A RegExp object to match strings that follow the pattern of a regular expression
+ * (i.e., start and end with a forward slash)
+ */
+const regexLikePattern = new RegExp("^/.*/$")
+
+/**
+ * Determines if a given string follows the pattern of a regular expression
+ * (i.e., starts and ends with a forward slash).
+ *
+ * @example
+ * isRegexLike('/abc/'); // Returns: true
+ * isRegexLike('def');   // Returns: false
+ */
+export function isRegexLike(regexLike: string): boolean {
+  return regexLikePattern.test(regexLike)
+}
+
+/**
+ * Parses a regex-like string (i.e., starts and ends with a forward slash)
+ * and returns a RegExp object. Throws error if input string is not regex-like.
+ *
+ * @example
+ * parseRegexLike('/abc/'); // Returns: RegExp(/abc/)
+ * parseRegexLike('def'); // Throws: Deno.errors.InvalidData: Not regex-like: def
+ */
+export function parseRegexLike(regexLike: string): RegExp {
+  if (!isRegexLike(regexLike)) {
+    throw new Deno.errors.InvalidData(`Not regex-like: ${regexLike}`)
+  }
+  return new RegExp(regexLike.slice(1, -1))
+}
