@@ -1,6 +1,7 @@
 import { handlers, setup as logSetup } from "std:log"
 import { dirname, join, resolve } from "std:path"
 
+import { isRegexLike, parseRegexLike } from "../libs/utils/mod.ts"
 import { parseGithubUrl } from "../libs/github/mod.ts"
 
 import { yargs, YargsArguments, YargsInstance } from "../cli/yargs.ts"
@@ -141,22 +142,22 @@ export function main(args: Array<string>) {
             ...parseGithubUrl(githubSync.repo),
             actionRuns: {
               branch: configReport.github?.actionRuns?.branch,
-              ignoreHeaders: configReport.github?.actionRuns?.ignore_headers || [],
-              headerOrder: configReport.github?.actionRuns?.header_order || [],
+              headerOrder: parseRegexLikeStringArray(configReport.github?.actionRuns?.header_order) || [],
+              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.actionRuns?.ignore_headers) || [],
             },
             actionWorkflows: {
-              ignoreHeaders: configReport.github?.actionWorkflows?.ignore_headers || [],
-              headerOrder: configReport.github?.actionWorkflows?.header_order || [],
+              headerOrder: parseRegexLikeStringArray(configReport.github?.actionWorkflows?.header_order) || [],
+              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.actionWorkflows?.ignore_headers) || [],
             },
             pullCommits: {
-              ignoreHeaders: configReport.github?.pullCommits?.ignore_headers || [],
-              headerOrder: configReport.github?.pullCommits?.header_order || [],
+              headerOrder: parseRegexLikeStringArray(configReport.github?.pullCommits?.header_order) || [],
+              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.pullCommits?.ignore_headers) || [],
             },
             pulls: {
-              ignoreHeaders: configReport.github?.pulls?.ignore_headers || [],
+              headerOrder: parseRegexLikeStringArray(configReport.github?.pulls?.header_order) || [],
+              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.pulls?.ignore_headers) || [],
               ignoreLabels: configReport.github?.pulls?.ignore_labels || [],
               includeCancelled: configReport.github?.pulls?.include_cancelled || false,
-              headerOrder: configReport.github?.pulls?.header_order || [],
             },
           },
           outputDir: resolve(dirname(argv.config.fp), configReport.outdir),
@@ -172,4 +173,21 @@ export function main(args: Array<string>) {
     .demandCommand(1)
     .wrap(120)
     .parse()
+}
+
+/**
+ * Takes an array of strings and returns a new array where each element
+ * is either a string or a RegExp object.
+ *
+ * If an element in the input array matches the format of a regular expression string
+ * (i.e., starts and ends with a forward slash),
+ * it will be converted to a RegExp object.
+ * Otherwise, the original string will be used.
+ *
+ * @example
+ * parseRegexLikeStringArray(['/abc/', 'def', '/^123$/']);
+ * // Returns: [RegExp(/abc/), 'def', RegExp(/^123$/)]
+ */
+function parseRegexLikeStringArray(inputStrings: Array<string>): Array<string | RegExp> {
+  return inputStrings.map((str: string) => isRegexLike(str) ? parseRegexLike(str) : str)
 }
