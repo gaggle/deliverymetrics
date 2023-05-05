@@ -1,25 +1,19 @@
 {
   "importMap": "import_map.json",
   "lint": {
-    "files": {
-      "include": [
-        "cli",
-        "dev-fixtures",
-        "libs"
-      ]
-    }
+    "include": [
+      "cli",
+      "dev-fixtures",
+      "libs"
+    ]
   },
   "fmt": {
-    "files": {
-      "include": [
-        "cli",
-        "dev-fixtures",
-        "libs"
-      ]
-    },
-    "options": {
-      "lineWidth": 120,
-      "semiColons": false
-    }
+    "include": [
+      "cli",
+      "dev-fixtures",
+      "libs"
+    ],
+    "lineWidth": 120,
+    "semiColons": false
   }
 }
