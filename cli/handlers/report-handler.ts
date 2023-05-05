@@ -41,22 +41,22 @@ export interface ReportSpec {
   cacheRoot: string
   github: {
     actionRuns?: {
-      ignoreHeaders: Array<typeof githubActionRunHeaders[number]>
-      headerOrder: Array<typeof githubActionRunHeaders[number]>
+      headerOrder: Array<typeof githubActionRunHeaders[number] | RegExp>
+      ignoreHeaders: Array<typeof githubActionRunHeaders[number] | RegExp>
       branch?: string
     }
     actionWorkflows?: {
-      ignoreHeaders: Array<typeof githubActionWorkflowHeaders[number]>
-      headerOrder: Array<typeof githubActionWorkflowHeaders[number]>
+      headerOrder: Array<typeof githubActionWorkflowHeaders[number] | RegExp>
+      ignoreHeaders: Array<typeof githubActionWorkflowHeaders[number] | RegExp>
     }
     owner: string
     pullCommits?: {
-      ignoreHeaders: Array<typeof githubPullCommitHeaders[number]>
-      headerOrder: Array<typeof githubPullCommitHeaders[number]>
+      headerOrder: Array<typeof githubPullCommitHeaders[number] | RegExp>
+      ignoreHeaders: Array<typeof githubPullCommitHeaders[number] | RegExp>
     }
     pulls?: {
-      ignoreHeaders: Array<typeof githubPullHeaders[number]>
-      headerOrder: Array<typeof githubPullHeaders[number]>
+      headerOrder: Array<typeof githubPullHeaders[number] | RegExp>
+      ignoreHeaders: Array<typeof githubPullHeaders[number] | RegExp>
       ignoreLabels: Array<string | RegExp>
       includeCancelled: boolean
     }
