@@ -4,9 +4,7 @@ import { readCSVObjects } from "csv"
 import { stub } from "dev:mock"
 
 import { createFakeReadonlyGithubClient, getFakePull, getFakeSyncInfo } from "../../libs/github/testing.ts"
-import { withFileOpen, withTempDir, yieldDir } from "../../libs/utils/path-and-file-utils.ts"
-
-import { asyncToArray, single } from "../../libs/utils/mod.ts"
+import { asyncToArray, single, withFileOpen, withTempDir, yieldDir } from "../../libs/utils/mod.ts"
 
 import { withStubs } from "../../libs/dev-utils.ts"
 
