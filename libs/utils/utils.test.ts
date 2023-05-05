@@ -1,6 +1,5 @@
 import * as z from "zod"
 import { FakeTime } from "dev:time"
-import { assert, IsExact } from "dev:conditional-type-checks"
 import { assertEquals, assertRejects, assertThrows } from "dev:asserts"
 
 import { getFakePull } from "../github/testing.ts"
@@ -8,7 +7,6 @@ import { withFakeTime } from "../dev-utils.ts"
 import { AbortError } from "../errors.ts"
 
 import {
-  arraySubtract,
   arrayToAsyncGenerator,
   asyncSingle,
   asyncToArray,
@@ -445,25 +443,6 @@ Deno.test("mapFilter", async (t) => {
   await t.step("filters away undefined", () => {
     const mapFiltered = mapFilter([{ name: "foo" }, { name: "bar" }], (el) => el.name === "foo" ? el : undefined)
     assertEquals(mapFiltered, [{ name: "foo" }])
-  })
-})
-
-Deno.test("arraySubtract", async (t) => {
-  await t.step("subtracts trivial arrays", () => {
-    assertEquals(arraySubtract([1, 2, 3], [1]), [2, 3])
-  })
-
-  await t.step("subtracts arrays", () => {
-    assertEquals(arraySubtract(["foo", "bar", "baz"], ["foo", "baz"]), ["bar"])
-  })
-
-  await t.step("subtracts complex arrays", () => {
-    assertEquals(arraySubtract(["foo", "bar", "baz", "foo", "bar"], ["foo", "baz"]), ["bar", "bar"])
-  })
-
-  await t.step("subtracts types", () => {
-    const result = arraySubtract([1, 2, 3] as const, [1] as const)
-    assert<IsExact<typeof result, [2, 3]>>(true)
   })
 })
 

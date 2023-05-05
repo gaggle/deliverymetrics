@@ -1,8 +1,7 @@
 import { CSVWriteCellOptions, CSVWriterOptions, writeCSVObjects } from "csv"
 import { ensureFile } from "std:fs"
 
-import { withFileOpen, withTempFile } from "./path-and-file-utils.ts"
-import { arraySubtract, mapIter } from "./utils.ts"
+import { arraySubtract, mapIter, withFileOpen, withTempFile } from "./mod.ts"
 
 export async function writeCSVToFile(
   fp: string,
