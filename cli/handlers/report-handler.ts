@@ -6,11 +6,11 @@ import { sortPullCommitsByKey } from "../../libs/github/utils/mod.ts"
 import { ActionRun, ActionWorkflow, BoundGithubPullCommit, getGithubClient } from "../../libs/github/mod.ts"
 import { yieldActionData, yieldPullRequestData, yieldPullRequestHistogram } from "../../libs/metrics/mod.ts"
 import {
-  arraySubtract,
   arrayToAsyncGenerator,
   inspectIter,
   mapIter,
   mergeAsyncGenerators,
+  reorganizeHeaders,
   writeCSVToFile,
 } from "../../libs/utils/mod.ts"
 
@@ -186,29 +186,6 @@ export async function reportHandler(
       throw err
     }
   }
-}
-
-/**
- * Reorganizes an array of header strings by excluding specified headers and
- * ordering remaining headers according to a given order.
- *
- * @example
- * const headers = ['Header1', 'Header2', 'Header3', 'Header4'];
- * const ignoreHeaders = ['Header3'];
- * const headerOrder = ['Header4', 'Header1'];
- * const result = reorganizeHeaders(headers, { ignoreHeaders, headerOrder });
- * console.log(result); // ['Header4', 'Header1', 'Header2']
- */
-function reorganizeHeaders(
-  headers: ReadonlyArray<string>,
-  { ignoreHeaders = [], headerOrder = [] }: {
-    ignoreHeaders?: ReadonlyArray<string>
-    headerOrder?: ReadonlyArray<string>
-  },
-): Array<string> {
-  const withoutIgnoredHeaders = arraySubtract(headers, ignoreHeaders)
-  const withoutOrderedHeaders = arraySubtract(withoutIgnoredHeaders, headerOrder)
-  return [...headerOrder, ...withoutOrderedHeaders]
 }
 
 export const _internals = {

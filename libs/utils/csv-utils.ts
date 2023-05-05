@@ -1,7 +1,8 @@
 import { CSVWriteCellOptions, CSVWriterOptions, writeCSVObjects } from "csv"
 import { ensureFile } from "std:fs"
+import { groupBy } from "std:group-by"
 
-import { arraySubtract, mapIter, withFileOpen, withTempFile } from "./mod.ts"
+import { arraySubtract, arraySubtractRegEx, mapIter, withFileOpen, withTempFile } from "./mod.ts"
 
 export async function writeCSVToFile(
   fp: string,
@@ -49,4 +50,64 @@ export function toExcelDate(date: Date): string {
   const min = date.getUTCMinutes().toString().padStart(2, "0")
   const sec = date.getUTCSeconds().toString().padStart(2, "0")
   return `${yyyy}/${mm}/${dd} ${hr}.${min}.${sec}`
+}
+
+/**
+ * Reorganizes an array of header strings by excluding specified headers and
+ * ordering remaining headers according to a given order.
+ *
+ * @example
+ * const headers = ['Header1', 'Header2', 'Header3', 'Header4'];
+ * const ignoreHeaders = ['Header3'];
+ * const headerOrder = ['Header4', 'Header1'];
+ * const result = reorganizeHeaders(headers, { ignoreHeaders, headerOrder });
+ * console.log(result); // ['Header4', 'Header1', 'Header2']
+ */
+export function reorganizeHeaders(
+  headers: Array<string>,
+  { headerOrder = [], ignoreHeaders = [] }: {
+    headerOrder?: Array<string | RegExp>
+    ignoreHeaders?: Array<string | RegExp>
+  },
+): Array<string> {
+  let filteredHeaders = [...headers]
+
+  if (ignoreHeaders.length > 0) {
+    filteredHeaders = arraySubtractRegEx(filteredHeaders, ignoreHeaders)
+  }
+
+  const { headerOrderRegexes, headerOrderStrings } = {
+    headerOrderRegexes: [],
+    headerOrderStrings: [],
+    ...groupBy(
+      headerOrder,
+      (el) => el instanceof RegExp ? "headerOrderRegexes" : "headerOrderStrings",
+    ),
+  } as { headerOrderRegexes: Array<RegExp>; headerOrderStrings: Array<string> }
+
+  const lookupHeaderOrder = (el: string) => {
+    let idx = headerOrderStrings.indexOf(el)
+    if (idx < 0 && !!headerOrderRegexes.find((re) => re.test(el))) idx = 0
+    return idx
+  }
+
+  filteredHeaders.sort((a, b) => {
+    const aI = lookupHeaderOrder(a)
+
+    const bI = lookupHeaderOrder(b)
+
+    let decision = 0
+    if (aI > -1 && bI > -1) {
+      decision = aI - bI
+    } else if (bI > -1) {
+      // b is in headerOrder, a is not, so b should be moved downwards
+      decision = bI + 1
+    } else if (aI > -1) {
+      // a is in headerOrder, b is not, so a should be moved upwards
+      decision = (aI + 1) * -1
+    }
+    return decision
+  })
+
+  return filteredHeaders
 }
