@@ -2,6 +2,7 @@ import * as z from "zod"
 import { deepMerge } from "std:deep-merge"
 
 import { fetchExhaustively } from "../../fetching/mod.ts"
+import { parseWithZodSchema } from "../../utils/mod.ts"
 
 import { Epoch } from "../../types.ts"
 
@@ -30,7 +31,7 @@ export async function* fetchCommits(
     }
 
     const data: z.infer<typeof githubRestSpec.commits.schema> = await resp.json()
-    githubRestSpec.commits.schema.parse(data)
+    parseWithZodSchema(data, githubRestSpec.commits.schema)
 
     for (const el of data) {
       yield el

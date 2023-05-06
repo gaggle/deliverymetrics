@@ -3,6 +3,7 @@ import { debug } from "std:log"
 import { deepMerge } from "std:deep-merge"
 
 import { fetchExhaustively } from "../../fetching/mod.ts"
+import { parseWithZodSchema } from "../../utils/mod.ts"
 
 import { Epoch } from "../../types.ts"
 
@@ -37,7 +38,7 @@ export async function* fetchActionRuns(
     }
 
     const data: z.infer<typeof githubRestSpec.actionRuns.schema> = await resp.json()
-    githubRestSpec.actionRuns.schema.parse(data)
+    parseWithZodSchema(data, githubRestSpec.actionRuns.schema)
 
     for (const el of data.workflow_runs) {
       if (newerThan) {

@@ -3,7 +3,7 @@ import { debug } from "std:log"
 import { deepMerge } from "std:deep-merge"
 
 import { fetchExhaustively } from "../../fetching/mod.ts"
-import { stringifyPull } from "../../utils/mod.ts"
+import { parseWithZodSchema, stringifyPull } from "../../utils/mod.ts"
 
 import { Epoch } from "../../types.ts"
 
@@ -32,7 +32,7 @@ export async function* fetchPulls(
     }
 
     const data: z.infer<typeof githubRestSpec.pulls.schema> = await resp.json()
-    githubRestSpec.pulls.schema.parse(data)
+    parseWithZodSchema(data, githubRestSpec.pulls.schema)
 
     for (const pull of data) {
       if (newerThan) {

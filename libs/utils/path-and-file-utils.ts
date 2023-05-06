@@ -4,6 +4,8 @@ import { ensureDir, ensureFile, walk } from "std:fs"
 
 import { JSONValue } from "../types.ts"
 
+import { parseWithZodSchema } from "./mod.ts"
+
 export async function pathExists(p: string): Promise<boolean> {
   try {
     await Deno.stat(p)
@@ -57,8 +59,7 @@ export async function readJsonFile<Schema extends z.ZodTypeAny>(
     }
     throw err
   }
-
-  return schema.parse(parsed)
+  return parseWithZodSchema(parsed, schema)
 }
 
 export async function ensureJson<Schema extends z.ZodTypeAny>(

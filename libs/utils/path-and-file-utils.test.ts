@@ -14,7 +14,8 @@ import {
   withTempFile,
   yieldDir,
 } from "./path-and-file-utils.ts"
-import { asyncToArray } from "./utils.ts"
+
+import { asyncToArray, EnrichedZodError } from "./mod.ts"
 
 const modulePath = fromFileUrl(import.meta.url)
 
@@ -73,7 +74,7 @@ Deno.test("readJsonFile", async (t) => {
     await withTempFile(async (fp) => {
       await assertRejects(
         () => readJsonFile(fp, z.object({ foo: z.string() })),
-        z.ZodError,
+        EnrichedZodError,
       )
     }, {
       suffix: "bad.json",

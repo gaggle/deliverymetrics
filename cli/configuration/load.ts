@@ -1,4 +1,4 @@
-import { safeReadFileSync } from "../../libs/utils/mod.ts"
+import { parseWithZodSchema, safeReadFileSync } from "../../libs/utils/mod.ts"
 
 import { Config, configSchema } from "./types.ts"
 
@@ -20,5 +20,6 @@ export function loadConfiguration(fp?: string, defaultPaths?: Array<string>): Co
     throw new Deno.errors.NotFound(`No configuration file could be loaded, tried: ${attempts.join(", ")}`)
   }
   const decoder = new TextDecoder("utf-8")
-  return { ...configSchema.parse(JSON.parse(decoder.decode(data))), fp }
+
+  return { ...parseWithZodSchema(JSON.parse(decoder.decode(data)), configSchema), fp }
 }

@@ -1,6 +1,7 @@
 import * as z from "zod"
 
 import { fetchExhaustively } from "../../fetching/mod.ts"
+import { parseWithZodSchema } from "../../utils/mod.ts"
 
 import { createGithubRequest } from "../utils/mod.ts"
 import { GithubPull, GithubPullCommit, githubRestSpec } from "../schemas/mod.ts"
@@ -24,7 +25,7 @@ export async function* fetchPullCommits(
     }
 
     const data: z.infer<typeof githubRestSpec.pullCommits.schema> = await resp.json()
-    githubRestSpec.pullCommits.schema.parse(data)
+    parseWithZodSchema(data, githubRestSpec.pullCommits.schema)
 
     for (const el of data) {
       yield el

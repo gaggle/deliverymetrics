@@ -2,6 +2,7 @@ import * as z from "zod"
 import { deepMerge } from "std:deep-merge"
 
 import { fetchExhaustively } from "../../fetching/mod.ts"
+import { parseWithZodSchema } from "../../utils/mod.ts"
 
 import { createGithubRequest } from "../utils/mod.ts"
 import { ActionWorkflow, githubRestSpec } from "../schemas/mod.ts"
@@ -28,7 +29,7 @@ export async function* fetchActionWorkflows(
     }
 
     const data: z.infer<typeof githubRestSpec.actionWorkflows.schema> = await resp.json()
-    githubRestSpec.actionWorkflows.schema.parse(data)
+    parseWithZodSchema(data, githubRestSpec.actionWorkflows.schema)
 
     for (const el of data.workflows) {
       yield el
