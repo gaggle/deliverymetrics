@@ -10,6 +10,7 @@ const extraHeaders = [
   "Commits Committers",
   "Commits Count",
   "Head Ref",
+  "Label Names",
 ] as const
 
 export const githubPullHeaders = [
@@ -30,6 +31,9 @@ export async function* githubPullsAsCsv(iter: ReturnType<typeof yieldPullRequest
         .join("; "),
       "Commits Count": el.commits.length.toString(),
       "Head Ref": el.pull.head.ref,
+      "Label Names": el.pull.labels
+        .map((el) => el.name)
+        .join("; "),
       "Lead Time (in days)": el.leadTime ? toDays(el.leadTime).toPrecision(2) : "",
       "Time to Merge (in days)": el.timeToMerge ? toDays(el.timeToMerge).toPrecision(2) : "",
       "Was Cancelled?": Boolean(el.pull.closed_at && el.pull.merged_at === null).toString(),

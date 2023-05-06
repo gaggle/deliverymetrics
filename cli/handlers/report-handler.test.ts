@@ -82,6 +82,7 @@ Deno.test({
             "Commits Committers",
             "Commits Count",
             "Head Ref",
+            "Label Names",
             "Lead Time (in days)",
             "Time to Merge (in days)",
             "Was Cancelled?",
