@@ -1,6 +1,5 @@
 import { CSVWriteCellOptions, CSVWriterOptions, writeCSVObjects } from "csv"
 import { ensureFile } from "std:fs"
-import { groupBy } from "std:group-by"
 
 import { arraySubtract, arraySubtractRegEx, mapIter, withFileOpen, withTempFile } from "./mod.ts"
 
@@ -76,25 +75,15 @@ export function reorganizeHeaders(
     filteredHeaders = arraySubtractRegEx(filteredHeaders, ignoreHeaders)
   }
 
-  const { headerOrderRegexes, headerOrderStrings } = {
-    headerOrderRegexes: [],
-    headerOrderStrings: [],
-    ...groupBy(
-      headerOrder,
-      (el) => el instanceof RegExp ? "headerOrderRegexes" : "headerOrderStrings",
-    ),
-  } as { headerOrderRegexes: Array<RegExp>; headerOrderStrings: Array<string> }
-
-  const lookupHeaderOrder = (el: string) => {
-    let idx = headerOrderStrings.indexOf(el)
-    if (idx < 0 && !!headerOrderRegexes.find((re) => re.test(el))) idx = 0
-    return idx
+  const lookupHeaderOrderIndex = (el: string) => {
+    const strIdx = headerOrder.indexOf(el)
+    const regIdx = headerOrder.findIndex((re) => re instanceof RegExp && re.test(el))
+    return Math.max(strIdx, regIdx)
   }
 
   filteredHeaders.sort((a, b) => {
-    const aI = lookupHeaderOrder(a)
-
-    const bI = lookupHeaderOrder(b)
+    const aI = lookupHeaderOrderIndex(a)
+    const bI = lookupHeaderOrderIndex(b)
 
     let decision = 0
     if (aI > -1 && bI > -1) {

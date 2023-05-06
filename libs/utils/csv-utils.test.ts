@@ -41,4 +41,41 @@ Deno.test("reorganizeHeaders", async (t) => {
       ["f1", "f3", "f2", "x3", "x2", "x1"],
     )
   })
+
+  await t.step("sorts a complex set of string & regex sorting specifications", () => {
+    const headers = [
+      "Lead Time (in days)",
+      "Time to Merge (in days)",
+      "Was Cancelled?",
+      "closed_at",
+      "created_at",
+      "merged_at",
+      "number",
+      "title",
+      "updated_at",
+    ]
+
+    const headerOrder = [
+      /.*_at$/,
+      "Was Cancelled?",
+      "Lead Time (in days)",
+      "Time to Merge (in days)",
+      "number",
+      "title",
+    ]
+    assertEquals(
+      reorganizeHeaders(headers, { headerOrder }),
+      [
+        "closed_at",
+        "created_at",
+        "merged_at",
+        "updated_at",
+        "Was Cancelled?",
+        "Lead Time (in days)",
+        "Time to Merge (in days)",
+        "number",
+        "title",
+      ],
+    )
+  })
 })
