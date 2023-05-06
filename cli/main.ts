@@ -142,20 +142,20 @@ export function main(args: Array<string>) {
             ...parseGithubUrl(githubSync.repo),
             actionRuns: {
               branch: configReport.github?.actionRuns?.branch,
-              headerOrder: parseRegexLikeStringArray(configReport.github?.actionRuns?.header_order) || [],
-              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.actionRuns?.ignore_headers) || [],
+              headerOrder: parseRegexLikeStringArray(configReport.github?.actionRuns?.header_order || []),
+              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.actionRuns?.ignore_headers || []),
             },
             actionWorkflows: {
-              headerOrder: parseRegexLikeStringArray(configReport.github?.actionWorkflows?.header_order) || [],
-              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.actionWorkflows?.ignore_headers) || [],
+              headerOrder: parseRegexLikeStringArray(configReport.github?.actionWorkflows?.header_order || []),
+              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.actionWorkflows?.ignore_headers || []),
             },
             pullCommits: {
-              headerOrder: parseRegexLikeStringArray(configReport.github?.pullCommits?.header_order) || [],
-              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.pullCommits?.ignore_headers) || [],
+              headerOrder: parseRegexLikeStringArray(configReport.github?.pullCommits?.header_order || []),
+              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.pullCommits?.ignore_headers || []),
             },
             pulls: {
-              headerOrder: parseRegexLikeStringArray(configReport.github?.pulls?.header_order) || [],
-              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.pulls?.ignore_headers) || [],
+              headerOrder: parseRegexLikeStringArray(configReport.github?.pulls?.header_order || []),
+              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.pulls?.ignore_headers || []),
               ignoreLabels: configReport.github?.pulls?.ignore_labels || [],
               includeCancelled: configReport.github?.pulls?.include_cancelled || false,
             },
