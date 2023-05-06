@@ -25,7 +25,7 @@ const githubUserSchema = z.object({
 })
   .describe("A GitHub user.")
 
-const githubPullRepoSchema = z.object({
+const githubRepoSchema = z.object({
   id: z
     .number()
     .int()
@@ -599,7 +599,7 @@ export const githubPullSchema = z.object({
   head: z.object({
     label: z.string(),
     ref: z.string(),
-    repo: githubPullRepoSchema,
+    repo: githubRepoSchema,
     sha: z.string(),
     user: z.union([
       z.null(),
@@ -609,7 +609,7 @@ export const githubPullSchema = z.object({
   base: z.object({
     label: z.string(),
     ref: z.string(),
-    repo: githubPullRepoSchema,
+    repo: githubRepoSchema,
     sha: z.string(),
     user: z.union([
       z.null(),
