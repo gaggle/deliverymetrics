@@ -37,12 +37,12 @@ export type GithubSync = z.infer<typeof githubSyncSchema>
  */
 function headerOptions<T extends ReadonlyArray<string>>(headers: T): ReturnType<typeof z.object> {
   return z.object({
-    header_order: z.custom<Array<T | RegExp>>((v) => {
+    header_order: z.custom<Array<T | string>>((v) => {
       if (!Array.isArray(v)) return false
       return v
         .every((el: string) => headers.includes(el) || el.match(/^\/.*\/$/))
     }, { message: `Elements must either be regex-like strings ("/.../") or one of: ${headers.join(", ")}` }).optional(),
-    ignore_headers: z.custom<Array<T | RegExp>>((v) => {
+    ignore_headers: z.custom<Array<T | string>>((v) => {
       if (!Array.isArray(v)) return false
       return v
         .every((el: string) => headers.includes(el) || el.match(/^\/.*\/$/))
