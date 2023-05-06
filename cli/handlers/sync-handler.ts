@@ -28,7 +28,7 @@ export async function syncHandler(
   for (const syncSpec of opts.syncSpecs) {
     switch (syncSpec.type) {
       case "github":
-        await fullGithubSync(
+        await _internals.fullGithubSync(
           await _internals.getGithubClient({
             type: "GithubClient",
             persistenceDir: join(opts.cacheRoot, "github", syncSpec.owner, syncSpec.repo),
@@ -98,4 +98,5 @@ export async function fullGithubSync(
 
 export const _internals = {
   getGithubClient,
+  fullGithubSync,
 }
