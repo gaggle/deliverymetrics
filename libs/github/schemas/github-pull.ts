@@ -452,7 +452,7 @@ export const githubPullSchema = z.object({
       node_id: z.string(),
       url: z.string(),
       name: z.string(),
-      description: z.string(),
+      description: z.union([z.string(), z.null()]),
       color: z.string(),
       default: z.boolean(),
     }),
@@ -597,9 +597,9 @@ export const githubPullSchema = z.object({
     ])
     .optional(),
   head: z.object({
-    label: z.string(),
+    label: z.union([z.string(), z.null()]),
     ref: z.string(),
-    repo: githubRepoSchema,
+    repo: z.union([githubRepoSchema, z.null()]),
     sha: z.string(),
     user: z.union([
       z.null(),
