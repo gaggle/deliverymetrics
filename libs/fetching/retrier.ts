@@ -30,12 +30,18 @@ export class Retrier<Events extends RetrierEvents = RetrierEvents> extends Event
         ...opts.response ? { response: opts.response } : { error: opts.error },
       })
       if (backoffDelay === undefined || attemptLimitReached()) {
-        await this.emit("done", {
+        const donePayload: { retry: number; retries: number; response?: Response; error?: Error } = {
           retry: attemptNumber,
           retries: this.retries,
-          response: opts.response,
-          error: opts.error,
-        })
+        }
+        if (opts.response) {
+          donePayload["response"] = opts.response
+        }
+        if (opts.error) {
+          donePayload["error"] = opts.error
+        }
+        await this.emit("done", donePayload)
+
         if (opts.response) {
           returnResponse = opts.response
           return
@@ -54,15 +60,6 @@ export class Retrier<Events extends RetrierEvents = RetrierEvents> extends Event
         await this.emit("fetching", { retry: attemptNumber, retries: this.retries, request: args })
         const response = await this._fetch(...args)
         await this.emit("fetched", { retry: attemptNumber, retries: this.retries, response })
-
-        if (response.ok) {
-          await this.emit("done", {
-            retry: attemptNumber,
-            retries: this.retries,
-            response: response,
-          })
-          return response
-        }
 
         await handleRetry({ response })
       } catch (error) {

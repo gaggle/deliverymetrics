@@ -7,15 +7,11 @@ import { Retrier } from "./retrier.ts"
 import { simpleBackoff } from "./retrier-backoff-functions.ts"
 
 Deno.test("Retrier", async (t) => {
-  await t.step("fetches a simple response", async () => {
+  await t.step("asks backoffFn about ok responses", async () => {
     const cannedResponses: Array<() => Promise<Response>> = [
       () => Promise.resolve(new Response("👍", { status: 200 })),
     ]
-    const retrier = new Retrier(() => {
-      throw new Error("backoff should not be called when response is ok")
-    }, {
-      _fetch: () => cannedResponses.shift()!(),
-    })
+    const retrier = new Retrier(simpleBackoff, { _fetch: () => cannedResponses.shift()!() })
     const resp = await retrier.fetch("https://x/foo")
     assertEquals(resp.status, 200)
   })
