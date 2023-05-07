@@ -18,5 +18,5 @@ import { EnrichedZodError } from "./errors.ts"
 export function parseWithZodSchema<Schema extends z.ZodTypeAny>(data: unknown, schema: Schema): z.infer<Schema> {
   const parsed = schema.safeParse(data)
   if (parsed.success) return parsed.data
-  throw new EnrichedZodError(parsed.error.issues)
+  throw new EnrichedZodError(parsed.error.issues, data)
 }
