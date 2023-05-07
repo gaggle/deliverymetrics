@@ -114,7 +114,7 @@ const githubRepoSchema = z.object({
   mirror_url: z.union([z.string().url(), z.null()]),
   hooks_url: z.string().url(),
   svn_url: z.string().url(),
-  homepage: z.union([z.string().url(), z.null()]),
+  homepage: z.union([z.string(), z.null()]),
   language: z.union([z.string(), z.null()]),
   forks_count: z.number().int(),
   stargazers_count: z.number().int(),
