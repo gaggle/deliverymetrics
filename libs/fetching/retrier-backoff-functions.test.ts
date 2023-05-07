@@ -21,7 +21,7 @@ for (const fn of [simpleBackoff, exponentialBackoff, rateLimitAwareBackoff]) {
   })
 }
 
-Deno.test("rateLimitAwareBackoff", async (t) => {
+Deno.test("rateLimitAnd202AwareBackoff", async (t) => {
   await t.step("calculates time until next reset", async () => {
     const noon = new Date("1970-01-01T12:00:00.000Z").getTime()
     await withFakeTime(async () => {
@@ -77,6 +77,13 @@ Deno.test("rateLimitAwareBackoff", async (t) => {
         }),
       }),
       undefined,
+    )
+  })
+
+  await t.step("retries a 202", async () => {
+    assertEquals(
+      typeof await rateLimitAwareBackoff({ attemptNumber: 0, response: new Response("💥", { status: 202 }) }),
+      "number",
     )
   })
 })
