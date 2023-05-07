@@ -7,7 +7,7 @@ import { parseWithZodSchema, stringifyPull } from "../../../utils/mod.ts"
 
 import { Epoch } from "../../../types.ts"
 
-import { createGithubRequest } from "../../utils/mod.ts"
+import { createGithubRequest } from "../../github-utils/mod.ts"
 
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 

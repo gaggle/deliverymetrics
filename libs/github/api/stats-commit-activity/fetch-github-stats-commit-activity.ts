@@ -4,7 +4,7 @@ import { deepMerge } from "std:deep-merge"
 import { fetchExhaustively } from "../../../fetching/mod.ts"
 import { parseWithZodSchema } from "../../../utils/mod.ts"
 
-import { createGithubRequest } from "../../utils/mod.ts"
+import { createGithubRequest } from "../../github-utils/mod.ts"
 
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 

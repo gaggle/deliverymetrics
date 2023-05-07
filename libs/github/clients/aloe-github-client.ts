@@ -16,7 +16,7 @@ import { fetchGithubCommits } from "../api/commits/mod.ts"
 import { AbortError } from "../../errors.ts"
 import { Epoch } from "../../types.ts"
 
-import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../utils/mod.ts"
+import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../github-utils/mod.ts"
 
 import { GithubClient, GithubClientEvents, ReadonlyGithubClient, Sortable, SyncInfo } from "../mod.ts"
 

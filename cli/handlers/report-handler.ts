@@ -5,7 +5,7 @@ import { GithubActionRun } from "../../libs/github/api/action-run/mod.ts"
 import { GithubActionWorkflow } from "../../libs/github/api/action-workflows/mod.ts"
 import { BoundGithubPullCommit } from "../../libs/github/api/pull-commits/mod.ts"
 
-import { sortPullCommitsByKey } from "../../libs/github/utils/mod.ts"
+import { sortPullCommitsByKey } from "../../libs/github/github-utils/mod.ts"
 
 import { getGithubClient } from "../../libs/github/mod.ts"
 import { yieldActionData, yieldPullRequestData, yieldPullRequestHistogram } from "../../libs/metrics/mod.ts"
