@@ -90,7 +90,7 @@ export async function fullGithubSync(
     "Legend: r=action-run, w=action-workflow, c=commit, p=pull|pull-commit, R=release, s=stats",
   )
   try {
-    await Promise.all([
+    const result = await Promise.allSettled([
       github.syncActionRuns({ newerThan: syncNewerThan, signal }),
       github.syncActionWorkflows({ signal }),
       github.syncCommits({ newerThan: syncNewerThan, signal }),
@@ -103,6 +103,10 @@ export async function fullGithubSync(
       github.syncStatsParticipation({ signal }),
       github.syncStatsPunchCard({ signal }),
     ])
+    const report = result.map((el) => el.status === "fulfilled" ? "✅" : `❌${el.reason}`)
+    if (result.filter((el) => el.status === "rejected").length > 0) {
+      throw new Error(`Sync failures occurred:\n${report.join("\n")}`)
+    }
   } catch (err) {
     if (err instanceof AbortError) {
       // Nothing more to do
