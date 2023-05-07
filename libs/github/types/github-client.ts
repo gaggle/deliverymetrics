@@ -10,22 +10,10 @@ import { GithubPull, GithubPullDateKey } from "../api/pulls/github-pull-schema.t
 import { SyncInfo } from "./sync-info-schema.ts"
 
 export type GithubClientEvents = {
-  "aborted": [
-    { type: "pull" | "pull-commit" | "commit" | "action-run" | "action-workflow" },
-  ]
-  "finished": [
-    { type: "pull" | "pull-commit" | "commit" | "action-run" | "action-workflow" },
-  ]
-  "progress": [
-    { type: "pull" | "pull-commit" | "commit" | "action-run" | "action-workflow" },
-  ]
-  "warning": [
-    {
-      type: "pull" | "pull-commit" | "commit" | "action-run" | "action-workflow"
-      category: "rate-limited"
-      duration: number
-    },
-  ]
+  "aborted": [{ type: SyncInfo["type"] }]
+  "finished": [{ type: SyncInfo["type"] }]
+  "progress": [{ type: SyncInfo["type"] }]
+  "warning": [{ type: SyncInfo["type"]; category: "rate-limited"; duration: number }]
 }
 
 export interface ReadonlyGithubClient extends EventEmitter<GithubClientEvents> {
