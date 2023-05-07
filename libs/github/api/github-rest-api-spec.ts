@@ -10,7 +10,7 @@ import { githubStatsCodeFrequencySchema } from "./stats-code-frequency/github-st
 import { githubStatsCommitActivitySchema } from "./stats-commit-activity/github-stats-commit-activity-schema.ts"
 import { githubStatsContributorSchema } from "./stats-contributors/github-stats-contributor-schema.ts"
 import { githubStatsParticipationSchema } from "./stats-participation/github-stats-participation-schema.ts"
-import { githubStatsPunchCardSchema } from "./punch-card/github-stats-punch-card-schema.ts"
+import { githubStatsPunchCardSchema } from "./stats-punch-card/github-stats-punch-card-schema.ts"
 
 export const githubRestSpec = {
   /**
