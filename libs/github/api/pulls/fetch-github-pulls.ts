@@ -2,17 +2,20 @@ import * as z from "zod"
 import { debug } from "std:log"
 import { deepMerge } from "std:deep-merge"
 
-import { fetchExhaustively } from "../../fetching/mod.ts"
-import { parseWithZodSchema, stringifyPull } from "../../utils/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
+import { parseWithZodSchema, stringifyPull } from "../../../utils/mod.ts"
 
-import { Epoch } from "../../types.ts"
+import { Epoch } from "../../../types.ts"
 
-import { createGithubRequest } from "../utils/mod.ts"
-import { GithubPull, githubRestSpec } from "../schemas/mod.ts"
+import { createGithubRequest } from "../../utils/mod.ts"
+
+import { githubRestSpec } from "../github-rest-api-spec.ts"
+
+import { GithubPull } from "./github-pull-schema.ts"
 
 type FetchPullsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
 
-export async function* fetchPulls(
+export async function* fetchGithubPulls(
   owner: string,
   repo: string,
   token?: string,

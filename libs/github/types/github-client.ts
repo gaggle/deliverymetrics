@@ -2,12 +2,12 @@ import { EventEmitter } from "event"
 
 import { Epoch } from "../../types.ts"
 
-import { ActionRun } from "./github-action-run.ts"
-import { ActionWorkflow } from "./github-action-workflow.ts"
-import { BoundGithubPullCommit, GithubPullCommitDateKey } from "./github-pull-commit.ts"
-import { GithubCommit } from "./github-commit.ts"
-import { GithubPull, GithubPullDateKey } from "./github-pull.ts"
-import { SyncInfo } from "./sync-info.ts"
+import { GithubActionRun } from "../api/action-run/github-action-run-schema.ts"
+import { GithubActionWorkflow } from "../api/action-workflows/github-action-workflow-schema.ts"
+import { BoundGithubPullCommit, GithubPullCommitDateKey } from "../api/pull-commits/github-pull-commit-schema.ts"
+import { GithubCommit } from "../api/commits/github-commit-schema.ts"
+import { GithubPull, GithubPullDateKey } from "../api/pulls/github-pull-schema.ts"
+import { SyncInfo } from "./sync-info-schema.ts"
 
 export type GithubClientEvents = {
   "aborted": [
@@ -55,9 +55,9 @@ export interface ReadonlyGithubClient extends EventEmitter<GithubClientEvents> {
         path: string | RegExp
       }>
       & Sortable<"created_at" | "updated_at">,
-  ): AsyncGenerator<ActionRun>
+  ): AsyncGenerator<GithubActionRun>
 
-  findActionWorkflows(): AsyncGenerator<ActionWorkflow>
+  findActionWorkflows(): AsyncGenerator<GithubActionWorkflow>
 }
 
 export interface GithubClient extends ReadonlyGithubClient {

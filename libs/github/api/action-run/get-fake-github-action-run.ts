@@ -1,11 +1,11 @@
 import { deepMerge } from "std:deep-merge"
 
-import { DeepPartial } from "../../types.ts"
+import { DeepPartial } from "../../../types.ts"
 
-import { ActionRun } from "../schemas/github-action-run.ts"
+import { GithubActionRun } from "./github-action-run-schema.ts"
 
-export function getFakeActionRun(partial: DeepPartial<ActionRun> = {}): ActionRun {
-  const base: ActionRun = {
+export function getFakeGithubActionRun(partial: DeepPartial<GithubActionRun> = {}): GithubActionRun {
+  const base: GithubActionRun = {
     "id": 3648870083,
     "name": "Name",
     "node_id": "ABC_deFOGOtYwM7ZfVbD",
@@ -241,5 +241,5 @@ export function getFakeActionRun(partial: DeepPartial<ActionRun> = {}): ActionRu
       "deployments_url": "https://api.github.com/repos/owner/repo/deployments",
     },
   }
-  return deepMerge(base, partial as ActionRun)
+  return deepMerge(base, partial as GithubActionRun)
 }

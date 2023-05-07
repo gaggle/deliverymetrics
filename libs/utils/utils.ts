@@ -2,7 +2,7 @@ import * as z from "zod"
 import { debug } from "std:log"
 import { distinct } from "std:distinct"
 
-import { GithubPull } from "../github/mod.ts"
+import { GithubPull } from "../github/api/pulls/mod.ts"
 
 import { AbortError } from "../errors.ts"
 import { Entries } from "../types.ts"

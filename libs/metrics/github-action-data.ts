@@ -1,11 +1,14 @@
+import { GithubActionWorkflow } from "../github/api/action-workflows/mod.ts"
+import { GithubActionRun } from "../github/api/action-run/mod.ts"
+
 import { daysBetween, filterIter } from "../utils/mod.ts"
-import { ActionRun, ActionWorkflow, ReadonlyGithubClient } from "../github/mod.ts"
+import { ReadonlyGithubClient } from "../github/mod.ts"
 
 import { AbortError } from "../errors.ts"
 
 type YieldActionWorkflowData = {
-  actionWorkflow: ActionWorkflow
-  actionRunGenerator: AsyncGenerator<ActionRun>
+  actionWorkflow: GithubActionWorkflow
+  actionRunGenerator: AsyncGenerator<GithubActionRun>
 }
 
 export async function* yieldActionData(
@@ -20,7 +23,7 @@ export async function* yieldActionData(
       throw new AbortError()
     }
 
-    const actionRunGenerator = await filterIter((el: ActionRun) => {
+    const actionRunGenerator = await filterIter((el: GithubActionRun) => {
       if (signal?.aborted) {
         throw new AbortError()
       }

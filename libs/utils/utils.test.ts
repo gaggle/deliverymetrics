@@ -2,7 +2,8 @@ import * as z from "zod"
 import { FakeTime } from "dev:time"
 import { assertEquals, assertRejects, assertThrows } from "dev:asserts"
 
-import { getFakePull } from "../github/testing/mod.ts"
+import { getFakeGithubPull } from "../github/api/pulls/mod.ts"
+
 import { withFakeTime } from "../dev-utils.ts"
 import { AbortError } from "../errors.ts"
 
@@ -248,7 +249,7 @@ Deno.test("pluralize", async (t) => {
 Deno.test("stringifyPull", async (t) => {
   await t.step("makes a nice string", () => {
     assertEquals(
-      stringifyPull(getFakePull({
+      stringifyPull(getFakeGithubPull({
         _links: { html: { href: "https://url" } },
         number: 1,
         state: "open",
@@ -259,7 +260,7 @@ Deno.test("stringifyPull", async (t) => {
 
   await t.step("understands draft mode", () => {
     assertEquals(
-      stringifyPull(getFakePull({
+      stringifyPull(getFakeGithubPull({
         _links: { html: { href: "https://url" } },
         draft: true,
         number: 1,
@@ -274,12 +275,12 @@ Deno.test("stringifyUpdatedPull", async (t) => {
   await t.step("makes a nice string", () => {
     assertEquals(
       stringifyUpdatedPull({
-        prev: getFakePull({
+        prev: getFakeGithubPull({
           _links: { html: { href: "https://url" } },
           number: 1,
           state: "open",
         }),
-        updated: getFakePull({
+        updated: getFakeGithubPull({
           _links: { html: { href: "https://url" } },
           number: 1,
           state: "closed",
@@ -292,13 +293,13 @@ Deno.test("stringifyUpdatedPull", async (t) => {
   await t.step("understands draft mode", () => {
     assertEquals(
       stringifyUpdatedPull({
-        prev: getFakePull({
+        prev: getFakeGithubPull({
           _links: { html: { href: "https://url" } },
           draft: true,
           number: 1,
           state: "open",
         }),
-        updated: getFakePull({
+        updated: getFakeGithubPull({
           _links: { html: { href: "https://url" } },
           number: 1,
           state: "closed",
@@ -310,12 +311,12 @@ Deno.test("stringifyUpdatedPull", async (t) => {
 
   assertEquals(
     stringifyUpdatedPull({
-      prev: getFakePull({
+      prev: getFakeGithubPull({
         _links: { html: { href: "https://url" } },
         number: 1,
         state: "open",
       }),
-      updated: getFakePull({
+      updated: getFakeGithubPull({
         _links: { html: { href: "https://url" } },
         draft: true,
         number: 1,

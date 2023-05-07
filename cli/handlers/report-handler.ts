@@ -1,9 +1,13 @@
 import { join } from "std:path"
 import { makeRunWithLimit as makeLimit } from "run-with-limit"
 
+import { GithubActionRun } from "../../libs/github/api/action-run/mod.ts"
+import { GithubActionWorkflow } from "../../libs/github/api/action-workflows/mod.ts"
+import { BoundGithubPullCommit } from "../../libs/github/api/pull-commits/mod.ts"
+
 import { sortPullCommitsByKey } from "../../libs/github/utils/mod.ts"
 
-import { ActionRun, ActionWorkflow, BoundGithubPullCommit, getGithubClient } from "../../libs/github/mod.ts"
+import { getGithubClient } from "../../libs/github/mod.ts"
 import { yieldActionData, yieldPullRequestData, yieldPullRequestHistogram } from "../../libs/metrics/mod.ts"
 import {
   arrayToAsyncGenerator,
@@ -83,7 +87,8 @@ export async function reportHandler(
   const jobs: Array<Promise<unknown>> = []
 
   jobs.push(limit(async () => {
-    const actionRunGenerators: Array<AsyncGenerator<{ actionRun: ActionRun; workflow: ActionWorkflow }>> = []
+    const actionRunGenerators: Array<AsyncGenerator<{ actionRun: GithubActionRun; workflow: GithubActionWorkflow }>> =
+      []
     console.log()
     await writeCSVToFile(
       join(outputDir, `github-action-workflows-data.csv`),

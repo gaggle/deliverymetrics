@@ -1,10 +1,10 @@
 import { deepMerge } from "std:deep-merge"
 
-import { DeepPartial } from "../../types.ts"
+import { DeepPartial } from "../../../types.ts"
 
-import { GithubPull } from "../schemas/github-pull.ts"
+import { GithubPull } from "./github-pull-schema.ts"
 
-export function getFakePull(partial: DeepPartial<GithubPull> = {}): GithubPull {
+export function getFakeGithubPull(partial: DeepPartial<GithubPull> = {}): GithubPull {
   const user = {
     "login": "octocat",
     "id": 1,

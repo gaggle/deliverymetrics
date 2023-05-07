@@ -2,22 +2,25 @@ import * as z from "zod"
 import { debug } from "std:log"
 import { deepMerge } from "std:deep-merge"
 
-import { fetchExhaustively } from "../../fetching/mod.ts"
-import { parseWithZodSchema } from "../../utils/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
+import { parseWithZodSchema } from "../../../utils/mod.ts"
 
-import { Epoch } from "../../types.ts"
+import { Epoch } from "../../../types.ts"
 
-import { createGithubRequest } from "../utils/mod.ts"
-import { ActionRun, githubRestSpec } from "../schemas/mod.ts"
+import { createGithubRequest } from "../../utils/mod.ts"
+
+import { githubRestSpec } from "../github-rest-api-spec.ts"
+
+import { GithubActionRun } from "./github-action-run-schema.ts"
 
 type FetchRunsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
 
-export async function* fetchActionRuns(
+export async function* fetchGithubActionRuns(
   owner: string,
   repo: string,
   token?: string,
   opts: Partial<FetchRunsOpts> = {},
-): AsyncGenerator<ActionRun> {
+): AsyncGenerator<GithubActionRun> {
   const { newerThan, fetchLike }: FetchRunsOpts = deepMerge({ fetchLike: fetch }, opts)
 
   const req = createGithubRequest({

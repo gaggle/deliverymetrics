@@ -1,6 +1,8 @@
 import { assertEquals } from "dev:asserts"
 
-import { createFakeReadonlyGithubClient, getFakeActionRun } from "../github/testing/mod.ts"
+import { getFakeGithubActionRun } from "../github/api/action-run/mod.ts"
+
+import { createFakeReadonlyGithubClient } from "../github/testing/mod.ts"
 
 import { asyncToArray } from "../utils/mod.ts"
 
@@ -11,7 +13,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
     await t.step("calculates two workflow runs in a day", async () => {
       const github = await createFakeReadonlyGithubClient({
         actionRuns: [
-          getFakeActionRun({
+          getFakeGithubActionRun({
             id: 1,
             html_url: "example.org/1",
             path: "foo.yml",
@@ -20,7 +22,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             head_branch: "main",
             conclusion: "success",
           }),
-          getFakeActionRun({
+          getFakeGithubActionRun({
             id: 2,
             html_url: "example.org/2",
             path: "foo.yml",
@@ -53,7 +55,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
     await t.step("calculates two workflow runs on different days", async () => {
       const github = await createFakeReadonlyGithubClient({
         actionRuns: [
-          getFakeActionRun({
+          getFakeGithubActionRun({
             id: 1,
             html_url: "example.org/1",
             path: "foo.yml",
@@ -62,7 +64,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             head_branch: "main",
             conclusion: "success",
           }),
-          getFakeActionRun({
+          getFakeGithubActionRun({
             id: 2,
             html_url: "example.org/2",
             path: "foo.yml",
@@ -107,7 +109,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
     await t.step("calculates two workflow runs in same week", async () => {
       const github = await createFakeReadonlyGithubClient({
         actionRuns: [
-          getFakeActionRun({
+          getFakeGithubActionRun({
             id: 1,
             html_url: "example.org/1",
             path: "foo.yml",
@@ -116,7 +118,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             head_branch: "main",
             conclusion: "success",
           }),
-          getFakeActionRun({
+          getFakeGithubActionRun({
             id: 2,
             html_url: "example.org/2",
             path: "foo.yml",
@@ -151,7 +153,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
     await t.step("calculates two workflow runs in the same month", async () => {
       const github = await createFakeReadonlyGithubClient({
         actionRuns: [
-          getFakeActionRun({
+          getFakeGithubActionRun({
             id: 1,
             html_url: "example.org/1",
             path: "foo.yml",
@@ -160,7 +162,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
             head_branch: "main",
             conclusion: "success",
           }),
-          getFakeActionRun({
+          getFakeGithubActionRun({
             id: 2,
             html_url: "example.org/2",
             path: "foo.yml",

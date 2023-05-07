@@ -1,11 +1,11 @@
 import { deepMerge } from "std:deep-merge"
 
-import { ActionWorkflow } from "../schemas/github-action-workflow.ts"
+import { GithubActionWorkflow } from "./github-action-workflow-schema.ts"
 
-import { DeepPartial } from "../../types.ts"
+import { DeepPartial } from "../../../types.ts"
 
-export function getFakeActionWorkflow(partial: DeepPartial<ActionWorkflow> = {}): ActionWorkflow {
-  const base: ActionWorkflow = {
+export function getFakeGithubActionWorkflow(partial: DeepPartial<GithubActionWorkflow> = {}): GithubActionWorkflow {
+  const base: GithubActionWorkflow = {
     "id": 161335,
     "node_id": "MDg6V29ya2Zsb3cxNjEzMzU=",
     "name": "CI",
@@ -17,5 +17,5 @@ export function getFakeActionWorkflow(partial: DeepPartial<ActionWorkflow> = {})
     "html_url": "https://github.com/octo-org/octo-repo/blob/master/.github/workflows/161335",
     "badge_url": "https://github.com/octo-org/octo-repo/workflows/CI/badge.svg",
   }
-  return deepMerge(base, partial as ActionWorkflow)
+  return deepMerge(base, partial as GithubActionWorkflow)
 }

@@ -3,7 +3,9 @@ import { join } from "std:path"
 import { readCSVObjects } from "csv"
 import { stub } from "dev:mock"
 
-import { createFakeReadonlyGithubClient, getFakePull, getFakeSyncInfo } from "../../libs/github/testing/mod.ts"
+import { getFakeGithubPull } from "../../libs/github/api/pulls/mod.ts"
+
+import { createFakeReadonlyGithubClient, getFakeSyncInfo } from "../../libs/github/testing/mod.ts"
 import { asyncToArray, single, withFileOpen, withTempDir, yieldDir } from "../../libs/utils/mod.ts"
 
 import { withStubs } from "../../libs/dev-utils.ts"
@@ -799,7 +801,7 @@ Deno.test({
     }, {
       githubClientData: {
         pulls: [
-          getFakePull({
+          getFakeGithubPull({
             number: 1,
             created_at: "1981-01-01T00:00:00Z",
             merged_at: "1981-01-01T12:00:00Z",
@@ -833,7 +835,7 @@ Deno.test({
     }, {
       githubClientData: {
         pulls: [
-          getFakePull({
+          getFakeGithubPull({
             number: 1,
             created_at: "1983-01-01T00:00:00Z",
             closed_at: "1983-01-02T00:00:00Z",
@@ -890,7 +892,7 @@ Deno.test({
     }, {
       githubClientData: {
         pulls: [
-          getFakePull({ number: 4, created_at: "1984-01-01T00:00:00Z", merged_at: "1984-01-05T00:00:00Z" }),
+          getFakeGithubPull({ number: 4, created_at: "1984-01-01T00:00:00Z", merged_at: "1984-01-05T00:00:00Z" }),
         ],
         syncInfos: [
           getFakeSyncInfo({

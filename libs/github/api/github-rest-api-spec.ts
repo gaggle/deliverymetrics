@@ -1,16 +1,16 @@
 import * as z from "zod"
 
-import { GithubPull, githubPullSchema } from "./github-pull.ts"
-import { actionRunSchema } from "./github-action-run.ts"
-import { actionWorkflowSchema } from "./github-action-workflow.ts"
-import { githubCommitSchema } from "./github-commit.ts"
-import { githubPullCommitSchema } from "./github-pull-commit.ts"
-import { githubReleaseSchema } from "./github-release.ts"
-import { githubStatsCodeFrequencySchema } from "./github-stats-code-frequency.ts"
-import { githubStatsCommitActivitySchema } from "./github-stats-commit-activity.ts"
-import { githubStatsContributorSchema } from "./github-stats-contributor.ts"
-import { githubStatsParticipationSchema } from "./github-stats-participation.ts"
-import { githubStatsPunchCardSchema } from "./github-stats-punch-card.ts"
+import { GithubPull, githubPullSchema } from "./pulls/github-pull-schema.ts"
+import { githubActionRunSchema } from "./action-run/github-action-run-schema.ts"
+import { githubActionWorkflowSchema } from "./action-workflows/github-action-workflow-schema.ts"
+import { githubCommitSchema } from "./commits/github-commit-schema.ts"
+import { githubPullCommitSchema } from "./pull-commits/github-pull-commit-schema.ts"
+import { githubReleaseSchema } from "./releases/github-release-schema.ts"
+import { githubStatsCodeFrequencySchema } from "./stats-code-frequency/github-stats-code-frequency-schema.ts"
+import { githubStatsCommitActivitySchema } from "./stats-commit-activity/github-stats-commit-activity-schema.ts"
+import { githubStatsContributorSchema } from "./stats-contributors/github-stats-contributor-schema.ts"
+import { githubStatsParticipationSchema } from "./stats-participation/github-stats-participation-schema.ts"
+import { githubStatsPunchCardSchema } from "./punch-card/github-stats-punch-card-schema.ts"
 
 export const githubRestSpec = {
   /**
@@ -22,7 +22,7 @@ export const githubRestSpec = {
       url.searchParams.set("per_page", "100")
       return url.toString()
     },
-    schema: z.object({ total_count: z.number().int(), workflow_runs: z.array(actionRunSchema) }),
+    schema: z.object({ total_count: z.number().int(), workflow_runs: z.array(githubActionRunSchema) }),
   },
   /**
    * https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28
@@ -30,7 +30,7 @@ export const githubRestSpec = {
   actionWorkflows: {
     getUrl: (owner: string, repo: string) =>
       new URL(`https://api.github.com/repos/${owner}/${repo}/actions/workflows`).toString(),
-    schema: z.object({ total_count: z.number().int(), workflows: z.array(actionWorkflowSchema) }),
+    schema: z.object({ total_count: z.number().int(), workflows: z.array(githubActionWorkflowSchema) }),
   },
   /**
    * https://docs.github.com/en/rest/commits/commits?apiVersion=2022-11-28#list-commits
@@ -107,7 +107,7 @@ export const githubRestSpec = {
    */
   statsCodeFrequency: {
     getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/code_frequency`),
+      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/code_frequency`).toString(),
     schema: z.array(githubStatsCodeFrequencySchema),
   },
   /**
@@ -148,7 +148,7 @@ export const githubRestSpec = {
    */
   statsCommitActivity: {
     getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/commit_activity`),
+      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/commit_activity`).toString(),
     schema: z.array(githubStatsCommitActivitySchema),
   },
   /**
@@ -194,7 +194,7 @@ export const githubRestSpec = {
    */
   statsContributors: {
     getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/contributors`),
+      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/contributors`).toString(),
     schema: z.array(githubStatsContributorSchema),
   },
   /**
@@ -239,7 +239,7 @@ export const githubRestSpec = {
    */
   statsParticipation: {
     getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/participation`),
+      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/participation`).toString(),
     schema: z.array(githubStatsParticipationSchema),
   },
   /**
@@ -282,7 +282,8 @@ export const githubRestSpec = {
    * pushing to the default branch resets the statistics cache.
    */
   statsPunchCard: {
-    getUrl: (owner: string, repo: string) => new URL(`https://api.github.com/repos/${owner}/${repo}/stats/punch_card`),
+    getUrl: (owner: string, repo: string) =>
+      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/punch_card`).toString(),
     schema: z.array(githubStatsPunchCardSchema),
   },
   /**
@@ -320,7 +321,8 @@ export const githubRestSpec = {
    * [https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#list-releases](https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#list-releases)
    */
   releases: {
-    getUrl: (owner: string, repo: string) => new URL(`https://api.github.com/repos/${owner}/${repo}/releases`),
+    getUrl: (owner: string, repo: string) =>
+      new URL(`https://api.github.com/repos/${owner}/${repo}/releases`).toString(),
     schema: z.array(githubReleaseSchema),
   },
 } as const

@@ -1,20 +1,23 @@
 import * as z from "zod"
 import { deepMerge } from "std:deep-merge"
 
-import { fetchExhaustively } from "../../fetching/mod.ts"
-import { parseWithZodSchema } from "../../utils/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
+import { parseWithZodSchema } from "../../../utils/mod.ts"
 
-import { createGithubRequest } from "../utils/mod.ts"
-import { ActionWorkflow, githubRestSpec } from "../schemas/mod.ts"
+import { createGithubRequest } from "../../utils/mod.ts"
+
+import { githubRestSpec } from "../github-rest-api-spec.ts"
+
+import { GithubActionWorkflow } from "./github-action-workflow-schema.ts"
 
 type FetchWorkflowsOpts = { fetchLike: typeof fetch }
 
-export async function* fetchActionWorkflows(
+export async function* fetchGithubActionWorkflows(
   owner: string,
   repo: string,
   token?: string,
   opts: Partial<FetchWorkflowsOpts> = {},
-): AsyncGenerator<ActionWorkflow> {
+): AsyncGenerator<GithubActionWorkflow> {
   const { fetchLike }: FetchWorkflowsOpts = deepMerge({ fetchLike: fetch }, opts)
 
   const req = createGithubRequest({

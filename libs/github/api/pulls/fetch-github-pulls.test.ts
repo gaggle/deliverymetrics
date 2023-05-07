@@ -1,22 +1,22 @@
 import { assertEquals, assertRejects } from "dev:asserts"
 import { assertSpyCalls, returnsNext, spy } from "dev:mock"
 
-import { asyncToArray } from "../../utils/mod.ts"
+import { asyncToArray } from "../../../utils/mod.ts"
 
-import { getFakePull } from "../testing/mod.ts"
+import { getFakeGithubPull } from "../../api/pulls/mod.ts"
 
-import { fetchPulls } from "./fetch-pulls.ts"
+import { fetchGithubPulls } from "./fetch-github-pulls.ts"
 
 Deno.test("fetchPulls", async (t) => {
   await t.step("should call fetch to get pulls from GitHub API", async () => {
     const fetchLike = spy(returnsNext([Promise.resolve(
-      new Response(JSON.stringify([getFakePull()]), {
+      new Response(JSON.stringify([getFakeGithubPull()]), {
         status: 200,
         statusText: "OK",
       }),
     )]))
 
-    await asyncToArray(fetchPulls("owner", "repo", "token", { fetchLike }))
+    await asyncToArray(fetchGithubPulls("owner", "repo", "token", { fetchLike }))
 
     assertSpyCalls(fetchLike, 1)
     const request = fetchLike.calls[0].args["0"] as Request
@@ -34,22 +34,22 @@ Deno.test("fetchPulls", async (t) => {
 
   await t.step("should yield the pulls that get fetched", async () => {
     const fetchLike = spy(returnsNext([Promise.resolve(
-      new Response(JSON.stringify([getFakePull()]), {
+      new Response(JSON.stringify([getFakeGithubPull()]), {
         status: 200,
         statusText: "OK",
       }),
     )]))
 
     const res = await asyncToArray(
-      fetchPulls("owner", "repo", "token", { fetchLike }),
+      fetchGithubPulls("owner", "repo", "token", { fetchLike }),
     )
-    assertEquals(res, [getFakePull()])
+    assertEquals(res, [getFakeGithubPull()])
   })
 
   await t.step("should use Link header to fetch exhaustively", async () => {
     const fetchLike = spy(returnsNext([
       Promise.resolve(
-        new Response(JSON.stringify([getFakePull({ id: 1, number: 1 })]), {
+        new Response(JSON.stringify([getFakeGithubPull({ id: 1, number: 1 })]), {
           status: 200,
           statusText: "OK",
           headers: new Headers({
@@ -59,7 +59,7 @@ Deno.test("fetchPulls", async (t) => {
         }),
       ),
       Promise.resolve(
-        new Response(JSON.stringify([getFakePull({ id: 2, number: 2 })]), {
+        new Response(JSON.stringify([getFakeGithubPull({ id: 2, number: 2 })]), {
           status: 200,
           statusText: "OK",
           headers: new Headers({
@@ -69,13 +69,13 @@ Deno.test("fetchPulls", async (t) => {
         }),
       ),
       Promise.resolve(
-        new Response(JSON.stringify([getFakePull({ id: 3, number: 3 })]), {
+        new Response(JSON.stringify([getFakeGithubPull({ id: 3, number: 3 })]), {
           status: 200,
           statusText: "OK",
         }),
       ),
     ]))
-    await asyncToArray(fetchPulls("owner", "repo", "token", { fetchLike }))
+    await asyncToArray(fetchGithubPulls("owner", "repo", "token", { fetchLike }))
 
     assertSpyCalls(fetchLike, 3)
     // ↑ Called thrice because it fetches pages 2 & 3
@@ -96,17 +96,17 @@ Deno.test("fetchPulls", async (t) => {
   await t.step(
     "should stop exhaustively fetching when passing over an element older than `from`",
     async () => {
-      const pull1 = getFakePull({
+      const pull1 = getFakeGithubPull({
         id: 3,
         number: 3,
         updated_at: "2000-01-01T00:00:00Z",
       })
-      const pull2 = getFakePull({
+      const pull2 = getFakeGithubPull({
         id: 2,
         number: 2,
         updated_at: "1990-01-01T00:00:00Z",
       })
-      const pull3 = getFakePull({
+      const pull3 = getFakeGithubPull({
         id: 1,
         number: 1,
         updated_at: "1980-01-01T00:00:00Z",
@@ -130,7 +130,7 @@ Deno.test("fetchPulls", async (t) => {
         ),
       ]))
 
-      const res = await asyncToArray(fetchPulls("owner", "repo", "token", {
+      const res = await asyncToArray(fetchGithubPulls("owner", "repo", "token", {
         newerThan: new Date("1995-01-01T00:00:00Z").getTime(),
         fetchLike,
       }))
@@ -147,12 +147,12 @@ Deno.test("fetchPulls", async (t) => {
   await t.step(
     "should ignore a page if its content is older than `from`",
     async () => {
-      const pull1 = getFakePull({
+      const pull1 = getFakeGithubPull({
         id: 3,
         number: 3,
         updated_at: "2000-01-01T00:00:00Z",
       })
-      const pull2 = getFakePull({
+      const pull2 = getFakeGithubPull({
         id: 2,
         number: 2,
         updated_at: "1990-01-01T00:00:00Z",
@@ -186,7 +186,7 @@ Deno.test("fetchPulls", async (t) => {
         ),
       ]))
 
-      const res = await asyncToArray(fetchPulls("owner", "repo", "token", {
+      const res = await asyncToArray(fetchGithubPulls("owner", "repo", "token", {
         newerThan: new Date("1995-01-01T00:00:00Z").getTime(),
         fetchLike,
       }))
@@ -211,7 +211,7 @@ Deno.test("fetchPulls", async (t) => {
       new Response("Some error", { status: 404, statusText: "Not Found" }),
     )]))
     await assertRejects(
-      () => asyncToArray(fetchPulls("owner", "repo", "token", { fetchLike })),
+      () => asyncToArray(fetchGithubPulls("owner", "repo", "token", { fetchLike })),
       Error,
       "404 Not Found (https://api.github.com/repos/owner/repo/pulls?state=all&sort=updated&direction=desc): Some error",
     )

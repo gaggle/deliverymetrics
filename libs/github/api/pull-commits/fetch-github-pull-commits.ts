@@ -1,14 +1,18 @@
 import * as z from "zod"
 
-import { fetchExhaustively } from "../../fetching/mod.ts"
-import { parseWithZodSchema } from "../../utils/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
+import { parseWithZodSchema } from "../../../utils/mod.ts"
 
-import { createGithubRequest } from "../utils/mod.ts"
-import { GithubPull, GithubPullCommit, githubRestSpec } from "../schemas/mod.ts"
+import { createGithubRequest } from "../../utils/mod.ts"
+
+import { githubRestSpec } from "../github-rest-api-spec.ts"
+
+import { GithubPull } from "../pulls/github-pull-schema.ts"
+import { GithubPullCommit } from "./github-pull-commit-schema.ts"
 
 type FetchPullCommitsOpts = { fetchLike: typeof fetch }
 
-export async function* fetchPullCommits(
+export async function* fetchGithubPullCommits(
   pull: Pick<GithubPull, "commits_url">,
   token?: string,
   { fetchLike }: Partial<FetchPullCommitsOpts> = {},

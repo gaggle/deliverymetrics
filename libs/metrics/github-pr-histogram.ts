@@ -1,6 +1,9 @@
 import { warning } from "std:log"
 
-import { GithubPull, MergedGithubPull, ReadonlyGithubClient } from "../github/mod.ts"
+import { GithubPull, MergedGithubPull } from "../github/api/pulls/mod.ts"
+
+import { ReadonlyGithubClient } from "../github/mod.ts"
+
 import {
   assertUnreachable,
   dayEnd,

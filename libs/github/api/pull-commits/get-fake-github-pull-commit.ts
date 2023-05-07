@@ -1,12 +1,12 @@
 import { deepMerge } from "std:deep-merge"
 
-import { DeepPartial } from "../../types.ts"
+import { DeepPartial } from "../../../types.ts"
 
-import { BoundGithubPullCommit, GithubPullCommit } from "../schemas/github-pull-commit.ts"
+import { BoundGithubPullCommit, GithubPullCommit } from "./github-pull-commit-schema.ts"
 
-export function getFakePullCommit(partial?: DeepPartial<GithubPullCommit>): GithubPullCommit
-export function getFakePullCommit(partial?: DeepPartial<BoundGithubPullCommit>): BoundGithubPullCommit
-export function getFakePullCommit(
+export function getFakeGithubPullCommit(partial?: DeepPartial<GithubPullCommit>): GithubPullCommit
+export function getFakeGithubPullCommit(partial?: DeepPartial<BoundGithubPullCommit>): BoundGithubPullCommit
+export function getFakeGithubPullCommit(
   partial: DeepPartial<GithubPullCommit | BoundGithubPullCommit> = {},
 ): GithubPullCommit | BoundGithubPullCommit {
   const base: GithubPullCommit = {

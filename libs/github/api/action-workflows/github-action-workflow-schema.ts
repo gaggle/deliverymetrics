@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-export const actionWorkflowSchema = z.object({
+export const githubActionWorkflowSchema = z.object({
   id: z.number().int(),
   node_id: z.string(),
   name: z.string(),
@@ -21,4 +21,4 @@ export const actionWorkflowSchema = z.object({
 })
   .describe("A GitHub Actions workflow")
 
-export type ActionWorkflow = z.infer<typeof actionWorkflowSchema>
+export type GithubActionWorkflow = z.infer<typeof githubActionWorkflowSchema>

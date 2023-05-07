@@ -2,7 +2,7 @@ import { deepMerge } from "std:deep-merge"
 
 import { DeepPartial } from "../../types.ts"
 
-import { SyncInfo } from "../schemas/sync-info.ts"
+import { SyncInfo } from "../types/sync-info-schema.ts"
 
 export function getFakeSyncInfo(partial: DeepPartial<SyncInfo> = {}): SyncInfo {
   const base: SyncInfo = {

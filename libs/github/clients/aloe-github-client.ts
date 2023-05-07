@@ -3,33 +3,26 @@ import { debug } from "std:log"
 import { Acceptable, exists, Query } from "aloedb"
 
 import { AloeDatabase } from "../../db/mod.ts"
-import { arrayToAsyncGenerator, asyncToArray, first } from "../../utils/mod.ts"
 import { retrierFactory } from "../../fetching/mod.ts"
+import { arrayToAsyncGenerator, asyncToArray, first } from "../../utils/mod.ts"
+
+import { BoundGithubPullCommit, fetchGithubPullCommits, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
+import { fetchGithubActionRuns, GithubActionRun } from "../api/action-run/mod.ts"
+import { fetchGithubActionWorkflows, GithubActionWorkflow } from "../api/action-workflows/mod.ts"
+import { GithubCommit } from "../api/commits/mod.ts"
+import { fetchGithubPulls, GithubPull, GithubPullDateKey } from "../api/pulls/mod.ts"
+import { fetchGithubCommits } from "../api/commits/mod.ts"
 
 import { AbortError } from "../../errors.ts"
 import { Epoch } from "../../types.ts"
 
 import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../utils/mod.ts"
 
-import {
-  ActionRun,
-  ActionWorkflow,
-  BoundGithubPullCommit,
-  GithubClient,
-  GithubClientEvents,
-  GithubCommit,
-  GithubPull,
-  GithubPullCommitDateKey,
-  GithubPullDateKey,
-  ReadonlyGithubClient,
-  Sortable,
-  SyncInfo,
-} from "../schemas/mod.ts"
-import { fetchActionRuns, fetchActionWorkflows, fetchCommits, fetchPullCommits, fetchPulls } from "../fetchers/mod.ts"
+import { GithubClient, GithubClientEvents, ReadonlyGithubClient, Sortable, SyncInfo } from "../mod.ts"
 
 interface AloeGithubClientDb {
-  actionRuns: AloeDatabase<ActionRun>
-  actionWorkflows: AloeDatabase<ActionWorkflow>
+  actionRuns: AloeDatabase<GithubActionRun>
+  actionWorkflows: AloeDatabase<GithubActionWorkflow>
   commits: AloeDatabase<GithubCommit>
   pullCommits: AloeDatabase<BoundGithubPullCommit>
   pulls: AloeDatabase<GithubPull>
@@ -122,8 +115,8 @@ export class ReadonlyAloeGithubClient extends EventEmitter<GithubClientEvents> i
     conclusion: string | RegExp
     path: string | RegExp
     sort: { key: "created_at" | "updated_at"; order?: "asc" | "desc" }
-  }> = {}): AsyncGenerator<ActionRun> {
-    const query: Query<ActionRun> = {}
+  }> = {}): AsyncGenerator<GithubActionRun> {
+    const query: Query<GithubActionRun> = {}
     if (opts?.branch) query.head_branch = opts.branch
     if (opts?.conclusion) query.conclusion = opts.conclusion
     if (opts?.path) query.path = opts.path
@@ -143,7 +136,7 @@ export class ReadonlyAloeGithubClient extends EventEmitter<GithubClientEvents> i
     }
   }
 
-  async *findActionWorkflows(): AsyncGenerator<ActionWorkflow> {
+  async *findActionWorkflows(): AsyncGenerator<GithubActionWorkflow> {
     const workflows = await this.db.actionWorkflows.findMany()
     for (const wf of workflows) {
       yield wf
@@ -177,7 +170,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     const syncedPulls: Array<GithubPull> = []
     const result = await this.internalFetch({
       type: "pull",
-      iteratorFn: (context) => _internals.fetchPulls(this.owner, this.repo, this.token, context),
+      iteratorFn: (context) => _internals.fetchGithubPulls(this.owner, this.repo, this.token, context),
       upsertFn: async (pull) => {
         await this.db.pulls.deleteOne({ number: pull.number })
         await this.db.pulls.insertOne(pull)
@@ -198,7 +191,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
       iteratorFn: () => arrayToAsyncGenerator(pulls),
       upsertFn: async (pull, context) => {
         const commits = await asyncToArray(
-          _internals.fetchPullCommits({ commits_url: pull.commits_url }, this.token, context),
+          _internals.fetchGithubPullCommits({ commits_url: pull.commits_url }, this.token, context),
         )
         debug(`Upserting pull commits bound to pr ${pull.number}`)
         await this.db.pullCommits.deleteMany({ pr: pull.number })
@@ -214,7 +207,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
   async syncCommits(opts: { signal?: AbortSignal; newerThan?: Epoch } = {}): Promise<{ syncedAt: Epoch }> {
     const result = await this.internalFetch({
       type: "commit",
-      iteratorFn: (context) => _internals.fetchCommits(this.owner, this.repo, this.token, context),
+      iteratorFn: (context) => _internals.fetchGithubCommits(this.owner, this.repo, this.token, context),
       upsertFn: async (commit) => {
         await this.db.commits.deleteOne({ node_id: commit.node_id })
         await this.db.commits.insertOne(commit)
@@ -229,7 +222,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
   async syncActionRuns(opts: { signal?: AbortSignal; newerThan?: Epoch } = {}): Promise<{ syncedAt: Epoch }> {
     const result = await this.internalFetch({
       type: "action-run",
-      iteratorFn: (context) => _internals.fetchActionRuns(this.owner, this.repo, this.token, context),
+      iteratorFn: (context) => _internals.fetchGithubActionRuns(this.owner, this.repo, this.token, context),
       upsertFn: async (run) => {
         await this.db.actionRuns.deleteOne({ node_id: run.node_id })
         await this.db.actionRuns.insertOne(run)
@@ -244,7 +237,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
   async syncActionWorkflows(opts: { signal?: AbortSignal } = {}): Promise<{ syncedAt: Epoch }> {
     const result = await this.internalFetch({
       type: "action-workflow",
-      iteratorFn: (context) => _internals.fetchActionWorkflows(this.owner, this.repo, this.token, context),
+      iteratorFn: (context) => _internals.fetchGithubActionWorkflows(this.owner, this.repo, this.token, context),
       upsertFn: async (workflow) => {
         await this.db.actionWorkflows.deleteOne({ node_id: workflow.node_id })
         await this.db.actionWorkflows.insertOne(workflow)
@@ -323,9 +316,9 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 }
 
 export const _internals = {
-  fetchCommits,
-  fetchPullCommits,
-  fetchPulls,
-  fetchActionRuns,
-  fetchActionWorkflows,
+  fetchGithubCommits,
+  fetchGithubPullCommits,
+  fetchGithubPulls,
+  fetchGithubActionRuns,
+  fetchGithubActionWorkflows,
 } as const

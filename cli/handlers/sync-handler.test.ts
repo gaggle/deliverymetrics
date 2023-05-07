@@ -1,6 +1,8 @@
 import { assertSpyCallArgs, assertSpyCalls, stub } from "dev:mock"
 
-import { createFakeGithubClient, getFakePull } from "../../libs/github/testing/mod.ts"
+import { getFakeGithubPull } from "../../libs/github/api/pulls/mod.ts"
+
+import { createFakeGithubClient } from "../../libs/github/testing/mod.ts"
 
 import { withStubs } from "../../libs/dev-utils.ts"
 
@@ -63,7 +65,7 @@ Deno.test("fullGithubSync", async (t) => {
         assertSpyCalls(syncActionRuns, 1)
         assertSpyCalls(syncActionWorkflows, 1)
       },
-      stub(client, "syncPulls", () => Promise.resolve({ syncedAt: 0, syncedPulls: [getFakePull()] })),
+      stub(client, "syncPulls", () => Promise.resolve({ syncedAt: 0, syncedPulls: [getFakeGithubPull()] })),
       stub(client, "syncPullCommits", () => Promise.resolve({ syncedAt: 0 })),
       stub(client, "syncCommits", () => Promise.resolve({ syncedAt: 0 })),
       stub(client, "syncActionRuns", () => Promise.resolve({ syncedAt: 0 })),

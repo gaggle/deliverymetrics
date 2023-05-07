@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-export const actionRunSchema = z.object({
+export const githubActionRunSchema = z.object({
   id: z.number().int().describe("The ID of the workflow run."),
   name: z
     .union([
@@ -504,4 +504,4 @@ export const actionRunSchema = z.object({
     ),
 })
 
-export type ActionRun = z.infer<typeof actionRunSchema>
+export type GithubActionRun = z.infer<typeof githubActionRunSchema>

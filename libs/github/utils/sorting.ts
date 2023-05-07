@@ -1,11 +1,8 @@
-import {
-  ActionRun,
-  BoundGithubPullCommit,
-  GithubPull,
-  GithubPullCommitDateKey,
-  GithubPullDateKey,
-} from "../schemas/mod.ts"
 import { assertUnreachable } from "../../utils/mod.ts"
+
+import { GithubPull, GithubPullDateKey } from "../api/pulls/mod.ts"
+import { GithubActionRun } from "../api/action-run/mod.ts"
+import { BoundGithubPullCommit, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
 
 export function sortPullsByKey(
   pulls: Array<GithubPull>,
@@ -26,9 +23,9 @@ export function sortPullsByKey(
 }
 
 export function sortActionRunsKey(
-  items: Array<ActionRun>,
+  items: Array<GithubActionRun>,
   key: "created_at" | "updated_at" = "updated_at",
-): Array<ActionRun> {
+): Array<GithubActionRun> {
   return items.sort((a, b) => {
     const aVal: string | null = a[key]
     const aT = aVal === null ? 0 : new Date(aVal).getTime()

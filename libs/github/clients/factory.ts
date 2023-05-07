@@ -1,19 +1,15 @@
 import { join } from "std:path"
 
 import { AloeDatabase } from "../../db/mod.ts"
-
 import { assertUnreachable } from "../../utils/mod.ts"
 
-import {
-  actionRunSchema,
-  actionWorkflowSchema,
-  boundGithubPullCommitSchema,
-  GithubClient,
-  githubCommitSchema,
-  githubPullSchema,
-  ReadonlyGithubClient,
-  syncInfoSchema,
-} from "../schemas/mod.ts"
+import { githubActionRunSchema } from "../api/action-run/mod.ts"
+import { githubActionWorkflowSchema } from "../api/action-workflows/mod.ts"
+import { githubCommitSchema } from "../api/commits/mod.ts"
+import { githubPullSchema } from "../api/pulls/mod.ts"
+import { boundGithubPullCommitSchema } from "../api/pull-commits/mod.ts"
+
+import { GithubClient, ReadonlyGithubClient, syncInfoSchema } from "../mod.ts"
 
 import { AloeGithubClient, ReadonlyAloeGithubClient } from "./aloe-github-client.ts"
 
@@ -41,11 +37,11 @@ export async function getGithubClient(
   const db: ConstructorParameters<typeof AloeGithubClient>[0]["db"] = {
     actionRuns: await AloeDatabase.new({
       path: join(opts.persistenceDir, "action-runs.json"),
-      schema: actionRunSchema,
+      schema: githubActionRunSchema,
     }),
     actionWorkflows: await AloeDatabase.new({
       path: join(opts.persistenceDir, "action-workflows.json"),
-      schema: actionWorkflowSchema,
+      schema: githubActionWorkflowSchema,
     }),
     commits: await AloeDatabase.new({
       path: join(opts.persistenceDir, "commits.json"),

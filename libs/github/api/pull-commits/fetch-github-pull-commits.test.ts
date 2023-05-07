@@ -1,22 +1,22 @@
 import { assertEquals, assertRejects } from "dev:asserts"
 import { assertSpyCalls, returnsNext, spy } from "dev:mock"
 
-import { asyncToArray } from "../../utils/mod.ts"
+import { asyncToArray } from "../../../utils/mod.ts"
 
-import { getFakePullCommit } from "../testing/mod.ts"
+import { getFakeGithubPullCommit } from "../../api/pull-commits/mod.ts"
 
-import { fetchPullCommits } from "./fetch-pull-commits.ts"
+import { fetchGithubPullCommits } from "./fetch-github-pull-commits.ts"
 
 Deno.test("fetchPullCommits", async (t) => {
   await t.step("should call fetch to get pull-commits from GitHub API", async () => {
     const fetchLike = spy(returnsNext([Promise.resolve(
-      new Response(JSON.stringify([getFakePullCommit()]), {
+      new Response(JSON.stringify([getFakeGithubPullCommit()]), {
         status: 200,
         statusText: "OK",
       }),
     )]))
 
-    await asyncToArray(fetchPullCommits({ commits_url: "https://foo" }, "token", { fetchLike }))
+    await asyncToArray(fetchGithubPullCommits({ commits_url: "https://foo" }, "token", { fetchLike }))
 
     assertSpyCalls(fetchLike, 1)
     const request = fetchLike.calls[0].args["0"] as Request
@@ -31,21 +31,21 @@ Deno.test("fetchPullCommits", async (t) => {
 
   await t.step("should yield the pulls that get fetched", async () => {
     const fetchLike = spy(returnsNext([Promise.resolve(
-      new Response(JSON.stringify([getFakePullCommit()]), {
+      new Response(JSON.stringify([getFakeGithubPullCommit()]), {
         status: 200,
         statusText: "OK",
       }),
     )]))
 
-    const res = await asyncToArray(fetchPullCommits({ commits_url: "https://foo" }, "token", { fetchLike }))
+    const res = await asyncToArray(fetchGithubPullCommits({ commits_url: "https://foo" }, "token", { fetchLike }))
 
-    assertEquals(res, [getFakePullCommit()])
+    assertEquals(res, [getFakeGithubPullCommit()])
   })
 
   await t.step("should use Link header to fetch exhaustively", async () => {
     const fetchLike = spy(returnsNext([
       Promise.resolve(
-        new Response(JSON.stringify([getFakePullCommit({ commit: { message: "message 1" } })]), {
+        new Response(JSON.stringify([getFakeGithubPullCommit({ commit: { message: "message 1" } })]), {
           status: 200,
           statusText: "OK",
           headers: new Headers({
@@ -54,7 +54,7 @@ Deno.test("fetchPullCommits", async (t) => {
         }),
       ),
       Promise.resolve(
-        new Response(JSON.stringify([getFakePullCommit({ commit: { message: "message 2" } })]), {
+        new Response(JSON.stringify([getFakeGithubPullCommit({ commit: { message: "message 2" } })]), {
           status: 200,
           statusText: "OK",
           headers: new Headers({
@@ -63,14 +63,14 @@ Deno.test("fetchPullCommits", async (t) => {
         }),
       ),
       Promise.resolve(
-        new Response(JSON.stringify([getFakePullCommit({ commit: { message: "message 3" } })]), {
+        new Response(JSON.stringify([getFakeGithubPullCommit({ commit: { message: "message 3" } })]), {
           status: 200,
           statusText: "OK",
         }),
       ),
     ]))
 
-    await asyncToArray(fetchPullCommits({ commits_url: "https://foo" }, "token", { fetchLike }))
+    await asyncToArray(fetchGithubPullCommits({ commits_url: "https://foo" }, "token", { fetchLike }))
 
     assertSpyCalls(fetchLike, 3)
     // ↑ Called thrice because it fetches pages 2 & 3
@@ -94,7 +94,7 @@ Deno.test("fetchPullCommits", async (t) => {
     )]))
 
     await assertRejects(
-      () => asyncToArray(fetchPullCommits({ commits_url: "https://foo" }, "token", { fetchLike })),
+      () => asyncToArray(fetchGithubPullCommits({ commits_url: "https://foo" }, "token", { fetchLike })),
       Error,
       "404 Not Found (https://foo/): Some error",
     )

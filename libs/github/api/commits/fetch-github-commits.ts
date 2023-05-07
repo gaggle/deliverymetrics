@@ -1,17 +1,20 @@
 import * as z from "zod"
 import { deepMerge } from "std:deep-merge"
 
-import { fetchExhaustively } from "../../fetching/mod.ts"
-import { parseWithZodSchema } from "../../utils/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
+import { parseWithZodSchema } from "../../../utils/mod.ts"
 
-import { Epoch } from "../../types.ts"
+import { Epoch } from "../../../types.ts"
 
-import { createGithubRequest } from "../utils/mod.ts"
-import { GithubCommit, githubRestSpec } from "../schemas/mod.ts"
+import { createGithubRequest } from "../../utils/mod.ts"
+
+import { githubRestSpec } from "../github-rest-api-spec.ts"
+
+import { GithubCommit } from "./github-commit-schema.ts"
 
 type FetchCommitsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
 
-export async function* fetchCommits(
+export async function* fetchGithubCommits(
   owner: string,
   repo: string,
   token?: string,

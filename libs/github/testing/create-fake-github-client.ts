@@ -1,28 +1,19 @@
 import { MockAloeDatabase } from "../../db/mod.ts"
 
-import {
-  ActionRun,
-  actionRunSchema,
-  ActionWorkflow,
-  actionWorkflowSchema,
-  BoundGithubPullCommit,
-  boundGithubPullCommitSchema,
-  GithubClient,
-  GithubCommit,
-  githubCommitSchema,
-  GithubPull,
-  githubPullSchema,
-  ReadonlyGithubClient,
-  SyncInfo,
-  syncInfoSchema,
-} from "../schemas/mod.ts"
+import { GithubActionRun, githubActionRunSchema } from "../api/action-run/mod.ts"
+import { GithubActionWorkflow, githubActionWorkflowSchema } from "../api/action-workflows/mod.ts"
+import { GithubCommit, githubCommitSchema } from "../api/commits/mod.ts"
+import { BoundGithubPullCommit, boundGithubPullCommitSchema } from "../api/pull-commits/mod.ts"
+import { GithubPull, githubPullSchema } from "../api/pulls/mod.ts"
 
 import { AloeGithubClient, ReadonlyAloeGithubClient } from "../clients/aloe-github-client.ts"
 
+import { GithubClient, ReadonlyGithubClient, SyncInfo, syncInfoSchema } from "../mod.ts"
+
 export async function createFakeReadonlyGithubClient(
   { actionRuns, actionWorkflows, commits, pullCommits, pulls, syncInfos }: Partial<{
-    actionRuns: Array<ActionRun>
-    actionWorkflows: Array<ActionWorkflow>
+    actionRuns: Array<GithubActionRun>
+    actionWorkflows: Array<GithubActionWorkflow>
     commits: Array<GithubCommit>
     pullCommits: Array<BoundGithubPullCommit>
     pulls: Array<GithubPull>
@@ -34,11 +25,11 @@ export async function createFakeReadonlyGithubClient(
     repo: "repo",
     db: {
       actionRuns: await MockAloeDatabase.new({
-        schema: actionRunSchema,
+        schema: githubActionRunSchema,
         documents: actionRuns,
       }),
       actionWorkflows: await MockAloeDatabase.new({
-        schema: actionWorkflowSchema,
+        schema: githubActionWorkflowSchema,
         documents: actionWorkflows,
       }),
       commits: await MockAloeDatabase.new({
@@ -63,8 +54,8 @@ export async function createFakeReadonlyGithubClient(
 
 export async function createFakeGithubClient(
   { actionRuns, actionWorkflows, commits, pullCommits, pulls, syncInfos }: Partial<{
-    actionRuns: Array<ActionRun>
-    actionWorkflows: Array<ActionWorkflow>
+    actionRuns: Array<GithubActionRun>
+    actionWorkflows: Array<GithubActionWorkflow>
     commits: Array<GithubCommit>
     pullCommits: Array<BoundGithubPullCommit>
     pulls: Array<GithubPull>
@@ -77,11 +68,11 @@ export async function createFakeGithubClient(
     token: "token",
     db: {
       actionRuns: await MockAloeDatabase.new({
-        schema: actionRunSchema,
+        schema: githubActionRunSchema,
         documents: actionRuns,
       }),
       actionWorkflows: await MockAloeDatabase.new({
-        schema: actionWorkflowSchema,
+        schema: githubActionWorkflowSchema,
         documents: actionWorkflows,
       }),
       commits: await MockAloeDatabase.new({
