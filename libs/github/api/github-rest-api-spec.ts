@@ -321,8 +321,11 @@ export const githubRestSpec = {
    * [https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#list-releases](https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#list-releases)
    */
   releases: {
-    getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/releases`).toString(),
+    getUrl: (owner: string, repo: string) => {
+      const url = new URL(`https://api.github.com/repos/${owner}/${repo}/releases`)
+      url.searchParams.set("per_page", "100")
+      return url.toString()
+    },
     schema: z.array(githubReleaseSchema),
   },
 } as const
