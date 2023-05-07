@@ -26,6 +26,12 @@ interface AloeGithubClientDb {
   commits: AloeDatabase<GithubCommit>
   pullCommits: AloeDatabase<BoundGithubPullCommit>
   pulls: AloeDatabase<GithubPull>
+  releases: AloeDatabase<GithubRelease>
+  statsCodeFrequency: AloeDatabase<DBCodeFrequency>
+  statsCommitActivity: AloeDatabase<GithubStatsCommitActivity>
+  statsContributors: AloeDatabase<GithubStatsContributor>
+  statsParticipation: AloeDatabase<GithubStatsParticipation>
+  statsPunchCard: AloeDatabase<DBPunchCard>
   syncs: AloeDatabase<SyncInfo>
 }
 

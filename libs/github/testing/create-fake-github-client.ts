@@ -5,18 +5,30 @@ import { GithubActionWorkflow, githubActionWorkflowSchema } from "../api/action-
 import { GithubCommit, githubCommitSchema } from "../api/commits/mod.ts"
 import { BoundGithubPullCommit, boundGithubPullCommitSchema } from "../api/pull-commits/mod.ts"
 import { GithubPull, githubPullSchema } from "../api/pulls/mod.ts"
+import { GithubRelease, githubReleaseSchema } from "../api/releases/mod.ts"
+import { DBCodeFrequency, dbCodeFrequencySchema } from "../api/stats-code-frequency/mod.ts"
+import { GithubStatsCommitActivity, githubStatsCommitActivitySchema } from "../api/stats-commit-activity/mod.ts"
+import { GithubStatsParticipation, githubStatsParticipationSchema } from "../api/stats-participation/mod.ts"
+import { DBPunchCard, dbPunchCardSchema } from "../api/stats-punch-card/mod.ts"
+import { GithubStatsContributor, githubStatsContributorSchema } from "../api/stats-contributors/mod.ts"
 
 import { AloeGithubClient, ReadonlyAloeGithubClient } from "../clients/aloe-github-client.ts"
 
 import { GithubClient, ReadonlyGithubClient, SyncInfo, syncInfoSchema } from "../mod.ts"
 
 export async function createFakeReadonlyGithubClient(
-  { actionRuns, actionWorkflows, commits, pullCommits, pulls, syncInfos }: Partial<{
+  opts: Partial<{
     actionRuns: Array<GithubActionRun>
     actionWorkflows: Array<GithubActionWorkflow>
     commits: Array<GithubCommit>
     pullCommits: Array<BoundGithubPullCommit>
     pulls: Array<GithubPull>
+    releases: Array<GithubRelease>
+    statsCodeFrequency: Array<DBCodeFrequency>
+    statsCommitActivity: Array<GithubStatsCommitActivity>
+    statsContributors: Array<GithubStatsContributor>
+    statsParticipation: Array<GithubStatsParticipation>
+    statsPunchCard: Array<DBPunchCard>
     syncInfos: Array<SyncInfo>
   }> = {},
 ): Promise<ReadonlyGithubClient> {
@@ -26,39 +38,69 @@ export async function createFakeReadonlyGithubClient(
     db: {
       actionRuns: await MockAloeDatabase.new({
         schema: githubActionRunSchema,
-        documents: actionRuns,
+        documents: opts.actionRuns,
       }),
       actionWorkflows: await MockAloeDatabase.new({
         schema: githubActionWorkflowSchema,
-        documents: actionWorkflows,
+        documents: opts.actionWorkflows,
       }),
       commits: await MockAloeDatabase.new({
         schema: githubCommitSchema,
-        documents: commits,
+        documents: opts.commits,
       }),
       pullCommits: await MockAloeDatabase.new({
         schema: boundGithubPullCommitSchema,
-        documents: pullCommits,
+        documents: opts.pullCommits,
       }),
       pulls: await MockAloeDatabase.new({
         schema: githubPullSchema,
-        documents: pulls,
+        documents: opts.pulls,
+      }),
+      releases: await MockAloeDatabase.new({
+        schema: githubReleaseSchema,
+        documents: opts.releases,
+      }),
+      statsCodeFrequency: await MockAloeDatabase.new({
+        schema: dbCodeFrequencySchema,
+        documents: opts.statsCodeFrequency,
+      }),
+      statsCommitActivity: await MockAloeDatabase.new({
+        schema: githubStatsCommitActivitySchema,
+        documents: opts.statsCommitActivity,
+      }),
+      statsContributors: await MockAloeDatabase.new({
+        schema: githubStatsContributorSchema,
+        documents: opts.statsContributors,
+      }),
+      statsParticipation: await MockAloeDatabase.new({
+        schema: githubStatsParticipationSchema,
+        documents: opts.statsParticipation,
+      }),
+      statsPunchCard: await MockAloeDatabase.new({
+        schema: dbPunchCardSchema,
+        documents: opts.statsPunchCard,
       }),
       syncs: await MockAloeDatabase.new({
         schema: syncInfoSchema,
-        documents: syncInfos,
+        documents: opts.syncInfos,
       }),
     },
   })
 }
 
 export async function createFakeGithubClient(
-  { actionRuns, actionWorkflows, commits, pullCommits, pulls, syncInfos }: Partial<{
+  opts: Partial<{
     actionRuns: Array<GithubActionRun>
     actionWorkflows: Array<GithubActionWorkflow>
     commits: Array<GithubCommit>
     pullCommits: Array<BoundGithubPullCommit>
     pulls: Array<GithubPull>
+    releases: Array<GithubRelease>
+    statsCodeFrequency: Array<DBCodeFrequency>
+    statsCommitActivity: Array<GithubStatsCommitActivity>
+    statsContributors: Array<GithubStatsContributor>
+    statsParticipation: Array<GithubStatsParticipation>
+    statsPunchCard: Array<DBPunchCard>
     syncInfos: Array<SyncInfo>
   }> = {},
 ): Promise<GithubClient> {
@@ -69,27 +111,51 @@ export async function createFakeGithubClient(
     db: {
       actionRuns: await MockAloeDatabase.new({
         schema: githubActionRunSchema,
-        documents: actionRuns,
+        documents: opts.actionRuns,
       }),
       actionWorkflows: await MockAloeDatabase.new({
         schema: githubActionWorkflowSchema,
-        documents: actionWorkflows,
+        documents: opts.actionWorkflows,
       }),
       commits: await MockAloeDatabase.new({
         schema: githubCommitSchema,
-        documents: commits,
+        documents: opts.commits,
       }),
       pullCommits: await MockAloeDatabase.new({
         schema: boundGithubPullCommitSchema,
-        documents: pullCommits,
+        documents: opts.pullCommits,
       }),
       pulls: await MockAloeDatabase.new({
         schema: githubPullSchema,
-        documents: pulls,
+        documents: opts.pulls,
+      }),
+      releases: await MockAloeDatabase.new({
+        schema: githubReleaseSchema,
+        documents: opts.releases,
+      }),
+      statsCodeFrequency: await MockAloeDatabase.new({
+        schema: dbCodeFrequencySchema,
+        documents: opts.statsCodeFrequency,
+      }),
+      statsCommitActivity: await MockAloeDatabase.new({
+        schema: githubStatsCommitActivitySchema,
+        documents: opts.statsCommitActivity,
+      }),
+      statsContributors: await MockAloeDatabase.new({
+        schema: githubStatsContributorSchema,
+        documents: opts.statsContributors,
+      }),
+      statsParticipation: await MockAloeDatabase.new({
+        schema: githubStatsParticipationSchema,
+        documents: opts.statsParticipation,
+      }),
+      statsPunchCard: await MockAloeDatabase.new({
+        schema: dbPunchCardSchema,
+        documents: opts.statsPunchCard,
       }),
       syncs: await MockAloeDatabase.new({
         schema: syncInfoSchema,
-        documents: syncInfos,
+        documents: opts.syncInfos,
       }),
     },
   })
