@@ -1,6 +1,11 @@
 import { assertEquals, assertObjectMatch } from "dev:asserts"
 
-import { createFakeReadonlyGithubClient, getFakePull, getFakePullCommit, getFakeSyncInfo } from "../github/testing.ts"
+import {
+  createFakeReadonlyGithubClient,
+  getFakePull,
+  getFakePullCommit,
+  getFakeSyncInfo,
+} from "../github/testing/mod.ts"
 
 import { asyncSingle, asyncToArray } from "../utils/mod.ts"
 

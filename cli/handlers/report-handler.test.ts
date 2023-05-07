@@ -3,7 +3,7 @@ import { join } from "std:path"
 import { readCSVObjects } from "csv"
 import { stub } from "dev:mock"
 
-import { createFakeReadonlyGithubClient, getFakePull, getFakeSyncInfo } from "../../libs/github/testing.ts"
+import { createFakeReadonlyGithubClient, getFakePull, getFakeSyncInfo } from "../../libs/github/testing/mod.ts"
 import { asyncToArray, single, withFileOpen, withTempDir, yieldDir } from "../../libs/utils/mod.ts"
 
 import { withStubs } from "../../libs/dev-utils.ts"

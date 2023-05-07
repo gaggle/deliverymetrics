@@ -1,6 +1,6 @@
 import { assertEquals } from "dev:asserts"
 
-import { createFakeReadonlyGithubClient, getFakeActionRun } from "../github/testing.ts"
+import { createFakeReadonlyGithubClient, getFakeActionRun } from "../github/testing/mod.ts"
 
 import { asyncToArray } from "../utils/mod.ts"
 

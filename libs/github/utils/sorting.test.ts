@@ -1,6 +1,6 @@
 import { assertEquals } from "dev:asserts"
 
-import { getFakePull, getFakePullCommit } from "../testing.ts"
+import { getFakePull, getFakePullCommit } from "../testing/mod.ts"
 
 import { sortPullCommitsByKey, sortPullsByKey } from "./sorting.ts"
 

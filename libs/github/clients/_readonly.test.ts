@@ -4,7 +4,7 @@ import { asyncToArray } from "../../utils/mod.ts"
 
 import { BoundGithubPullCommit, GithubPull, ReadonlyGithubClient, SyncInfo } from "../schemas/mod.ts"
 
-import { createFakeGithubClient, createFakeReadonlyGithubClient, getFakePull } from "../testing.ts"
+import { createFakeGithubClient, createFakeReadonlyGithubClient, getFakePull } from "../testing/mod.ts"
 
 async function* yieldGithubClient(
   opts?: {

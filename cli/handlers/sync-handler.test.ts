@@ -1,6 +1,6 @@
 import { assertSpyCallArgs, assertSpyCalls, stub } from "dev:mock"
 
-import { createFakeGithubClient, getFakePull } from "../../libs/github/testing.ts"
+import { createFakeGithubClient, getFakePull } from "../../libs/github/testing/mod.ts"
 
 import { withStubs } from "../../libs/dev-utils.ts"
 

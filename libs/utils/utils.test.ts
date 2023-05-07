@@ -2,7 +2,7 @@ import * as z from "zod"
 import { FakeTime } from "dev:time"
 import { assertEquals, assertRejects, assertThrows } from "dev:asserts"
 
-import { getFakePull } from "../github/testing.ts"
+import { getFakePull } from "../github/testing/mod.ts"
 import { withFakeTime } from "../dev-utils.ts"
 import { AbortError } from "../errors.ts"
 

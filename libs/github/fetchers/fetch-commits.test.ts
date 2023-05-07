@@ -3,7 +3,7 @@ import { assertSpyCalls, returnsNext, spy } from "dev:mock"
 
 import { asyncToArray } from "../../utils/mod.ts"
 
-import { getFakeCommit } from "../testing.ts"
+import { getFakeCommit } from "../testing/mod.ts"
 
 import { fetchCommits } from "./fetch-commits.ts"
 

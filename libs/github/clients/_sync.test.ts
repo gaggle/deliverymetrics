@@ -25,7 +25,7 @@ import {
   getFakePull,
   getFakePullCommit,
   getFakeSyncInfo,
-} from "../testing.ts"
+} from "../testing/mod.ts"
 
 import { _internals } from "./aloe-github-client.ts"
 
