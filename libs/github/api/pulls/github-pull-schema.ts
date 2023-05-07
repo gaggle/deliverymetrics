@@ -65,7 +65,7 @@ const githubRepoSchema = z.object({
       maintain: z.boolean().optional(),
     })
     .optional(),
-  owner: githubUserSchema,
+  owner: z.union([githubUserSchema, z.null()]),
   private: z
     .boolean()
     .describe("Whether the repository is private or public."),
