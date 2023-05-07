@@ -61,20 +61,17 @@ export interface ReadonlyGithubClient extends EventEmitter<GithubClientEvents> {
 }
 
 export interface GithubClient extends ReadonlyGithubClient {
-  syncPulls(
-    opts?: { signal?: AbortSignal; newerThan?: Epoch },
-  ): Promise<{
-    syncedAt: Epoch
-    syncedPulls: Array<GithubPull>
-  }>
-
-  syncPullCommits(pulls: Array<GithubPull>, opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }>
-
-  syncCommits(opts?: { signal?: AbortSignal; newerThan?: Epoch }): Promise<{ syncedAt: Epoch }>
-
   syncActionRuns(opts?: { signal?: AbortSignal; newerThan?: Epoch }): Promise<{ syncedAt: Epoch }>
 
   syncActionWorkflows(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }>
+
+  syncCommits(opts?: { signal?: AbortSignal; newerThan?: Epoch }): Promise<{ syncedAt: Epoch }>
+
+  syncPullCommits(pulls: Array<GithubPull>, opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }>
+
+  syncPulls(
+    opts?: { signal?: AbortSignal; newerThan?: Epoch },
+  ): Promise<{ syncedAt: Epoch; syncedPulls: Array<GithubPull> }>
 }
 
 export type Sortable<T> = Partial<{ sort: { key: T; order?: "asc" | "desc" } }>
