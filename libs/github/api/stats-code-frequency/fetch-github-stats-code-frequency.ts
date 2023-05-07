@@ -34,8 +34,8 @@ export async function* fetchGithubStatsCodeFrequency(
     const data: z.infer<typeof githubRestSpec.statsCodeFrequency.schema> = await resp.json()
     parseWithZodSchema(data, githubRestSpec.statsCodeFrequency.schema)
 
-    for (const punchCard of data) {
-      yield punchCard
+    for (const el of data) {
+      yield el
     }
   }
 }

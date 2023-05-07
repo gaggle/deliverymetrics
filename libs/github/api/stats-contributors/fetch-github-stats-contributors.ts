@@ -34,8 +34,8 @@ export async function* fetchGithubStatsContributors(
     const data: z.infer<typeof githubRestSpec.statsContributors.schema> = await resp.json()
     parseWithZodSchema(data, githubRestSpec.statsContributors.schema)
 
-    for (const punchCard of data) {
-      yield punchCard
+    for (const el of data) {
+      yield el
     }
   }
 }

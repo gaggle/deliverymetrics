@@ -240,7 +240,7 @@ export const githubRestSpec = {
   statsParticipation: {
     getUrl: (owner: string, repo: string) =>
       new URL(`https://api.github.com/repos/${owner}/${repo}/stats/participation`).toString(),
-    schema: z.array(githubStatsParticipationSchema),
+    schema: githubStatsParticipationSchema,
   },
   /**
    * # Get the hourly commit count for each day
