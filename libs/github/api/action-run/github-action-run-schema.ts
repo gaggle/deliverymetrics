@@ -32,7 +32,7 @@ const repository = z
     node_id: z.string(),
     name: z.string(),
     full_name: z.string(),
-    owner: githubUser,
+    owner: z.union([githubUser, z.null()]),
     private: z.boolean(),
     html_url: z.string().url(),
     description: z.union([z.string(), z.null()]),
