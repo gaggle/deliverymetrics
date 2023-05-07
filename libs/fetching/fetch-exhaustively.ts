@@ -26,7 +26,7 @@ export async function* fetchExhaustively(
 ): AsyncGenerator<Response> {
   const { fetchLike, maxPages } = {
     fetchLike: fetch,
-    maxPages: 100,
+    maxPages: 1000,
     ...opts,
   }
 
