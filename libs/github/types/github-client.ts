@@ -60,6 +60,18 @@ export interface GithubClient extends ReadonlyGithubClient {
   syncPulls(
     opts?: { signal?: AbortSignal; newerThan?: Epoch },
   ): Promise<{ syncedAt: Epoch; syncedPulls: Array<GithubPull> }>
+
+  syncReleases(opts?: { signal?: AbortSignal; newerThan?: Epoch }): Promise<{ syncedAt: Epoch }>
+
+  syncStatsCodeFrequency(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }>
+
+  syncStatsCommitActivity(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }>
+
+  syncStatsContributors(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }>
+
+  syncStatsParticipation(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }>
+
+  syncStatsPunchCard(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }>
 }
 
 export type Sortable<T> = Partial<{ sort: { key: T; order?: "asc" | "desc" } }>

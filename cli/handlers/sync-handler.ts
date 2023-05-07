@@ -65,27 +65,43 @@ export async function fullGithubSync(
 
   github.on("progress", ({ type }) => {
     switch (type) {
-      case "pull":
-        return dot("p")
-      case "pull-commit":
-        return dot("p")
-      case "commit":
-        return dot("c")
       case "action-run":
         return dot("r")
       case "action-workflow":
         return dot("w")
+      case "commit":
+        return dot("c")
+      case "pull":
+        return dot("p")
+      case "pull-commit":
+        return dot("p")
+      case "release":
+        return dot("R")
     }
   })
 
-  console.log("Legend: p=pull|pull-commit, c=commit, r=action-run, w=action-workflow")
+  github.on("finished", ({ type }) => {
+    if (type.startsWith("stats-")) {
+      return dot("s")
+    }
+  })
+
+  console.log(
+    "Legend: r=action-run, w=action-workflow, c=commit, p=pull|pull-commit, R=release, s=stats",
+  )
   try {
     await Promise.all([
-      github.syncPulls({ newerThan: syncNewerThan, signal })
-        .then((result) => github.syncPullCommits(result.syncedPulls, { signal })),
-      github.syncCommits({ newerThan: syncNewerThan, signal }),
       github.syncActionRuns({ newerThan: syncNewerThan, signal }),
       github.syncActionWorkflows({ signal }),
+      github.syncCommits({ newerThan: syncNewerThan, signal }),
+      github.syncPulls({ newerThan: syncNewerThan, signal })
+        .then((result) => github.syncPullCommits(result.syncedPulls, { signal })),
+      github.syncReleases({ newerThan: syncNewerThan, signal }),
+      github.syncStatsCodeFrequency({ signal }),
+      github.syncStatsCommitActivity({ signal }),
+      github.syncStatsContributors({ signal }),
+      github.syncStatsParticipation({ signal }),
+      github.syncStatsPunchCard({ signal }),
     ])
   } catch (err) {
     if (err instanceof AbortError) {

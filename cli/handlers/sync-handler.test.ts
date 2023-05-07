@@ -52,24 +52,40 @@ Deno.test("fullGithubSync", async (t) => {
     const client = await createFakeGithubClient()
     await withStubs(
       async (
-        syncPulls,
-        syncPullCommits,
-        syncCommits,
         syncActionRuns,
         syncActionWorkflows,
+        syncCommits,
+        syncPullCommits,
+        syncPulls,
+        syncStatsCodeFrequency,
+        syncStatsCommitActivity,
+        syncStatsContributors,
+        syncStatsParticipation,
+        syncStatsPunchCard,
       ) => {
         await fullGithubSync(client)
-        assertSpyCalls(syncPulls, 1)
-        assertSpyCalls(syncPullCommits, 1)
-        assertSpyCalls(syncCommits, 1)
         assertSpyCalls(syncActionRuns, 1)
         assertSpyCalls(syncActionWorkflows, 1)
+        assertSpyCalls(syncCommits, 1)
+        assertSpyCalls(syncPullCommits, 1)
+        assertSpyCalls(syncPulls, 1)
+        assertSpyCalls(syncStatsCodeFrequency, 1)
+        assertSpyCalls(syncStatsCommitActivity, 1)
+        assertSpyCalls(syncStatsContributors, 1)
+        assertSpyCalls(syncStatsParticipation, 1)
+        assertSpyCalls(syncStatsPunchCard, 1)
       },
-      stub(client, "syncPulls", () => Promise.resolve({ syncedAt: 0, syncedPulls: [getFakeGithubPull()] })),
-      stub(client, "syncPullCommits", () => Promise.resolve({ syncedAt: 0 })),
-      stub(client, "syncCommits", () => Promise.resolve({ syncedAt: 0 })),
       stub(client, "syncActionRuns", () => Promise.resolve({ syncedAt: 0 })),
       stub(client, "syncActionWorkflows", () => Promise.resolve({ syncedAt: 0 })),
+      stub(client, "syncCommits", () => Promise.resolve({ syncedAt: 0 })),
+      stub(client, "syncPullCommits", () => Promise.resolve({ syncedAt: 0 })),
+      stub(client, "syncPulls", () => Promise.resolve({ syncedAt: 0, syncedPulls: [getFakeGithubPull()] })),
+      stub(client, "syncReleases", () => Promise.resolve({ syncedAt: 0 })),
+      stub(client, "syncStatsCodeFrequency", () => Promise.resolve({ syncedAt: 0 })),
+      stub(client, "syncStatsCommitActivity", () => Promise.resolve({ syncedAt: 0 })),
+      stub(client, "syncStatsContributors", () => Promise.resolve({ syncedAt: 0 })),
+      stub(client, "syncStatsParticipation", () => Promise.resolve({ syncedAt: 0 })),
+      stub(client, "syncStatsPunchCard", () => Promise.resolve({ syncedAt: 0 })),
     )
   })
 })

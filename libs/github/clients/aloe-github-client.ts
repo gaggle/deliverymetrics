@@ -15,6 +15,12 @@ import { fetchGithubActionRuns, GithubActionRun } from "../api/action-run/mod.ts
 import { fetchGithubActionWorkflows, GithubActionWorkflow } from "../api/action-workflows/mod.ts"
 import { fetchGithubCommits } from "../api/commits/mod.ts"
 import { fetchGithubPulls, GithubPull, GithubPullDateKey } from "../api/pulls/mod.ts"
+import { fetchGithubReleases, GithubRelease } from "../api/releases/mod.ts"
+import { DBCodeFrequency, fetchGithubStatsCodeFrequency } from "../api/stats-code-frequency/mod.ts"
+import { fetchGithubStatsCommitActivity, GithubStatsCommitActivity } from "../api/stats-commit-activity/mod.ts"
+import { fetchGithubStatsContributors, GithubStatsContributor } from "../api/stats-contributors/mod.ts"
+import { fetchGithubStatsParticipation, GithubStatsParticipation } from "../api/stats-participation/mod.ts"
+import { DBPunchCard, fetchGithubStatsPunchCard } from "../api/stats-punch-card/mod.ts"
 
 import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../github-utils/mod.ts"
 
@@ -255,6 +261,98 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     return { syncedAt: result.syncInfo.createdAt, syncedPulls }
   }
 
+  async syncReleases(opts?: { signal?: AbortSignal; newerThan?: Epoch }): Promise<{ syncedAt: Epoch }> {
+    const result = await this.internalFetch({
+      type: "release",
+      iteratorFn: (context) => _internals.fetchGithubReleases(this.owner, this.repo, this.token, context),
+      upsertFn: async (release) => {
+        await this.db.releases.deleteOne({ node_id: release.node_id })
+        await this.db.releases.insertOne(release)
+      },
+      saveFn: () => this.db.releases.save(),
+      ...opts,
+    })
+    return Promise.resolve({ syncedAt: result.syncInfo.createdAt })
+  }
+
+  async syncStatsCodeFrequency(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }> {
+    const result = await this.internalFetch({
+      type: "stats-code-frequency",
+      iteratorFn: (context) => _internals.fetchGithubStatsCodeFrequency(this.owner, this.repo, this.token, context),
+      upsertFn: async (el) => {
+        const [time, additions, deletions] = el
+        await this.db.statsCodeFrequency.deleteOne({ time })
+        await this.db.statsCodeFrequency.insertOne({
+          time,
+          timeStr: new Date(time * 1000).toISOString(),
+          additions,
+          deletions,
+        })
+      },
+      saveFn: () => this.db.statsCodeFrequency.save(),
+      ...opts,
+    })
+    return Promise.resolve({ syncedAt: result.syncInfo.createdAt })
+  }
+
+  async syncStatsCommitActivity(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }> {
+    const result = await this.internalFetch({
+      type: "stats-commit-activity",
+      iteratorFn: (context) => _internals.fetchGithubStatsCommitActivity(this.owner, this.repo, this.token, context),
+      upsertFn: async (el) => {
+        await this.db.statsCommitActivity.deleteOne({ week: el.week })
+        await this.db.statsCommitActivity.insertOne(el)
+      },
+      saveFn: () => this.db.statsCommitActivity.save(),
+      ...opts,
+    })
+    return Promise.resolve({ syncedAt: result.syncInfo.createdAt })
+  }
+
+  async syncStatsContributors(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }> {
+    const result = await this.internalFetch({
+      type: "stats-contributors",
+      iteratorFn: (context) => _internals.fetchGithubStatsContributors(this.owner, this.repo, this.token, context),
+      upsertFn: async (el) => {
+        const author = el.author
+        await this.db.statsContributors.deleteOne(author === null ? { author: null } : { author: { id: author.id } })
+        await this.db.statsContributors.insertOne(el)
+      },
+      saveFn: () => this.db.statsContributors.save(),
+      ...opts,
+    })
+    return Promise.resolve({ syncedAt: result.syncInfo.createdAt })
+  }
+
+  async syncStatsParticipation(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }> {
+    const result = await this.internalFetch({
+      type: "stats-participation",
+      iteratorFn: (context) => _internals.fetchGithubStatsParticipation(this.owner, this.repo, this.token, context),
+      upsertFn: async (el) => {
+        await this.db.statsParticipation.deleteOne({ all: exists() })
+        await this.db.statsParticipation.insertOne(el)
+      },
+      saveFn: () => this.db.statsParticipation.save(),
+      ...opts,
+    })
+    return Promise.resolve({ syncedAt: result.syncInfo.createdAt })
+  }
+
+  async syncStatsPunchCard(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }> {
+    const result = await this.internalFetch({
+      type: "stats-punch-card",
+      iteratorFn: (context) => _internals.fetchGithubStatsPunchCard(this.owner, this.repo, this.token, context),
+      upsertFn: async (el) => {
+        const [day, hour, commits] = el
+        await this.db.statsPunchCard.deleteOne({ day, hour })
+        await this.db.statsPunchCard.insertOne({ day, hour, commits })
+      },
+      saveFn: () => this.db.statsPunchCard.save(),
+      ...opts,
+    })
+    return Promise.resolve({ syncedAt: result.syncInfo.createdAt })
+  }
+
   private async calcNewerThanBasedOnLatestSync(
     opts: { type: SyncInfo["type"]; max?: number },
   ): Promise<number | undefined> {
@@ -327,4 +425,10 @@ export const _internals = {
   fetchGithubCommits,
   fetchGithubPullCommits,
   fetchGithubPulls,
+  fetchGithubReleases,
+  fetchGithubStatsCodeFrequency,
+  fetchGithubStatsCommitActivity,
+  fetchGithubStatsContributors,
+  fetchGithubStatsParticipation,
+  fetchGithubStatsPunchCard,
 } as const
