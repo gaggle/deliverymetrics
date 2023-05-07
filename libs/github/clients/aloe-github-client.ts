@@ -6,15 +6,15 @@ import { AloeDatabase } from "../../db/mod.ts"
 import { retrierFactory } from "../../fetching/mod.ts"
 import { arrayToAsyncGenerator, asyncToArray, first } from "../../utils/mod.ts"
 
-import { BoundGithubPullCommit, fetchGithubPullCommits, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
-import { fetchGithubActionRuns, GithubActionRun } from "../api/action-run/mod.ts"
-import { fetchGithubActionWorkflows, GithubActionWorkflow } from "../api/action-workflows/mod.ts"
-import { GithubCommit } from "../api/commits/mod.ts"
-import { fetchGithubPulls, GithubPull, GithubPullDateKey } from "../api/pulls/mod.ts"
-import { fetchGithubCommits } from "../api/commits/mod.ts"
-
 import { AbortError } from "../../errors.ts"
 import { Epoch } from "../../types.ts"
+
+import { BoundGithubPullCommit, fetchGithubPullCommits, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
+import { GithubCommit } from "../api/commits/mod.ts"
+import { fetchGithubActionRuns, GithubActionRun } from "../api/action-run/mod.ts"
+import { fetchGithubActionWorkflows, GithubActionWorkflow } from "../api/action-workflows/mod.ts"
+import { fetchGithubCommits } from "../api/commits/mod.ts"
+import { fetchGithubPulls, GithubPull, GithubPullDateKey } from "../api/pulls/mod.ts"
 
 import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../github-utils/mod.ts"
 
@@ -163,62 +163,6 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     this.token = opts.token
   }
 
-  async syncPulls(opts: { signal?: AbortSignal; newerThan?: Epoch } = {}): Promise<{
-    syncedAt: Epoch
-    syncedPulls: Array<GithubPull>
-  }> {
-    const syncedPulls: Array<GithubPull> = []
-    const result = await this.internalFetch({
-      type: "pull",
-      iteratorFn: (context) => _internals.fetchGithubPulls(this.owner, this.repo, this.token, context),
-      upsertFn: async (pull) => {
-        await this.db.pulls.deleteOne({ number: pull.number })
-        await this.db.pulls.insertOne(pull)
-        syncedPulls.push(pull)
-      },
-      saveFn: () => this.db.pulls.save(),
-      ...opts,
-    })
-    return { syncedAt: result.syncInfo.createdAt, syncedPulls }
-  }
-
-  async syncPullCommits(
-    pulls: Array<GithubPull>,
-    opts: { signal?: AbortSignal } = {},
-  ): Promise<{ syncedAt: Epoch }> {
-    const result = await this.internalFetch({
-      type: "pull-commit",
-      iteratorFn: () => arrayToAsyncGenerator(pulls),
-      upsertFn: async (pull, context) => {
-        const commits = await asyncToArray(
-          _internals.fetchGithubPullCommits({ commits_url: pull.commits_url }, this.token, context),
-        )
-        debug(`Upserting pull commits bound to pr ${pull.number}`)
-        await this.db.pullCommits.deleteMany({ pr: pull.number })
-        await this.db.pullCommits.insertMany(commits.map((commit) => ({ ...commit, pr: pull.number })))
-      },
-      saveFn: () => this.db.pullCommits.save(),
-      ...opts,
-    })
-
-    return { syncedAt: result.syncInfo.createdAt }
-  }
-
-  async syncCommits(opts: { signal?: AbortSignal; newerThan?: Epoch } = {}): Promise<{ syncedAt: Epoch }> {
-    const result = await this.internalFetch({
-      type: "commit",
-      iteratorFn: (context) => _internals.fetchGithubCommits(this.owner, this.repo, this.token, context),
-      upsertFn: async (commit) => {
-        await this.db.commits.deleteOne({ node_id: commit.node_id })
-        await this.db.commits.insertOne(commit)
-      },
-      saveFn: () => this.db.commits.save(),
-      ...opts,
-    })
-
-    return { syncedAt: result.syncInfo.createdAt }
-  }
-
   async syncActionRuns(opts: { signal?: AbortSignal; newerThan?: Epoch } = {}): Promise<{ syncedAt: Epoch }> {
     const result = await this.internalFetch({
       type: "action-run",
@@ -247,6 +191,62 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     })
 
     return { syncedAt: result.syncInfo.createdAt }
+  }
+
+  async syncCommits(opts: { signal?: AbortSignal; newerThan?: Epoch } = {}): Promise<{ syncedAt: Epoch }> {
+    const result = await this.internalFetch({
+      type: "commit",
+      iteratorFn: (context) => _internals.fetchGithubCommits(this.owner, this.repo, this.token, context),
+      upsertFn: async (commit) => {
+        await this.db.commits.deleteOne({ node_id: commit.node_id })
+        await this.db.commits.insertOne(commit)
+      },
+      saveFn: () => this.db.commits.save(),
+      ...opts,
+    })
+
+    return { syncedAt: result.syncInfo.createdAt }
+  }
+
+  async syncPullCommits(
+    pulls: Array<GithubPull>,
+    opts: { signal?: AbortSignal } = {},
+  ): Promise<{ syncedAt: Epoch }> {
+    const result = await this.internalFetch({
+      type: "pull-commit",
+      iteratorFn: () => arrayToAsyncGenerator(pulls),
+      upsertFn: async (pull, context) => {
+        const commits = await asyncToArray(
+          _internals.fetchGithubPullCommits({ commits_url: pull.commits_url }, this.token, context),
+        )
+        debug(`Upserting pull commits bound to pr ${pull.number}`)
+        await this.db.pullCommits.deleteMany({ pr: pull.number })
+        await this.db.pullCommits.insertMany(commits.map((commit) => ({ ...commit, pr: pull.number })))
+      },
+      saveFn: () => this.db.pullCommits.save(),
+      ...opts,
+    })
+
+    return { syncedAt: result.syncInfo.createdAt }
+  }
+
+  async syncPulls(opts: { signal?: AbortSignal; newerThan?: Epoch } = {}): Promise<{
+    syncedAt: Epoch
+    syncedPulls: Array<GithubPull>
+  }> {
+    const syncedPulls: Array<GithubPull> = []
+    const result = await this.internalFetch({
+      type: "pull",
+      iteratorFn: (context) => _internals.fetchGithubPulls(this.owner, this.repo, this.token, context),
+      upsertFn: async (pull) => {
+        await this.db.pulls.deleteOne({ number: pull.number })
+        await this.db.pulls.insertOne(pull)
+        syncedPulls.push(pull)
+      },
+      saveFn: () => this.db.pulls.save(),
+      ...opts,
+    })
+    return { syncedAt: result.syncInfo.createdAt, syncedPulls }
   }
 
   private async calcNewerThanBasedOnLatestSync(
@@ -316,9 +316,9 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 }
 
 export const _internals = {
+  fetchGithubActionRuns,
+  fetchGithubActionWorkflows,
   fetchGithubCommits,
   fetchGithubPullCommits,
   fetchGithubPulls,
-  fetchGithubActionRuns,
-  fetchGithubActionWorkflows,
 } as const
