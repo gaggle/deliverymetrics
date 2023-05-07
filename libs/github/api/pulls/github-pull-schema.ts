@@ -650,8 +650,7 @@ export const githubPullSchema = z.object({
           merge_method: z
             .enum(["merge", "squash", "rebase"])
             .describe("The merge method to use."),
-          commit_title: z
-            .string()
+          commit_title: z.union([z.string(), z.null()])
             .describe("Title for the merge commit message."),
           commit_message: z
             .string()
