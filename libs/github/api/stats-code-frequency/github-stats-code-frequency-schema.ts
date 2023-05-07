@@ -6,6 +6,7 @@ export type GithubStatsCodeFrequency = z.infer<typeof githubStatsCodeFrequencySc
 
 export const dbCodeFrequencySchema = z.object({
   time: z.number(),
+  timeStr: z.string(),
   additions: z.number().nonnegative(),
   deletions: z.number().nonpositive(),
 })
