@@ -1,4 +1,4 @@
-import { writeAll as streamWriteAll } from "std:streams"
+import { writeAllSync as streamWriteAllSync } from "std:streams"
 
 import { ReadonlyGithubClient } from "../../libs/github/mod.ts"
 
@@ -35,7 +35,10 @@ export async function formatGithubClientStatus(
   return msg
 }
 
-export async function dot(char = "."): Promise<void> {
-  const text = new TextEncoder().encode(char)
-  await streamWriteAll(Deno.stdout, text)
+export function write(content: string, { _stdOutLike }: Partial<{ _stdOutLike: Deno.WriterSync }> = {}): void {
+  streamWriteAllSync(_stdOutLike || Deno.stdout, new TextEncoder().encode(`${content}\n`))
+}
+
+export function dot({ char, _stdOutLike }: Partial<{ char: string; _stdOutLike: Deno.WriterSync }> = {}): void {
+  streamWriteAllSync(_stdOutLike || Deno.stdout, new TextEncoder().encode(char || "."))
 }
