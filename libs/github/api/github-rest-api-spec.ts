@@ -19,7 +19,8 @@ export const githubRestSpec = {
   actionRuns: {
     getUrl: (owner: string, repo: string) => {
       const url = new URL(`https://api.github.com/repos/${owner}/${repo}/actions/runs`)
-      url.searchParams.set("per_page", "100")
+      url.searchParams.set("per_page", "50")
+      // ↑ Occasionally the API would return 502 Bad Gateway when per_page=100 (despite retrying)
       return url.toString()
     },
     schema: z.object({ total_count: z.number().int(), workflow_runs: z.array(githubActionRunSchema) }),
