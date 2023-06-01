@@ -1,7 +1,67 @@
 import { assertEquals, AssertionError, assertRejects } from "dev:asserts"
-import { stub } from "dev:mock"
+import { assertSpyCallArgs, assertSpyCalls, stub } from "dev:mock"
 
-import { waitFor, withStubs } from "./dev-utils.ts"
+import { CannedResponses, waitFor, withStubs } from "./dev-utils.ts"
+
+Deno.test("CannedResponses", async (t) => {
+  await t.step("given a list of responses", async (t) => {
+    await t.step("returns canned responses", async () => {
+      const resp1 = new Response("👍")
+      const resp2 = new Response("👍👍")
+      const can = new CannedResponses([resp1, resp2])
+      assertEquals(await can.fetch("https://example.com"), resp1)
+      assertEquals(await can.fetch("https://example.com"), resp2)
+    })
+
+    await t.step("throws error when responses run out", async () => {
+      const can = new CannedResponses([])
+      await assertRejects(() => can.fetch("https://example.com"), Error, "No more canned responses")
+    })
+
+    await t.step("doesn't mutate input array", async () => {
+      const responses = [new Response("👍")]
+      const can = new CannedResponses(responses)
+      await can.fetch("https://example.com")
+      assertEquals(responses.length, 1)
+    })
+
+    await t.step("also accepts errors", async () => {
+      const can = new CannedResponses([new Error("no")])
+      await assertRejects(() => can.fetch("https://example.com"), Error, "no")
+    })
+
+    await t.step("maintains its spy", async () => {
+      const can = new CannedResponses([new Response("👍")])
+      await can.fetch("https://example.com")
+
+      assertSpyCalls(can.fetchSpy, 1)
+      assertSpyCallArgs(can.fetchSpy, 0, ["https://example.com"])
+    })
+  })
+
+  await t.step("given a callback", async (t) => {
+    await t.step("returns the callback", async () => {
+      const resp = new Response("👍")
+      const can = new CannedResponses(() => Promise.resolve(resp))
+      const result = [
+        await can.fetch("https://example.com"),
+        await can.fetch("https://example.com"),
+      ]
+      assertEquals(result, [resp, resp])
+    })
+
+    await t.step("maintains its spy", async () => {
+      const can = new CannedResponses(() => Promise.resolve(new Response("👍")))
+
+      await can.fetch("https://example.com")
+      await can.fetch("https://example.com")
+
+      assertSpyCalls(can.fetchSpy, 2)
+      assertSpyCallArgs(can.fetchSpy, 0, ["https://example.com"])
+      assertSpyCallArgs(can.fetchSpy, 1, ["https://example.com"])
+    })
+  })
+})
 
 Deno.test("withStubs", async (t) => {
   const foo = { bar: () => "baz" }

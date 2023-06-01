@@ -1,7 +1,7 @@
 import { AssertionError } from "dev:asserts"
 import { FakeTime } from "dev:time"
 import { install as mockFetchInstall, mock as mockFetch, uninstall as mockFetchUninstall } from "dev:mock-fetch"
-import { Stub } from "dev:mock"
+import { spy, Stub } from "dev:mock"
 
 import { sleep } from "./utils/mod.ts"
 
@@ -13,6 +13,42 @@ export async function withMockedFetch(
     await callback(mockFetch)
   } finally {
     mockFetchUninstall()
+  }
+}
+
+export class CannedResponses {
+  private readonly data:
+    | { responses: Array<Response | Error>; cb?: never }
+    | { cb: typeof fetch; responses?: never }
+
+  /**
+   * A convenience-spy to track how #fetch has been called
+   */
+  public readonly fetchSpy = spy()
+
+  constructor(responsesOrCb: Array<Response | Error> | typeof fetch) {
+    if (Array.isArray(responsesOrCb)) {
+      this.data = { responses: [...responsesOrCb] }
+    } else {
+      this.data = { cb: responsesOrCb }
+    }
+  }
+
+  fetch: typeof fetch = async (...args: Parameters<typeof fetch>): ReturnType<typeof fetch> => {
+    this.fetchSpy(...args)
+    let value: Response | Error | undefined
+    if (this.data.responses) {
+      value = this.data.responses.shift()
+    } else {
+      value = await this.data.cb(...args)
+    }
+    if (value instanceof Error) {
+      return Promise.reject(value)
+    }
+    if (value === undefined) {
+      return Promise.reject(new Error("No more canned responses"))
+    }
+    return Promise.resolve(value)
   }
 }
 
