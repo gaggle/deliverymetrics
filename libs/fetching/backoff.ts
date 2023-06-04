@@ -1,3 +1,6 @@
+/**
+ * Return delay in ms
+ */
 export function calculateExponentialBackoff(attempt: number, opts: {
   /** The exponential factor to use. Default is `2`. */
   factor?: number
