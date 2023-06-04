@@ -485,3 +485,14 @@ export function parseRegexLike(regexLike: string): RegExp {
   }
   return new RegExp(regexLike.slice(1, -1))
 }
+
+type FilterUndefined<T> = Omit<T, { [K in keyof T]: T[K] extends undefined ? K : never }[keyof T]>
+
+export function filterUndefined<T extends { [key: string]: unknown }>(obj: T): FilterUndefined<T> {
+  for (const key of Object.keys(obj)) {
+    if (obj[key] === undefined) {
+      delete obj[key]
+    }
+  }
+  return obj
+}

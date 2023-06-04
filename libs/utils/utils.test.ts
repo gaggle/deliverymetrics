@@ -12,6 +12,7 @@ import {
   asyncSingle,
   asyncToArray,
   extractZodSchemaKeys,
+  filterUndefined,
   first,
   flattenObject,
   getEnv,
@@ -652,5 +653,11 @@ Deno.test("parseRegexLike", async (t) => {
 
   await t.step("throws if not regex-like", () => {
     assertThrows(() => parseRegexLike("foo/"), Deno.errors.InvalidData)
+  })
+})
+
+Deno.test("filterUndefined", async (t) => {
+  await t.step("removes undefined fields", () => {
+    assertEquals(filterUndefined({ foo: "bar", ham: undefined } as const), { foo: "bar" } as const)
   })
 })
