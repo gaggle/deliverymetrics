@@ -1,11 +1,16 @@
-import { assertEquals } from "dev:asserts"
+import { STATUS_TEXT } from "std:http-status"
 import { StringWriter } from "std:io"
+import { assertEquals } from "dev:asserts"
 import { assertSpyCallArgs, assertSpyCalls, Stub, stub } from "dev:mock"
 
 import { getFakeGithubPull } from "../../libs/github/api/pulls/mod.ts"
 
+import { githubRestSpec } from "../../libs/github/api/github-rest-api-spec.ts"
+
 import { GithubClient } from "../../libs/github/types/mod.ts"
 import { createFakeGithubClient } from "../../libs/github/testing/mod.ts"
+
+import { parseWithZodSchemaFromRequest, stringToStream } from "../../libs/utils/mod.ts"
 
 import { withStubs } from "../../libs/dev-utils.ts"
 
@@ -198,11 +203,20 @@ async function withFullGithubSync(
       stub(client, "syncStatsContributors", () => {
         client.emit("progress", { type: "stats-contributors" })
         if (opts.rejectSyncStatsContributors) {
-          return Promise.reject(new Error("rejectSyncStatsContributors"))
-        } else {
-          client.emit("finished", { type: "stats-contributors" })
-          return Promise.resolve({ syncedAt: 0 })
+          const data = {}
+          parseWithZodSchemaFromRequest({
+            data,
+            schema: githubRestSpec.statsContributors.schema,
+            request: new Request("https://example.com", { headers: { header: "example" } }),
+            response: new Response(stringToStream(JSON.stringify(data)), {
+              status: 202,
+              statusText: STATUS_TEXT["202"],
+              headers: { header: "example" },
+            }),
+          })
         }
+        client.emit("finished", { type: "stats-contributors" })
+        return Promise.resolve({ syncedAt: 0 })
       }),
       stub(client, "syncStatsParticipation", () => {
         client.emit("progress", { type: "stats-participation" })
@@ -259,15 +273,18 @@ rwcpRp
     assertEquals(result.status, "rejected")
   }, { rejectSyncActionRuns: true })
 
-  await withFullGithubSync(t, "outputs a report with the sync that fails", ({ output }) => {
+  await withFullGithubSync(t, "outputs a report with the syncs that fails", ({ output }) => {
     assertEquals(
       output,
       `Legend: r=action-run, w=action-workflow, c=commit, p=pull|pull-commit, R=release, s=stats
 rwcpRp
 ❌  action-run failed to sync, reason: Error: rejectSyncActionRuns
+❌  stats-contributors failed to sync, reason: Validation error: Expected array, received object
+  ↳ request: curl -X GET 'https://example.com/' -H 'header: example'
+  ↳ response: 202 Accepted
 `,
     )
-  }, { rejectSyncActionRuns: true })
+  }, { rejectSyncActionRuns: true, rejectSyncStatsContributors: true })
 
   await withFullGithubSync(t, "does not sync pull-commits if pulls fails", ({ result, output, syncPullCommits }) => {
     assertEquals(result.status, "rejected")
