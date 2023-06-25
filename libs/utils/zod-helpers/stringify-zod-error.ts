@@ -1,7 +1,7 @@
 /**
  * Based on https://github.com/causaly/zod-validation-error
  */
-import * as z from "zod"
+import { z } from "zod"
 
 type NonEmptyArray<T> = [T, ...T[]]
 
