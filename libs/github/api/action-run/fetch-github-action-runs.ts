@@ -9,6 +9,8 @@ import { Epoch } from "../../../types.ts"
 
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
+import { fetchRepositoryData } from "../repository/mod.ts"
+
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubActionRun } from "./github-action-run-schema.ts"
@@ -23,10 +25,12 @@ export async function* fetchGithubActionRuns(
 ): AsyncGenerator<GithubActionRun> {
   const { newerThan, fetchLike }: FetchRunsOpts = deepMerge({ fetchLike: fetch }, opts)
 
+  const repoData = await fetchRepositoryData(owner, repo, token, { fetchLike: opts.fetchLike })
+
   const req = createGithubRequest({
     method: "GET",
     token,
-    url: githubRestSpec.actionRuns.getUrl(owner, repo),
+    url: githubRestSpec.actionRuns.getUrl(owner, repo, repoData.default_branch),
   })
 
   for await (
