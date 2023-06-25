@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { filterUndefined, parseWithZodSchema, sleep } from "../utils/mod.ts"
+import { filterUndefined, parseWithZodSchemaFromRequest, sleep } from "../utils/mod.ts"
 
 import { githubBackoff, rateLimitAwareBackoff } from "./rate-limit-aware-backoff.ts"
 
@@ -40,7 +40,7 @@ export async function fetchWithRetry<Schema extends z.ZodTypeAny>(
   opts: OptsSchema<Schema>,
 ): Promise<{ response: Response; data: z.infer<Schema> }>
 export async function fetchWithRetry(
-  req: Request,
+  request: Request,
   opts: FetchWithRetryOpts = {},
 ): Promise<{ response: Response; data: unknown }> {
   const {
@@ -100,8 +100,8 @@ export async function fetchWithRetry(
   while (!returnResponse) {
     try {
       attemptNumber++
-      await progress({ type: "fetching", retry: attemptNumber, retries, request: req })
-      const response = await _fetch(req)
+      await progress({ type: "fetching", retry: attemptNumber, retries, request })
+      const response = await _fetch(request)
 
       const isJson = response.headers.get("Content-Type")?.includes("application/json") || false
       let data: unknown
@@ -111,7 +111,7 @@ export async function fetchWithRetry(
         data = await response.clone().text()
       }
       if (schema) {
-        parseWithZodSchema(data, schema)
+        parseWithZodSchemaFromRequest({ data, schema, request, response })
       }
       await progress({ type: "fetched", retry: attemptNumber, retries, response })
       await processResponse(response, data)

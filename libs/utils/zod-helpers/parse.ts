@@ -20,3 +20,11 @@ export function parseWithZodSchema<Schema extends z.ZodTypeAny>(data: unknown, s
   if (parsed.success) return parsed.data
   throw new EnrichedZodError(parsed.error.issues, { data })
 }
+
+export function parseWithZodSchemaFromRequest<Schema extends z.ZodTypeAny>(
+  opts: { data: unknown; schema: Schema; request: Request; response: Response },
+): z.infer<Schema> {
+  const parsed = opts.schema.safeParse(opts.data)
+  if (parsed.success) return parsed.data
+  throw new EnrichedZodError(parsed.error.issues, { data: opts.data, request: opts.request, response: opts.response })
+}
