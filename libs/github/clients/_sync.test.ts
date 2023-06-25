@@ -7,10 +7,16 @@ import { arrayToAsyncGenerator, asyncToArray, sleep } from "../../utils/mod.ts"
 import { withFakeTime, withStubs } from "../../dev-utils.ts"
 import { AbortError } from "../../errors.ts"
 
+import { BoundGithubPullCommit, getFakeGithubPullCommit } from "../api/pull-commits/mod.ts"
+import { GithubRelease } from "../api/releases/mod.ts"
+import { GithubStatsCodeFrequency } from "../api/stats-code-frequency/mod.ts"
+import { GithubStatsCommitActivity } from "../api/stats-commit-activity/mod.ts"
+import { GithubStatsContributor } from "../api/stats-contributors/mod.ts"
+import { GithubStatsParticipation } from "../api/stats-participation/mod.ts"
+import { GithubStatsPunchCard } from "../api/stats-punch-card/mod.ts"
 import { getFakeGithubActionRun, GithubActionRun } from "../api/action-run/mod.ts"
 import { getFakeGithubActionWorkflow, GithubActionWorkflow } from "../api/action-workflows/mod.ts"
 import { getFakeGithubCommit, GithubCommit } from "../api/commits/mod.ts"
-import { BoundGithubPullCommit, getFakeGithubPullCommit } from "../api/pull-commits/mod.ts"
 import { getFakeGithubPull, GithubPull } from "../api/pulls/mod.ts"
 
 import { GithubClient, SyncInfo } from "../types/mod.ts"
@@ -41,6 +47,12 @@ function withInternalsStubs(
     fetchCommitsStub: Stub
     fetchPullCommitsStub: Stub
     fetchPullsStub: Stub
+    fetchReleasesStub: Stub
+    fetchStatsCodeFrequencyStub: Stub
+    fetchStatsCommitActivityStub: Stub
+    fetchStatsContributorsStub: Stub
+    fetchStatsParticipationStub: Stub
+    fetchStatsPunchCardStub: Stub
   }) => Promise<void> | void,
   opts: Partial<{
     fetchActionRuns: InternalsStubData<GithubActionRun | Error>
@@ -48,6 +60,12 @@ function withInternalsStubs(
     fetchCommits: InternalsStubData<GithubCommit | Error>
     fetchPullCommits: InternalsStubData<GithubCommit | Error>
     fetchPulls: InternalsStubData<GithubPull | Error>
+    fetchReleases: InternalsStubData<GithubRelease | Error>
+    fetchStatsCodeFrequency: InternalsStubData<GithubStatsCodeFrequency | Error>
+    fetchStatsCommitActivity: InternalsStubData<GithubStatsCommitActivity | Error>
+    fetchStatsContributors: InternalsStubData<GithubStatsContributor | Error>
+    fetchStatsParticipation: InternalsStubData<GithubStatsParticipation | Error>
+    fetchStatsPunchCard: InternalsStubData<GithubStatsPunchCard | Error>
   }> = {},
 ): Promise<void> {
   function resolve<T>(stubData?: InternalsStubData<T | Error>): Array<AsyncGenerator<T>> {
@@ -90,6 +108,36 @@ function withInternalsStubs(
       _internals,
       "fetchGithubPulls",
       returnsNext(resolve(opts.fetchPulls)),
+    ),
+    fetchReleasesStub: stub(
+      _internals,
+      "fetchGithubReleases",
+      returnsNext(resolve(opts.fetchReleases)),
+    ),
+    fetchStatsCodeFrequencyStub: stub(
+      _internals,
+      "fetchGithubStatsCodeFrequency",
+      returnsNext(resolve(opts.fetchStatsCodeFrequency)),
+    ),
+    fetchStatsCommitActivityStub: stub(
+      _internals,
+      "fetchGithubStatsCommitActivity",
+      returnsNext(resolve(opts.fetchStatsCommitActivity)),
+    ),
+    fetchStatsContributorsStub: stub(
+      _internals,
+      "fetchGithubStatsContributors",
+      returnsNext(resolve(opts.fetchStatsContributors)),
+    ),
+    fetchStatsParticipationStub: stub(
+      _internals,
+      "fetchGithubStatsParticipation",
+      returnsNext(resolve(opts.fetchStatsParticipation)),
+    ),
+    fetchStatsPunchCardStub: stub(
+      _internals,
+      "fetchGithubStatsPunchCard",
+      returnsNext(resolve(opts.fetchStatsPunchCard)),
     ),
   } as const
   return withStubs(() => callable(stubs), ...Object.values(stubs))
