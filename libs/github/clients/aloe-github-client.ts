@@ -312,7 +312,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
   async syncStatsContributors(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }> {
     const result = await this.internalFetch({
       type: "stats-contributors",
-      iteratorFn: (context) => _internals.fetchGithubStatsContributors(this.owner, this.repo, this.token, context),
+      iteratorFn: () => _internals.fetchGithubStatsContributors(this.owner, this.repo, this.token),
       upsertFn: async (el) => {
         const author = el.author
         await this.db.statsContributors.deleteOne(author === null ? { author: null } : { author: { id: author.id } })

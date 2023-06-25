@@ -1,8 +1,4 @@
-import * as z from "zod"
-import { deepMerge } from "std:deep-merge"
-
-import { fetchExhaustively } from "../../../fetching/mod.ts"
-import { parseWithZodSchema } from "../../../utils/mod.ts"
+import { fetchExhaustively2 } from "../../../fetching2/mod.ts"
 
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
@@ -10,30 +6,22 @@ import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubStatsContributor } from "./github-stats-contributor-schema.ts"
 
-type FetchPullsOpts = { fetchLike: typeof fetch }
-
 export async function* fetchGithubStatsContributors(
   owner: string,
   repo: string,
   token?: string,
-  opts: Partial<FetchPullsOpts> = {},
 ): AsyncGenerator<GithubStatsContributor> {
-  const { fetchLike }: FetchPullsOpts = deepMerge({ fetchLike: fetch }, opts)
-
-  const req = createGithubRequest({
+  const req: Request | undefined = createGithubRequest({
     method: "GET",
     token,
     url: githubRestSpec.statsContributors.getUrl(owner, repo),
   })
 
-  for await (const resp of fetchExhaustively(req, { fetchLike })) {
-    if (!resp.ok) {
-      throw new Error(`${resp.status} ${resp.statusText} (${req.url}): ${await resp.text()}`)
-    }
-
-    const data: z.infer<typeof githubRestSpec.statsContributors.schema> = await resp.json()
-    parseWithZodSchema(data, githubRestSpec.statsContributors.schema)
-
+  for await (
+    const { data } of fetchExhaustively2(req, githubRestSpec.statsContributors.schema, {
+      strategy: "github-backoff",
+    })
+  ) {
     for (const el of data) {
       yield el
     }
