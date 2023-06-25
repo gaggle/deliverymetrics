@@ -86,7 +86,6 @@ function withInternalsStubs(
       "fetchGithubPullCommits",
       returnsNext(resolve(opts.fetchPullCommits)),
     ),
-
     fetchPullsStub: stub(
       _internals,
       "fetchGithubPulls",
