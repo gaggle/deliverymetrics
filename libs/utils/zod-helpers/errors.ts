@@ -4,12 +4,12 @@ import { z } from "zod"
 import { stringifyZodError } from "./stringify-zod-error.ts"
 
 export class EnrichedZodError extends z.ZodError {
-  readonly #data: unknown
+  readonly #data?: unknown
 
-  constructor(issues: z.ZodIssue[], data?: unknown) {
+  constructor(issues: z.ZodIssue[], opts: { data?: unknown } = {}) {
     super(issues)
     this.name = "EnrichedZodError"
-    this.#data = data
+    this.#data = opts.data
   }
 
   get message() {
