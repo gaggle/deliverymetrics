@@ -1,4 +1,4 @@
-import { debug } from "std:log"
+import { debug, getLogger, Logger } from "std:log"
 import { distinct } from "std:distinct"
 import { z } from "zod"
 
@@ -519,4 +519,8 @@ export async function streamToString(stream: ReadableStream<Uint8Array>): Promis
     chunks = chunks.concat(...chunk)
   }
   return String.fromCharCode(...new Uint8Array(chunks))
+}
+
+export function isDebugLoggingActive(logger?: Logger): boolean {
+  return (logger || getLogger()).level <= 10
 }

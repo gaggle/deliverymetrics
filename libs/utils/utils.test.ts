@@ -1,4 +1,5 @@
 import { FakeTime } from "dev:time"
+import { Logger } from "std:log"
 import { assertEquals, assertInstanceOf, assertRejects, assertThrows } from "dev:asserts"
 import { z } from "zod"
 
@@ -17,6 +18,7 @@ import {
   flattenObject,
   getEnv,
   hasDupes,
+  isDebugLoggingActive,
   last,
   limit,
   mapFilter,
@@ -670,5 +672,15 @@ Deno.test("stringToStream & streamToString", async (t) => {
     assertInstanceOf(stream, ReadableStream)
     const content = await streamToString(stream)
     assertEquals(content, "foo")
+  })
+})
+
+Deno.test("isDebugLoggingActive", async (t) => {
+  await t.step("detects a logger in DEBUG mode", () => {
+    assertEquals(isDebugLoggingActive(new Logger("foo", "DEBUG")), true)
+  })
+
+  await t.step("detects a logger not in DEBUG mode", () => {
+    assertEquals(isDebugLoggingActive(new Logger("foo", "INFO")), false)
   })
 })
