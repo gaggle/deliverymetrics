@@ -4,7 +4,7 @@ import { DeepPartial } from "../../../types.ts"
 
 import { GithubRepository } from "./github-repository-schema.ts"
 
-function getFakeGithubRepository(partial: DeepPartial<GithubRepository> = {}): GithubRepository {
+function _getFakeGithubRepository(partial: DeepPartial<GithubRepository> = {}): GithubRepository {
   const base: GithubRepository = {
     "id": 1296269,
     "node_id": "MDEwOlJlcG9zaXRvcnkxMjk2MjY5",
