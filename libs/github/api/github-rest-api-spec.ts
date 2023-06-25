@@ -6,6 +6,7 @@ import { githubActionWorkflowSchema } from "./action-workflows/mod.ts"
 import { githubCommitSchema } from "./commits/mod.ts"
 import { githubPullCommitSchema } from "./pull-commits/mod.ts"
 import { githubReleaseSchema } from "./releases/mod.ts"
+import { githubRepositorySchema } from "./repository/mod.ts"
 import { githubStatsCodeFrequencySchema } from "./stats-code-frequency/mod.ts"
 import { githubStatsCommitActivitySchema } from "./stats-commit-activity/mod.ts"
 import { githubStatsContributorSchema } from "./stats-contributors/mod.ts"
@@ -330,5 +331,22 @@ export const githubRestSpec = {
       return url.toString()
     },
     schema: z.array(githubReleaseSchema),
+  },
+  /**
+   * Get a repository
+   * The parent and source objects are present when the repository is a fork.
+   * parent is the repository this repository was forked from,
+   * source is the ultimate source for the network.
+   *
+   * Note: In order to see the security_and_analysis block for a repository
+   * you must have admin permissions for the repository
+   * or be an owner or security manager for the organization that owns the repository.
+   * For more information, see "Managing security managers in your organization."
+   *
+   * https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
+   */
+  repository: {
+    getUrl: (owner: string, repo: string) => new URL(`https://api.github.com/repos/${owner}/${repo}`).toString(),
+    schema: githubRepositorySchema,
   },
 } as const
