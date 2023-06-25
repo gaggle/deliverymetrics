@@ -1,16 +1,16 @@
 import * as z from "zod"
 
-import { GithubPull, githubPullSchema } from "./pulls/github-pull-schema.ts"
-import { githubActionRunSchema } from "./action-run/github-action-run-schema.ts"
-import { githubActionWorkflowSchema } from "./action-workflows/github-action-workflow-schema.ts"
-import { githubCommitSchema } from "./commits/github-commit-schema.ts"
-import { githubPullCommitSchema } from "./pull-commits/github-pull-commit-schema.ts"
-import { githubReleaseSchema } from "./releases/github-release-schema.ts"
-import { githubStatsCodeFrequencySchema } from "./stats-code-frequency/github-stats-code-frequency-schema.ts"
-import { githubStatsCommitActivitySchema } from "./stats-commit-activity/github-stats-commit-activity-schema.ts"
-import { githubStatsContributorSchema } from "./stats-contributors/github-stats-contributor-schema.ts"
-import { githubStatsParticipationSchema } from "./stats-participation/github-stats-participation-schema.ts"
-import { githubStatsPunchCardSchema } from "./stats-punch-card/github-stats-punch-card-schema.ts"
+import { GithubPull, githubPullSchema } from "./pulls/mod.ts"
+import { githubActionRunSchema } from "./action-run/mod.ts"
+import { githubActionWorkflowSchema } from "./action-workflows/mod.ts"
+import { githubCommitSchema } from "./commits/mod.ts"
+import { githubPullCommitSchema } from "./pull-commits/mod.ts"
+import { githubReleaseSchema } from "./releases/mod.ts"
+import { githubStatsCodeFrequencySchema } from "./stats-code-frequency/mod.ts"
+import { githubStatsCommitActivitySchema } from "./stats-commit-activity/mod.ts"
+import { githubStatsContributorSchema } from "./stats-contributors/mod.ts"
+import { githubStatsParticipationSchema } from "./stats-participation/mod.ts"
+import { githubStatsPunchCardSchema } from "./stats-punch-card/mod.ts"
 
 export const githubRestSpec = {
   /**
@@ -192,6 +192,8 @@ export const githubRestSpec = {
    *
    * Repository statistics are cached by the SHA of the repository's default branch;
    * pushing to the default branch resets the statistics cache.
+   *
+   * https://docs.github.com/en/rest/metrics/statistics?apiVersion=2022-11-28#get-all-contributor-commit-activity
    */
   statsContributors: {
     getUrl: (owner: string, repo: string) =>
