@@ -1,6 +1,6 @@
-import * as z from "zod"
 import { FakeTime } from "dev:time"
-import { assertEquals, assertRejects, assertThrows } from "dev:asserts"
+import { assertEquals, assertInstanceOf, assertRejects, assertThrows } from "dev:asserts"
+import { z } from "zod"
 
 import { getFakeGithubPull } from "../github/api/pulls/mod.ts"
 
@@ -27,9 +27,11 @@ import {
   regexIntersect,
   single,
   sleep,
+  streamToString,
   stringifyObject,
   stringifyPull,
   stringifyUpdatedPull,
+  stringToStream,
   throttle,
 } from "./utils.ts"
 
@@ -659,5 +661,14 @@ Deno.test("parseRegexLike", async (t) => {
 Deno.test("filterUndefined", async (t) => {
   await t.step("removes undefined fields", () => {
     assertEquals(filterUndefined({ foo: "bar", ham: undefined } as const), { foo: "bar" } as const)
+  })
+})
+
+Deno.test("stringToStream & streamToString", async (t) => {
+  await t.step("can cast string to stream to string", async () => {
+    const stream = stringToStream("foo")
+    assertInstanceOf(stream, ReadableStream)
+    const content = await streamToString(stream)
+    assertEquals(content, "foo")
   })
 })

@@ -1,6 +1,6 @@
-import * as z from "zod"
 import { debug } from "std:log"
 import { distinct } from "std:distinct"
+import { z } from "zod"
 
 import { GithubPull } from "../github/api/pulls/mod.ts"
 
@@ -408,6 +408,7 @@ export function extractZodSchemaKeys<T extends z.ZodTypeAny>(schema: T): NestedO
     // In all other cases just return the name of the type
     return getZodName(schema)
   }
+
   return inner(schema)
 }
 
@@ -495,4 +496,27 @@ export function filterUndefined<T extends { [key: string]: unknown }>(obj: T): F
     }
   }
   return obj
+}
+
+export function stringToStream(content: string): ReadableStream<Uint8Array> {
+  // Encode the string to a Uint8Array
+  const array = new TextEncoder().encode(content)
+
+  // Create a readable stream
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(array)
+      controller.close()
+    },
+  })
+
+  return stream
+}
+
+export async function streamToString(stream: ReadableStream<Uint8Array>): Promise<string> {
+  let chunks: Array<number> = []
+  for await (const chunk of stream) {
+    chunks = chunks.concat(...chunk)
+  }
+  return String.fromCharCode(...new Uint8Array(chunks))
 }
