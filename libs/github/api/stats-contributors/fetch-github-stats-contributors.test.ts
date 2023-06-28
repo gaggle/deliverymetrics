@@ -1,11 +1,15 @@
-import { assertEquals, assertRejects } from "dev:asserts"
+import { assertEquals, assertInstanceOf } from "dev:asserts"
+import { stub } from "dev:mock"
 
-import { CannedResponses, withMockedFetch } from "../../../dev-utils.ts"
+import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../dev-utils.ts"
 
-import { fetchGithubStatsContributors } from "./fetch-github-stats-contributors.ts"
+import { arrayToAsyncGenerator, asyncToArray } from "../../../utils/mod.ts"
+import { fetchExhaustively2 } from "../../../fetching2/mod.ts"
+
+import { githubRestSpec } from "../github-rest-api-spec.ts"
+
+import { _internals, fetchGithubStatsContributors } from "./fetch-github-stats-contributors.ts"
 import { getFakeGithubStatsContributor } from "./get-fake-github-stats-contributor.ts"
-import { asyncToArray } from "../../../utils/utils.ts"
-import { EnrichedZodError } from "../../../utils/zod-helpers/errors.ts"
 
 Deno.test("fetch-github-stats-contributors", async (t) => {
   const headers = { "Content-Type": "application/json" }
@@ -24,55 +28,27 @@ Deno.test("fetch-github-stats-contributors", async (t) => {
     })
   })
 
-  await t.step("retries if schema doesn't fit", async () => {
-    await withMockedFetch(async (mf) => {
+  await t.step("calls fetchExhaustively2 with stats-contributors schema", async () => {
+    await withMockedFetch(async () => {
       const statsContributor = getFakeGithubStatsContributor()
-      const can = new CannedResponses([
-        new Response(JSON.stringify({}), { status: 200, headers }),
-        new Response(JSON.stringify([statsContributor]), { status: 200, headers }),
-      ])
-      mf("GET@/repos/owner/repo/stats/contributors", (...args) => can.fetch(...args))
+      await withStubs(
+        async (fetchExhaustivelyStub) => {
+          await asyncToArray(fetchGithubStatsContributors("owner", "repo", "token"))
 
-      const result = await asyncToArray(fetchGithubStatsContributors("owner", "repo", "token"))
-
-      assertEquals(result, [statsContributor])
-    })
-  })
-
-  await t.step("gives up if retrying doesn't work", async () => {
-    await withMockedFetch(async (mf) => {
-      let fetchAttempts = 0
-      mf("GET@/repos/owner/repo/stats/contributors", () => {
-        fetchAttempts++
-        return new Response(JSON.stringify({}), { status: 200, headers })
-      })
-
-      await assertRejects(
-        () => asyncToArray(fetchGithubStatsContributors("owner", "repo", "token")),
-        EnrichedZodError,
-        "Validation error: Expected array, received object",
+          const [req, schema, opts] = extractCallArgsFromStub<typeof fetchExhaustively2>(fetchExhaustivelyStub, 0, {
+            expectedCalls: 1,
+            expectedArgs: 3,
+          })
+          assertInstanceOf(req, Request)
+          assertEquals(schema, githubRestSpec.statsContributors.schema)
+          assertEquals(opts, { strategy: "github-backoff" })
+        },
+        stub(
+          _internals,
+          "fetchExhaustively2",
+          () => arrayToAsyncGenerator([{ response: new Response(), data: [statsContributor] }]),
+        ),
       )
-      assertEquals(fetchAttempts, 4)
-    })
-  })
-
-  await t.step("fetches exhaustively", async () => {
-    await withMockedFetch(async (mf) => {
-      const urlPath = "/repos/owner/repo/stats/contributors"
-      let fetches = 0
-      const lastPage = 3
-      const statsContributor = getFakeGithubStatsContributor()
-      mf(`GET@${urlPath}`, () => {
-        let link = fetches < lastPage ? `<https://x${urlPath}?page=${fetches + 1}>; rel="next"` : ""
-        link += `, <https://x${urlPath}?page=${lastPage}>; rel="last"`
-        fetches++
-        return new Response(JSON.stringify([statsContributor]), { status: 200, headers: { ...headers, link } })
-      })
-
-      await asyncToArray(fetchGithubStatsContributors("owner", "repo", "token"))
-
-      assertEquals(fetches, 4)
-      // ↑ First fetch, plus one for each subsequent page
     })
   })
 })
