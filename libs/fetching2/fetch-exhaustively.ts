@@ -44,7 +44,7 @@ export async function* fetchExhaustively2<Schema extends z.ZodTypeAny>(
   const maxPages = 1000
 
   do {
-    const result = await fetchWithRetry(currentRequest, { ...opts, schema })
+    const result = await fetchWithRetry(currentRequest, { retries: 6, ...opts, schema })
     yield result
     currentRequest = getNextRequestFromLinkHeader(currentRequest, result.response)
     if (currentRequest && pagesConsumed > maxPages) {
