@@ -9,10 +9,10 @@ Deno.test("calculateExponentialBackoff", async (t) => {
   })
 
   await t.step("can change its exponential slope by controlling factor and initial delay", () => {
-    const delays = Array.from(Array(5).keys()).map((attempt) =>
+    const delays = Array.from(Array(6).keys()).map((attempt) =>
       calculateExponentialBackoff(attempt, { factor: 4, minTimeout: 50 })
     )
-    assertEquals(delays, [50, 200, 800, 3200, 12800])
+    assertEquals(delays, [50, 200, 800, 3200, 12800, 51200])
   })
 
   await t.step("can clamp its max timeout", () => {
