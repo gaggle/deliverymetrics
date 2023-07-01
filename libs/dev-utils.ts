@@ -1,7 +1,7 @@
-import { AssertionError } from "dev:asserts"
 import { FakeTime } from "dev:time"
+import { AssertionError } from "dev:asserts"
+import { Spy, spy, Stub } from "dev:mock"
 import { install as mockFetchInstall, mock as mockFetch, uninstall as mockFetchUninstall } from "dev:mock-fetch"
-import { spy, Stub } from "dev:mock"
 
 import { sleep } from "./utils/mod.ts"
 
@@ -89,4 +89,32 @@ export async function waitFor(
     if (Date.now() > now + timeout) throw new AssertionError(msg || `waitFor timed out after ${timeout} ms`)
     await sleep(10)
   }
+}
+
+// deno-lint-ignore no-explicit-any
+type GenericFunction = (...args: any) => any
+
+export function extractCallArgsFromStub<T extends GenericFunction | undefined = undefined>(
+  stub: Stub | Spy,
+  callIdx: number,
+  opts: Partial<{ expectedArgs: number; expectedCalls: number }> = {},
+): T extends GenericFunction ? Parameters<T> : unknown[] {
+  if (callIdx >= stub.calls.length) {
+    throw new AssertionError(`stub was called ${stub.calls.length} times so cannot access index ${callIdx}`)
+  }
+
+  if (opts.expectedCalls !== undefined && stub.calls.length !== opts.expectedCalls) {
+    throw new AssertionError(
+      `stub was called ${stub.calls.length} times but was expected to be called ${opts.expectedCalls} times`,
+    )
+  }
+
+  const args = stub.calls[callIdx].args
+  if (opts.expectedArgs !== undefined && args.length !== opts.expectedArgs) {
+    throw new AssertionError(
+      `stub called with ${args.length} args but was expected to be called with ${opts.expectedArgs} args`,
+    )
+  }
+
+  return args as T extends GenericFunction ? Parameters<T> : unknown[]
 }

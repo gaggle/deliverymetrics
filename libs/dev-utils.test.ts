@@ -1,7 +1,7 @@
-import { assertEquals, AssertionError, assertRejects } from "dev:asserts"
-import { assertSpyCallArgs, assertSpyCalls, stub } from "dev:mock"
+import { assertEquals, AssertionError, assertRejects, assertThrows } from "dev:asserts"
+import { assertSpyCallArgs, assertSpyCalls, spy, stub } from "dev:mock"
 
-import { CannedResponses, waitFor, withStubs } from "./dev-utils.ts"
+import { CannedResponses, extractCallArgsFromStub, waitFor, withStubs } from "./dev-utils.ts"
 
 Deno.test("CannedResponses", async (t) => {
   await t.step("given a list of responses", async (t) => {
@@ -85,5 +85,55 @@ Deno.test("waitFor", async (t) => {
 
   await t.step("fails with AssertionError if wait timeout is exceeded", async () => {
     await assertRejects(() => waitFor(() => false, 1), AssertionError)
+  })
+})
+
+Deno.test("extractCallArgsFromStub", async (t) => {
+  await t.step("extracts calls", () => {
+    const s = spy()
+    s("foo")
+    s("bar")
+
+    assertEquals(extractCallArgsFromStub(s, 0), ["foo"])
+    assertEquals(extractCallArgsFromStub(s, 1), ["bar"])
+  })
+
+  await t.step("fails if stub isn't called", () => {
+    const s = spy()
+    assertThrows(
+      () => extractCallArgsFromStub(s, 0),
+      AssertionError,
+      "stub was called 0 times so cannot access index 0",
+    )
+  })
+
+  await t.step("fails if asked for calls that aren't made", () => {
+    const s = spy()
+    s("foo")
+    assertThrows(
+      () => extractCallArgsFromStub(s, 1),
+      AssertionError,
+      "stub was called 1 times so cannot access index 1",
+    )
+  })
+
+  await t.step("fails if expected calls aren't made", () => {
+    const s = spy()
+    s("foo")
+    assertThrows(
+      () => extractCallArgsFromStub(s, 0, { expectedCalls: 2 }),
+      AssertionError,
+      "stub was called 1 times but was expected to be called 2 times",
+    )
+  })
+
+  await t.step("fails if expected args aren't made", () => {
+    const s = spy()
+    s("foo")
+    assertThrows(
+      () => extractCallArgsFromStub(s, 0, { expectedArgs: 2 }),
+      AssertionError,
+      "stub called with 1 args but was expected to be called with 2 args",
+    )
   })
 })
