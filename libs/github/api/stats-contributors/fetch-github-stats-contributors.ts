@@ -11,7 +11,7 @@ export async function* fetchGithubStatsContributors(
   repo: string,
   token?: string,
 ): AsyncGenerator<GithubStatsContributor> {
-  const req: Request | undefined = createGithubRequest({
+  const req = createGithubRequest({
     method: "GET",
     token,
     url: githubRestSpec.statsContributors.getUrl(owner, repo),
