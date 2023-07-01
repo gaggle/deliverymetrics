@@ -341,7 +341,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
   async syncStatsPunchCard(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }> {
     const result = await this.internalFetch({
       type: "stats-punch-card",
-      iteratorFn: (context) => _internals.fetchGithubStatsPunchCard(this.owner, this.repo, this.token, context),
+      iteratorFn: () => _internals.fetchGithubStatsPunchCard(this.owner, this.repo, this.token),
       upsertFn: async (el) => {
         const [day, hour, commits] = el
         await this.db.statsPunchCard.deleteOne({ day, hour })
