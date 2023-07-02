@@ -38,6 +38,6 @@ export async function* fetchGithubReleases(
   }
 }
 
-const _internals = {
+export const _internals = {
   fetchExhaustively2,
 }
