@@ -24,6 +24,6 @@ export async function* fetchGithubStatsCommitActivity(
   }
 }
 
-const _internals = {
+export const _internals = {
   fetchExhaustively2,
 }
