@@ -298,7 +298,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
   async syncStatsCommitActivity(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }> {
     const result = await this.internalFetch({
       type: "stats-commit-activity",
-      iteratorFn: (context) => _internals.fetchGithubStatsCommitActivity(this.owner, this.repo, this.token, context),
+      iteratorFn: () => _internals.fetchGithubStatsCommitActivity(this.owner, this.repo, this.token),
       upsertFn: async (el) => {
         await this.db.statsCommitActivity.deleteOne({ week: el.week })
         await this.db.statsCommitActivity.insertOne(el)
