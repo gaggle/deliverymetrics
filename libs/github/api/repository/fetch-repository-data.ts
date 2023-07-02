@@ -22,6 +22,6 @@ export async function* fetchRepositoryData(
   }
 }
 
-const _internals = {
+export const _internals = {
   fetchExhaustively2,
 }
