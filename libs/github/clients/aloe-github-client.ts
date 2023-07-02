@@ -327,7 +327,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
   async syncStatsParticipation(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }> {
     const result = await this.internalFetch({
       type: "stats-participation",
-      iteratorFn: (context) => _internals.fetchGithubStatsParticipation(this.owner, this.repo, this.token, context),
+      iteratorFn: () => _internals.fetchGithubStatsParticipation(this.owner, this.repo, this.token),
       upsertFn: async (el) => {
         await this.db.statsParticipation.deleteOne({ all: exists() })
         await this.db.statsParticipation.insertOne(el)
