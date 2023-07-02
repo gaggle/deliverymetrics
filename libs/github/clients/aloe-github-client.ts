@@ -4,7 +4,7 @@ import { Acceptable, exists, Query } from "aloedb"
 
 import { AloeDatabase } from "../../db/mod.ts"
 import { retrierFactory } from "../../fetching/mod.ts"
-import { arrayToAsyncGenerator, asyncToArray, first } from "../../utils/mod.ts"
+import { arrayToAsyncGenerator, asyncToArray, firstMaybe } from "../../utils/mod.ts"
 
 import { AbortError } from "../../errors.ts"
 import { Epoch } from "../../types.ts"
@@ -92,7 +92,7 @@ export class ReadonlyAloeGithubClient extends EventEmitter<GithubClientEvents> i
   }
 
   findLatestPull(): Promise<GithubPull | undefined> {
-    return first(this.findPulls({ sort: { key: "updated_at", order: "desc" } }))
+    return firstMaybe(this.findPulls({ sort: { key: "updated_at", order: "desc" } }))
   }
 
   async *findPullCommits(
@@ -113,7 +113,7 @@ export class ReadonlyAloeGithubClient extends EventEmitter<GithubClientEvents> i
   findEarliestPullCommit(
     { pr }: Partial<{ pr: GithubPull["number"] }> = {},
   ): Promise<BoundGithubPullCommit | undefined> {
-    return first(this.findPullCommits({ pr, sort: { key: "commit.author", order: "asc" } }))
+    return firstMaybe(this.findPullCommits({ pr, sort: { key: "commit.author", order: "asc" } }))
   }
 
   async *findCommits(): AsyncGenerator<GithubCommit> {

@@ -31,7 +31,15 @@ export async function* limit<T>(
   }
 }
 
-export async function first<T>(iter: AsyncIterable<T>): Promise<T | undefined> {
+export async function first<T>(iter: AsyncIterable<T>): Promise<T> {
+  // noinspection LoopStatementThatDoesntLoopJS
+  for await (const el of iter) {
+    return el
+  }
+  throw new Error("")
+}
+
+export async function firstMaybe<T>(iter: AsyncIterable<T>): Promise<T | undefined> {
   // noinspection LoopStatementThatDoesntLoopJS
   for await (const el of iter) {
     return el

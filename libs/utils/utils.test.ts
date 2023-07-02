@@ -15,6 +15,7 @@ import {
   extractZodSchemaKeys,
   filterUndefined,
   first,
+  firstMaybe,
   flattenObject,
   getEnv,
   hasDupes,
@@ -91,6 +92,45 @@ Deno.test("first", async (t) => {
     }
 
     assertEquals(await first(yielder()), "foo")
+  })
+
+  await t.step("throws error if there is no first", async () => {
+    async function* yielder(): AsyncGenerator<string> {}
+
+    await assertRejects(() => first(yielder()), "no element")
+  })
+
+  await t.step("yields undefined if the yielded value is undefined", async () => {
+    async function* yielder(): AsyncGenerator<undefined> {
+      yield undefined
+    }
+
+    assertEquals(await first(yielder()), undefined)
+  })
+})
+
+Deno.test("firstMaybe", async (t) => {
+  await t.step("yields first element of an AsyncGenerator", async () => {
+    async function* yielder(): AsyncGenerator<string> {
+      yield "foo"
+      yield "bar"
+    }
+
+    assertEquals(await firstMaybe(yielder()), "foo")
+  })
+
+  await t.step("returns undefined if there is no first", async () => {
+    async function* yielder(): AsyncGenerator<string> {}
+
+    assertEquals(await firstMaybe(yielder()), undefined)
+  })
+
+  await t.step("yields undefined if the yielded value is undefined", async () => {
+    async function* yielder(): AsyncGenerator<undefined> {
+      yield undefined
+    }
+
+    assertEquals(await firstMaybe(yielder()), undefined)
   })
 })
 

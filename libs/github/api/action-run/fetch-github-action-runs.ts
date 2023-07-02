@@ -3,7 +3,7 @@ import { debug } from "std:log"
 import { deepMerge } from "std:deep-merge"
 
 import { fetchExhaustively } from "../../../fetching/mod.ts"
-import { parseWithZodSchema } from "../../../utils/mod.ts"
+import { first, parseWithZodSchema } from "../../../utils/mod.ts"
 
 import { Epoch } from "../../../types.ts"
 
@@ -25,7 +25,7 @@ export async function* fetchGithubActionRuns(
 ): AsyncGenerator<GithubActionRun> {
   const { newerThan, fetchLike }: FetchRunsOpts = deepMerge({ fetchLike: fetch }, opts)
 
-  const repoData = await fetchRepositoryData(owner, repo, token, { fetchLike: opts.fetchLike })
+  const repoData = await first(fetchRepositoryData(owner, repo, token))
 
   const req = createGithubRequest({
     method: "GET",
