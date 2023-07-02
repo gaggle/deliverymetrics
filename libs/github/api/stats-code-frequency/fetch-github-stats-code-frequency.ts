@@ -24,6 +24,6 @@ export async function* fetchGithubStatsCodeFrequency(
   }
 }
 
-const _internals = {
+export const _internals = {
   fetchExhaustively2,
 }
