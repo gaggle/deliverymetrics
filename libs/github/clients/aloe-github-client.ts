@@ -278,7 +278,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
   async syncStatsCodeFrequency(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }> {
     const result = await this.internalFetch({
       type: "stats-code-frequency",
-      iteratorFn: (context) => _internals.fetchGithubStatsCodeFrequency(this.owner, this.repo, this.token, context),
+      iteratorFn: () => _internals.fetchGithubStatsCodeFrequency(this.owner, this.repo, this.token),
       upsertFn: async (el) => {
         const [time, additions, deletions] = el
         await this.db.statsCodeFrequency.deleteOne({ time })
