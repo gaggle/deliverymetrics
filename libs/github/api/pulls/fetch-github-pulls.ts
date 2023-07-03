@@ -1,9 +1,7 @@
-import * as z from "zod"
 import { debug } from "std:log"
-import { deepMerge } from "std:deep-merge"
 
-import { fetchExhaustively } from "../../../fetching/mod.ts"
-import { parseWithZodSchema, stringifyPull } from "../../../utils/mod.ts"
+import { fetchExhaustively2 } from "../../../fetching2/mod.ts"
+import { stringifyPull } from "../../../utils/mod.ts"
 
 import { Epoch } from "../../../types.ts"
 
@@ -13,30 +11,21 @@ import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubPull } from "./github-pull-schema.ts"
 
-type FetchPullsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
+type FetchPullsOpts = { newerThan?: Epoch }
 
 export async function* fetchGithubPulls(
   owner: string,
   repo: string,
   token?: string,
-  opts: Partial<FetchPullsOpts> = {},
+  { newerThan }: Partial<FetchPullsOpts> = {},
 ): AsyncGenerator<GithubPull> {
-  const { newerThan, fetchLike }: FetchPullsOpts = deepMerge({ fetchLike: fetch }, opts)
-
   const req = createGithubRequest({
     method: "GET",
     token,
     url: githubRestSpec.pulls.getUrl(owner, repo),
   })
 
-  for await (const resp of fetchExhaustively(req, { fetchLike })) {
-    if (!resp.ok) {
-      throw new Error(`${resp.status} ${resp.statusText} (${req.url}): ${await resp.text()}`)
-    }
-
-    const data: z.infer<typeof githubRestSpec.pulls.schema> = await resp.json()
-    parseWithZodSchema(data, githubRestSpec.pulls.schema)
-
+  for await (const { data } of _internals.fetchExhaustively2(req, githubRestSpec.pulls.schema)) {
     for (const pull of data) {
       if (newerThan) {
         const updatedAtDate = new Date(pull.updated_at)
@@ -48,4 +37,8 @@ export async function* fetchGithubPulls(
       yield pull
     }
   }
+}
+
+export const _internals = {
+  fetchExhaustively2,
 }
