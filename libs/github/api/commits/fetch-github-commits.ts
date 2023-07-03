@@ -1,4 +1,4 @@
-import { fetchExhaustively2 } from "../../../fetching/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
 
 import { Epoch } from "../../../types.ts"
 
@@ -22,7 +22,7 @@ export async function* fetchGithubCommits(
     url: githubRestSpec.commits.getUrl(owner, repo, newerThan ? toISOStringWithoutMs(newerThan) : undefined),
   })
 
-  for await (const { data } of _internals.fetchExhaustively2(req, githubRestSpec.commits.schema)) {
+  for await (const { data } of _internals.fetchExhaustively(req, githubRestSpec.commits.schema)) {
     for (const el of data) {
       yield el
     }
@@ -34,5 +34,5 @@ function toISOStringWithoutMs(...args: ConstructorParameters<typeof Date>) {
 }
 
 export const _internals = {
-  fetchExhaustively2,
+  fetchExhaustively: fetchExhaustively,
 }

@@ -2,7 +2,7 @@ import { assertEquals, assertInstanceOf } from "dev:asserts"
 import { stub } from "dev:mock"
 
 import { arrayToAsyncGenerator, asyncToArray } from "../../../utils/mod.ts"
-import { fetchExhaustively2 } from "../../../fetching/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
 
 import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../dev-utils.ts"
 
@@ -12,14 +12,14 @@ import { _internals, fetchGithubCommits } from "./fetch-github-commits.ts"
 import { getFakeGithubCommit } from "./get-fake-github-commit.ts"
 
 Deno.test("fetchCommits", async (t) => {
-  await t.step("calls fetchExhaustively2 with schema", async () => {
+  await t.step("calls fetchExhaustively with schema", async () => {
     const commit = getFakeGithubCommit()
     await withMockedFetch(async () => {
       await withStubs(
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubCommits("owner", "repo", "token"))
 
-          const [, schema] = extractCallArgsFromStub<typeof fetchExhaustively2>(fetchExhaustivelyStub, 0, {
+          const [, schema] = extractCallArgsFromStub<typeof fetchExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 2,
           })
@@ -27,21 +27,21 @@ Deno.test("fetchCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively2",
+          "fetchExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [commit] }]),
         ),
       )
     })
   })
 
-  await t.step("calls fetchExhaustively2 with expected query params & headers", async () => {
+  await t.step("calls fetchExhaustively with expected query params & headers", async () => {
     const commit = getFakeGithubCommit()
     await withMockedFetch(async () => {
       await withStubs(
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubCommits("octocat", "Hello-World", "token"))
 
-          const [req] = extractCallArgsFromStub<typeof fetchExhaustively2>(fetchExhaustivelyStub, 0, {
+          const [req] = extractCallArgsFromStub<typeof fetchExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 2,
           })
@@ -58,7 +58,7 @@ Deno.test("fetchCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively2",
+          "fetchExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [commit] }]),
         ),
       )
@@ -72,7 +72,7 @@ Deno.test("fetchCommits", async (t) => {
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubCommits("octocat", "Hello-World", "token", { newerThan: 10_000 }))
 
-          const [req] = extractCallArgsFromStub<typeof fetchExhaustively2>(fetchExhaustivelyStub, 0, {
+          const [req] = extractCallArgsFromStub<typeof fetchExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 2,
           })
@@ -83,7 +83,7 @@ Deno.test("fetchCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively2",
+          "fetchExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [commit] }]),
         ),
       )
@@ -101,7 +101,7 @@ Deno.test("fetchCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively2",
+          "fetchExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [commit] }]),
         ),
       )

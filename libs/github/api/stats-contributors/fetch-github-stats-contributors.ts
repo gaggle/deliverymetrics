@@ -1,4 +1,4 @@
-import { fetchExhaustively2 } from "../../../fetching/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
 
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
@@ -18,7 +18,7 @@ export async function* fetchGithubStatsContributors(
   })
 
   for await (
-    const { data } of _internals.fetchExhaustively2(req, githubRestSpec.statsContributors.schema, {
+    const { data } of _internals.fetchExhaustively(req, githubRestSpec.statsContributors.schema, {
       strategy: "github-backoff",
     })
   ) {
@@ -29,5 +29,5 @@ export async function* fetchGithubStatsContributors(
 }
 
 export const _internals = {
-  fetchExhaustively2,
+  fetchExhaustively: fetchExhaustively,
 }

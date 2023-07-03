@@ -1,4 +1,4 @@
-import { fetchExhaustively2 } from "../../../fetching/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
 
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
@@ -17,7 +17,7 @@ export async function* fetchGithubStatsPunchCard(
     url: githubRestSpec.statsPunchCard.getUrl(owner, repo),
   })
 
-  for await (const { data } of _internals.fetchExhaustively2(req, githubRestSpec.statsPunchCard.schema)) {
+  for await (const { data } of _internals.fetchExhaustively(req, githubRestSpec.statsPunchCard.schema)) {
     for (const el of data) {
       yield el
     }
@@ -25,5 +25,5 @@ export async function* fetchGithubStatsPunchCard(
 }
 
 export const _internals = {
-  fetchExhaustively2,
+  fetchExhaustively: fetchExhaustively,
 }

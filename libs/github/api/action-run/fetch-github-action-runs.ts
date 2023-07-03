@@ -1,7 +1,7 @@
 import { debug } from "std:log"
 
 import { first } from "../../../utils/mod.ts"
-import { fetchExhaustively2 } from "../../../fetching/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
 
 import { Epoch } from "../../../types.ts"
 
@@ -30,7 +30,7 @@ export async function* fetchGithubActionRuns(
   })
 
   for await (
-    const { data } of fetchExhaustively2(req, githubRestSpec.actionRuns.schema, {
+    const { data } of fetchExhaustively(req, githubRestSpec.actionRuns.schema, {
       maxPages: 10_000,
       // ↑ There are often many, MANY, runs
     })

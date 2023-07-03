@@ -1,4 +1,4 @@
-import { fetchExhaustively2 } from "../../../fetching/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
 
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
@@ -17,11 +17,11 @@ export async function* fetchGithubStatsParticipation(
     url: githubRestSpec.statsParticipation.getUrl(owner, repo),
   })
 
-  for await (const { data } of _internals.fetchExhaustively2(req, githubRestSpec.statsParticipation.schema)) {
+  for await (const { data } of _internals.fetchExhaustively(req, githubRestSpec.statsParticipation.schema)) {
     yield data
   }
 }
 
 export const _internals = {
-  fetchExhaustively2,
+  fetchExhaustively: fetchExhaustively,
 }

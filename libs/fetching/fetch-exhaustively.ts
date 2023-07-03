@@ -35,7 +35,7 @@ export function getNextRequestFromLinkHeader(req: Request, resp: Response): Requ
  * and if response has a `Link.next` header
  * then continue to yield those (up to `maxPages`)
  */
-export async function* fetchExhaustively2<Schema extends z.ZodTypeAny>(
+export async function* fetchExhaustively<Schema extends z.ZodTypeAny>(
   req: Request,
   schema: Schema,
   opts: FetchWithRetryBaseOpts & { maxPages?: number } = {},

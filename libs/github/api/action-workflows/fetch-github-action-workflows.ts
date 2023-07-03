@@ -1,4 +1,4 @@
-import { fetchExhaustively2 } from "../../../fetching/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
 
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
@@ -17,7 +17,7 @@ export async function* fetchGithubActionWorkflows(
     url: githubRestSpec.actionWorkflows.getUrl(owner, repo),
   })
 
-  for await (const { data } of fetchExhaustively2(req, githubRestSpec.actionWorkflows.schema)) {
+  for await (const { data } of fetchExhaustively(req, githubRestSpec.actionWorkflows.schema)) {
     for (const el of data.workflows) {
       yield el
     }

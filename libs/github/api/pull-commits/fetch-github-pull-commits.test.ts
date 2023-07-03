@@ -2,7 +2,7 @@ import { assertEquals, assertInstanceOf } from "dev:asserts"
 import { stub } from "dev:mock"
 
 import { arrayToAsyncGenerator, asyncToArray } from "../../../utils/mod.ts"
-import { fetchExhaustively2 } from "../../../fetching/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
 
 import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../dev-utils.ts"
 
@@ -14,7 +14,7 @@ import { getFakeGithubPullCommit } from "./get-fake-github-pull-commit.ts"
 import { _internals, fetchGithubPullCommits } from "./fetch-github-pull-commits.ts"
 
 Deno.test("fetchPullCommits", async (t) => {
-  await t.step("calls fetchExhaustively2 with schema", async () => {
+  await t.step("calls fetchExhaustively with schema", async () => {
     const pull = getFakeGithubPull()
     const pullCommit = getFakeGithubPullCommit()
     await withMockedFetch(async () => {
@@ -22,7 +22,7 @@ Deno.test("fetchPullCommits", async (t) => {
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubPullCommits(pull, "token"))
 
-          const [, schema] = extractCallArgsFromStub<typeof fetchExhaustively2>(fetchExhaustivelyStub, 0, {
+          const [, schema] = extractCallArgsFromStub<typeof fetchExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 2,
           })
@@ -30,14 +30,14 @@ Deno.test("fetchPullCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively2",
+          "fetchExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [pullCommit] }]),
         ),
       )
     })
   })
 
-  await t.step("calls fetchExhaustively2 with expected query params & headers", async () => {
+  await t.step("calls fetchExhaustively with expected query params & headers", async () => {
     const pull = getFakeGithubPull({
       number: 100,
       commits_url: "https://api.github.com/repos/octocat/Hello-World/pulls/100/commits",
@@ -48,7 +48,7 @@ Deno.test("fetchPullCommits", async (t) => {
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubPullCommits(pull, "token"))
 
-          const [req] = extractCallArgsFromStub<typeof fetchExhaustively2>(fetchExhaustivelyStub, 0, {
+          const [req] = extractCallArgsFromStub<typeof fetchExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 2,
           })
@@ -65,7 +65,7 @@ Deno.test("fetchPullCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively2",
+          "fetchExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [pullCommit] }]),
         ),
       )
@@ -84,7 +84,7 @@ Deno.test("fetchPullCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively2",
+          "fetchExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [pullCommit] }]),
         ),
       )

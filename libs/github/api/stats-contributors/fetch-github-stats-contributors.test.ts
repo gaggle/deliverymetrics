@@ -4,7 +4,7 @@ import { stub } from "dev:mock"
 import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../dev-utils.ts"
 
 import { arrayToAsyncGenerator, asyncToArray } from "../../../utils/mod.ts"
-import { fetchExhaustively2 } from "../../../fetching/mod.ts"
+import { fetchExhaustively } from "../../../fetching/mod.ts"
 
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
@@ -28,14 +28,14 @@ Deno.test("fetch-github-stats-contributors", async (t) => {
     })
   })
 
-  await t.step("calls fetchExhaustively2 with stats-contributors schema", async () => {
+  await t.step("calls fetchExhaustively with stats-contributors schema", async () => {
     await withMockedFetch(async () => {
       const statsContributor = getFakeGithubStatsContributor()
       await withStubs(
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubStatsContributors("owner", "repo", "token"))
 
-          const [req, schema, opts] = extractCallArgsFromStub<typeof fetchExhaustively2>(fetchExhaustivelyStub, 0, {
+          const [req, schema, opts] = extractCallArgsFromStub<typeof fetchExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 3,
           })
@@ -45,7 +45,7 @@ Deno.test("fetch-github-stats-contributors", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively2",
+          "fetchExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [statsContributor] }]),
         ),
       )

@@ -5,9 +5,9 @@ import { CannedResponses } from "../dev-utils.ts"
 
 import { asyncToArray } from "../utils/mod.ts"
 
-import { fetchExhaustively2 } from "./fetch-exhaustively.ts"
+import { fetchExhaustively } from "./fetch-exhaustively.ts"
 
-Deno.test("fetchExhaustively2", async (t) => {
+Deno.test("fetchExhaustively", async (t) => {
   await t.step("fetches paginated responses", async () => {
     const can = new CannedResponses([
       new Response("1", {
@@ -25,7 +25,7 @@ Deno.test("fetchExhaustively2", async (t) => {
       new Response("3", { status: 200 }),
     ])
     const [r1, r2, r3] = await asyncToArray(
-      fetchExhaustively2(new Request("https://example.com"), z.any(), { _fetch: can.fetch }),
+      fetchExhaustively(new Request("https://example.com"), z.any(), { _fetch: can.fetch }),
     )
     assertEquals(r1.data, "1")
     assertEquals(r2.data, "2")
@@ -48,7 +48,7 @@ Deno.test("fetchExhaustively2", async (t) => {
       }),
       new Response("3", { status: 200 }),
     ])
-    const iter = fetchExhaustively2(new Request("https://example.com"), z.any(), { _fetch: can.fetch, maxPages: 2 })
+    const iter = fetchExhaustively(new Request("https://example.com"), z.any(), { _fetch: can.fetch, maxPages: 2 })
     assertEquals((await iter.next()).value.data, "1")
     assertEquals((await iter.next()).value.data, "2")
     await assertRejects(() => iter.next(), Error, "cannot fetch more than 2 pages exhaustively")
