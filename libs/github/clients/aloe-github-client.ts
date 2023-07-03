@@ -227,9 +227,9 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     const result = await this.internalFetch({
       type: "pull-commit",
       iteratorFn: () => arrayToAsyncGenerator(pulls),
-      upsertFn: async (pull, context) => {
+      upsertFn: async (pull) => {
         const commits = await asyncToArray(
-          _internals.fetchGithubPullCommits({ commits_url: pull.commits_url }, this.token, context),
+          _internals.fetchGithubPullCommits({ commits_url: pull.commits_url }, this.token),
         )
         debug(`Upserting pull commits bound to pr ${pull.number}`)
         await this.db.pullCommits.deleteMany({ pr: pull.number })

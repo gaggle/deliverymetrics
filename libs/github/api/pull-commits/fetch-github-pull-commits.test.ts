@@ -1,102 +1,93 @@
-import { assertEquals, assertRejects } from "dev:asserts"
-import { assertSpyCalls, returnsNext, spy } from "dev:mock"
+import { assertEquals, assertInstanceOf } from "dev:asserts"
+import { stub } from "dev:mock"
 
-import { asyncToArray } from "../../../utils/mod.ts"
+import { arrayToAsyncGenerator, asyncToArray } from "../../../utils/mod.ts"
+import { fetchExhaustively2 } from "../../../fetching2/mod.ts"
 
-import { getFakeGithubPullCommit } from "../../api/pull-commits/mod.ts"
+import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../dev-utils.ts"
 
-import { fetchGithubPullCommits } from "./fetch-github-pull-commits.ts"
+import { getFakeGithubPull } from "../pulls/mod.ts"
+
+import { githubRestSpec } from "../github-rest-api-spec.ts"
+
+import { getFakeGithubPullCommit } from "./get-fake-github-pull-commit.ts"
+import { _internals, fetchGithubPullCommits } from "./fetch-github-pull-commits.ts"
 
 Deno.test("fetchPullCommits", async (t) => {
-  await t.step("should call fetch to get pull-commits from GitHub API", async () => {
-    const fetchLike = spy(returnsNext([Promise.resolve(
-      new Response(JSON.stringify([getFakeGithubPullCommit()]), {
-        status: 200,
-        statusText: "OK",
-      }),
-    )]))
+  await t.step("calls fetchExhaustively2 with schema", async () => {
+    const pull = getFakeGithubPull()
+    const pullCommit = getFakeGithubPullCommit()
+    await withMockedFetch(async () => {
+      await withStubs(
+        async (fetchExhaustivelyStub) => {
+          await asyncToArray(fetchGithubPullCommits(pull, "token"))
 
-    await asyncToArray(fetchGithubPullCommits({ commits_url: "https://foo" }, "token", { fetchLike }))
-
-    assertSpyCalls(fetchLike, 1)
-    const request = fetchLike.calls[0].args["0"] as Request
-    assertEquals(request.method, "GET")
-    assertEquals(request.url, "https://foo/")
-    assertEquals(Array.from(request.headers.entries()), [
-      ["accept", "Accept: application/vnd.github.v3+json"],
-      ["authorization", "Bearer token"],
-      ["content-type", "application/json"],
-    ])
+          const [, schema] = extractCallArgsFromStub<typeof fetchExhaustively2>(fetchExhaustivelyStub, 0, {
+            expectedCalls: 1,
+            expectedArgs: 2,
+          })
+          assertEquals(schema, githubRestSpec.pullCommits.schema)
+        },
+        stub(
+          _internals,
+          "fetchExhaustively2",
+          () => arrayToAsyncGenerator([{ response: new Response(), data: [pullCommit] }]),
+        ),
+      )
+    })
   })
 
-  await t.step("should yield the pulls that get fetched", async () => {
-    const fetchLike = spy(returnsNext([Promise.resolve(
-      new Response(JSON.stringify([getFakeGithubPullCommit()]), {
-        status: 200,
-        statusText: "OK",
-      }),
-    )]))
+  await t.step("calls fetchExhaustively2 with expected query params & headers", async () => {
+    const pull = getFakeGithubPull({
+      number: 100,
+      commits_url: "https://api.github.com/repos/octocat/Hello-World/pulls/100/commits",
+    })
+    const pullCommit = getFakeGithubPullCommit()
+    await withMockedFetch(async () => {
+      await withStubs(
+        async (fetchExhaustivelyStub) => {
+          await asyncToArray(fetchGithubPullCommits(pull, "token"))
 
-    const res = await asyncToArray(fetchGithubPullCommits({ commits_url: "https://foo" }, "token", { fetchLike }))
+          const [req] = extractCallArgsFromStub<typeof fetchExhaustively2>(fetchExhaustivelyStub, 0, {
+            expectedCalls: 1,
+            expectedArgs: 2,
+          })
+          assertInstanceOf(req, Request)
 
-    assertEquals(res, [getFakeGithubPullCommit()])
+          assertEquals(req.method, "GET")
+          assertEquals(req.url, "https://api.github.com/repos/octocat/Hello-World/pulls/100/commits")
+
+          assertEquals(Array.from(req.headers.entries()), [
+            ["accept", "Accept: application/vnd.github.v3+json"],
+            ["authorization", "Bearer token"],
+            ["content-type", "application/json"],
+          ])
+        },
+        stub(
+          _internals,
+          "fetchExhaustively2",
+          () => arrayToAsyncGenerator([{ response: new Response(), data: [pullCommit] }]),
+        ),
+      )
+    })
   })
 
-  await t.step("should use Link header to fetch exhaustively", async () => {
-    const fetchLike = spy(returnsNext([
-      Promise.resolve(
-        new Response(JSON.stringify([getFakeGithubPullCommit({ commit: { message: "message 1" } })]), {
-          status: 200,
-          statusText: "OK",
-          headers: new Headers({
-            link: '<https://foo?page=2>; rel="next", <https://foo?page=3>; rel="last"',
-          }),
-        }),
-      ),
-      Promise.resolve(
-        new Response(JSON.stringify([getFakeGithubPullCommit({ commit: { message: "message 2" } })]), {
-          status: 200,
-          statusText: "OK",
-          headers: new Headers({
-            link: '<https://foo?page=3>; rel="next", <https://foo?page=3>; rel="last"',
-          }),
-        }),
-      ),
-      Promise.resolve(
-        new Response(JSON.stringify([getFakeGithubPullCommit({ commit: { message: "message 3" } })]), {
-          status: 200,
-          statusText: "OK",
-        }),
-      ),
-    ]))
+  await t.step("should yield what gets fetched", async () => {
+    const pull = getFakeGithubPull()
+    const pullCommit = getFakeGithubPullCommit()
+    await withMockedFetch(async () => {
+      await withStubs(
+        async () => {
+          const result = await asyncToArray(fetchGithubPullCommits(pull, "token"))
 
-    await asyncToArray(fetchGithubPullCommits({ commits_url: "https://foo" }, "token", { fetchLike }))
-
-    assertSpyCalls(fetchLike, 3)
-    // ↑ Called thrice because it fetches pages 2 & 3
-    assertEquals(
-      fetchLike.calls[0].args["0"].url,
-      "https://foo/",
-    )
-    assertEquals(
-      fetchLike.calls[1].args["0"].url,
-      "https://foo/?page=2",
-    )
-    assertEquals(
-      fetchLike.calls[2].args["0"].url,
-      "https://foo/?page=3",
-    )
-  })
-
-  await t.step("should throw an error if fetch isn't ok", async () => {
-    const fetchLike = spy(returnsNext([Promise.resolve(
-      new Response("Some error", { status: 404, statusText: "Not Found" }),
-    )]))
-
-    await assertRejects(
-      () => asyncToArray(fetchGithubPullCommits({ commits_url: "https://foo" }, "token", { fetchLike })),
-      Error,
-      "404 Not Found (https://foo/): Some error",
-    )
+          assertEquals(result, [pullCommit])
+        },
+        stub(
+          _internals,
+          "fetchExhaustively2",
+          () => arrayToAsyncGenerator([{ response: new Response(), data: [pullCommit] }]),
+        ),
+      )
+    })
   })
 })
