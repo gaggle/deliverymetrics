@@ -1,4 +1,4 @@
-import { fetchExhaustively2 } from "../../../fetching2/fetch-exhaustively.ts"
+import { fetchExhaustively2 } from "../../../fetching/fetch-exhaustively.ts"
 
 import { createGithubRequest } from "../../github-utils/mod.ts"
 

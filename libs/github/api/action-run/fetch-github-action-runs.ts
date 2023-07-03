@@ -1,7 +1,7 @@
 import { debug } from "std:log"
 
 import { first } from "../../../utils/mod.ts"
-import { fetchExhaustively2 } from "../../../fetching2/mod.ts"
+import { fetchExhaustively2 } from "../../../fetching/mod.ts"
 
 import { Epoch } from "../../../types.ts"
 
