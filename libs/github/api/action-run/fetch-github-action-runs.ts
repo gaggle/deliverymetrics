@@ -1,9 +1,7 @@
-import * as z from "zod"
 import { debug } from "std:log"
-import { deepMerge } from "std:deep-merge"
 
-import { fetchExhaustively } from "../../../fetching/mod.ts"
-import { first, parseWithZodSchema } from "../../../utils/mod.ts"
+import { first } from "../../../utils/mod.ts"
+import { fetchExhaustively2 } from "../../../fetching2/mod.ts"
 
 import { Epoch } from "../../../types.ts"
 
@@ -15,16 +13,14 @@ import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubActionRun } from "./github-action-run-schema.ts"
 
-type FetchRunsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
+type FetchRunsOpts = { newerThan?: Epoch }
 
 export async function* fetchGithubActionRuns(
   owner: string,
   repo: string,
   token?: string,
-  opts: Partial<FetchRunsOpts> = {},
+  { newerThan }: Partial<FetchRunsOpts> = {},
 ): AsyncGenerator<GithubActionRun> {
-  const { newerThan, fetchLike }: FetchRunsOpts = deepMerge({ fetchLike: fetch }, opts)
-
   const repoData = await first(fetchRepositoryData(owner, repo, token))
 
   const req = createGithubRequest({
@@ -34,19 +30,11 @@ export async function* fetchGithubActionRuns(
   })
 
   for await (
-    const resp of fetchExhaustively(req, {
-      fetchLike,
+    const { data } of fetchExhaustively2(req, githubRestSpec.actionRuns.schema, {
       maxPages: 10_000,
       // ↑ There are often many, MANY, runs
     })
   ) {
-    if (!resp.ok) {
-      throw new Error(`${resp.status} ${resp.statusText} (${req.url}): ${await resp.text()}`)
-    }
-
-    const data: z.infer<typeof githubRestSpec.actionRuns.schema> = await resp.json()
-    parseWithZodSchema(data, githubRestSpec.actionRuns.schema)
-
     for (const el of data.workflow_runs) {
       if (newerThan) {
         const updatedAtDate = new Date(el.updated_at)
