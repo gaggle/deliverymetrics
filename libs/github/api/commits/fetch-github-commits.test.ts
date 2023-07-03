@@ -1,126 +1,110 @@
-import { assertEquals } from "dev:asserts"
-import { assertSpyCalls, returnsNext, spy } from "dev:mock"
+import { assertEquals, assertInstanceOf } from "dev:asserts"
+import { stub } from "dev:mock"
 
-import { asyncToArray } from "../../../utils/mod.ts"
+import { arrayToAsyncGenerator, asyncToArray } from "../../../utils/mod.ts"
+import { fetchExhaustively2 } from "../../../fetching2/mod.ts"
 
-import { getFakeGithubCommit } from "../../api/commits/mod.ts"
+import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../dev-utils.ts"
 
-import { fetchGithubCommits } from "./fetch-github-commits.ts"
+import { githubRestSpec } from "../github-rest-api-spec.ts"
+
+import { _internals, fetchGithubCommits } from "./fetch-github-commits.ts"
+import { getFakeGithubCommit } from "./get-fake-github-commit.ts"
 
 Deno.test("fetchCommits", async (t) => {
-  await t.step("should fetch commits from GitHub API", async () => {
-    const fetchLike = spy(returnsNext([Promise.resolve(
-      new Response(JSON.stringify([getFakeGithubCommit()]), {
-        status: 200,
-        statusText: "OK",
-      }),
-    )]))
+  await t.step("calls fetchExhaustively2 with schema", async () => {
+    const commit = getFakeGithubCommit()
+    await withMockedFetch(async () => {
+      await withStubs(
+        async (fetchExhaustivelyStub) => {
+          await asyncToArray(fetchGithubCommits("owner", "repo", "token"))
 
-    await asyncToArray(fetchGithubCommits("owner", "repo", "token", { fetchLike }))
-
-    assertSpyCalls(fetchLike, 1)
-    const request = fetchLike.calls[0].args["0"] as Request
-    assertEquals(request.method, "GET")
-    assertEquals(
-      request.url,
-      "https://api.github.com/repos/owner/repo/commits",
-    )
-    assertEquals(Array.from(request.headers.entries()), [
-      ["accept", "Accept: application/vnd.github.v3+json"],
-      ["authorization", "Bearer token"],
-      ["content-type", "application/json"],
-    ])
-  })
-
-  await t.step("should yield the commits that get fetched", async () => {
-    const fetchLike = spy(returnsNext([Promise.resolve(
-      new Response(JSON.stringify([getFakeGithubCommit()]), {
-        status: 200,
-        statusText: "OK",
-      }),
-    )]))
-
-    const res = await asyncToArray(fetchGithubCommits("owner", "repo", "token", { fetchLike }))
-
-    assertEquals(res, [getFakeGithubCommit()])
-  })
-
-  await t.step("should use Link header to fetch exhaustively", async () => {
-    const fetchLike = spy(returnsNext([
-      Promise.resolve(
-        new Response(JSON.stringify([getFakeGithubCommit({ sha: "1" })]), {
-          status: 200,
-          statusText: "OK",
-          headers: new Headers({
-            link:
-              '<https://api.github.com/repositories/1/commits?page=2>; rel="next", <https://api.github.com/repositories/1/commits?page=10>; rel="last"',
-          }),
-        }),
-      ),
-      Promise.resolve(
-        new Response(JSON.stringify([getFakeGithubCommit({ sha: "2" })]), {
-          status: 200,
-          statusText: "OK",
-          headers: new Headers({
-            link:
-              '<https://api.github.com/repositories/1/commits?page=3>; rel="next", <https://api.github.com/repositories/1/commits?page=10>; rel="last"',
-          }),
-        }),
-      ),
-      Promise.resolve(
-        new Response(JSON.stringify([getFakeGithubCommit({ sha: "3" })]), {
-          status: 200,
-          statusText: "OK",
-        }),
-      ),
-    ]))
-    await asyncToArray(fetchGithubCommits("owner", "repo", "token", { fetchLike }))
-
-    assertSpyCalls(fetchLike, 3)
-    // ↑ Called thrice because it fetches pages 2 & 3
-    assertEquals(
-      fetchLike.calls[0].args["0"].url,
-      "https://api.github.com/repos/owner/repo/commits",
-    )
-    assertEquals(
-      fetchLike.calls[1].args["0"].url,
-      "https://api.github.com/repositories/1/commits?page=2",
-    )
-    assertEquals(
-      fetchLike.calls[2].args["0"].url,
-      "https://api.github.com/repositories/1/commits?page=3",
-    )
-  })
-
-  await t.step(
-    "should only fetch newer than `from`",
-    async () => {
-      const fetchLike = spy(returnsNext([Promise.resolve(
-        new Response(JSON.stringify([getFakeGithubCommit()]), {
-          status: 200,
-          statusText: "OK",
-        }),
-      )]))
-
-      await asyncToArray(
-        fetchGithubCommits("owner", "repo", "token", {
-          fetchLike,
-          newerThan: new Date("1981-01-01T00:00:00Z").getTime(),
-        }),
+          const [, schema] = extractCallArgsFromStub<typeof fetchExhaustively2>(fetchExhaustivelyStub, 0, {
+            expectedCalls: 1,
+            expectedArgs: 2,
+          })
+          assertEquals(schema, githubRestSpec.commits.schema)
+        },
+        stub(
+          _internals,
+          "fetchExhaustively2",
+          () => arrayToAsyncGenerator([{ response: new Response(), data: [commit] }]),
+        ),
       )
+    })
+  })
 
-      assertSpyCalls(fetchLike, 1)
-      const request = fetchLike.calls[0].args["0"] as Request
-      assertEquals(request.method, "GET")
-      assertEquals(
-        request.url,
-        `https://api.github.com/repos/owner/repo/commits?since=${encodeURIComponent("1981-01-01T00:00:00Z")}`,
+  await t.step("calls fetchExhaustively2 with expected query params & headers", async () => {
+    const commit = getFakeGithubCommit()
+    await withMockedFetch(async () => {
+      await withStubs(
+        async (fetchExhaustivelyStub) => {
+          await asyncToArray(fetchGithubCommits("octocat", "Hello-World", "token"))
+
+          const [req] = extractCallArgsFromStub<typeof fetchExhaustively2>(fetchExhaustivelyStub, 0, {
+            expectedCalls: 1,
+            expectedArgs: 2,
+          })
+          assertInstanceOf(req, Request)
+
+          assertEquals(req.method, "GET")
+          assertEquals(req.url, "https://api.github.com/repos/octocat/Hello-World/commits")
+
+          assertEquals(Array.from(req.headers.entries()), [
+            ["accept", "Accept: application/vnd.github.v3+json"],
+            ["authorization", "Bearer token"],
+            ["content-type", "application/json"],
+          ])
+        },
+        stub(
+          _internals,
+          "fetchExhaustively2",
+          () => arrayToAsyncGenerator([{ response: new Response(), data: [commit] }]),
+        ),
       )
-      assertEquals(Array.from(request.headers.entries()), [
-        ["accept", "Accept: application/vnd.github.v3+json"],
-        ["authorization", "Bearer token"],
-        ["content-type", "application/json"],
-      ])
-    },
-  )
+    })
+  })
+
+  await t.step("adds newer than to query param", async () => {
+    const commit = getFakeGithubCommit()
+    await withMockedFetch(async () => {
+      await withStubs(
+        async (fetchExhaustivelyStub) => {
+          await asyncToArray(fetchGithubCommits("octocat", "Hello-World", "token", { newerThan: 10_000 }))
+
+          const [req] = extractCallArgsFromStub<typeof fetchExhaustively2>(fetchExhaustivelyStub, 0, {
+            expectedCalls: 1,
+            expectedArgs: 2,
+          })
+          assertEquals(
+            req.url,
+            "https://api.github.com/repos/octocat/Hello-World/commits?since=1970-01-01T00%3A00%3A10Z",
+          )
+        },
+        stub(
+          _internals,
+          "fetchExhaustively2",
+          () => arrayToAsyncGenerator([{ response: new Response(), data: [commit] }]),
+        ),
+      )
+    })
+  })
+
+  await t.step("should yield what gets fetched", async () => {
+    const commit = getFakeGithubCommit()
+    await withMockedFetch(async () => {
+      await withStubs(
+        async () => {
+          const result = await asyncToArray(fetchGithubCommits("owner", "repo", "token"))
+
+          assertEquals(result, [commit])
+        },
+        stub(
+          _internals,
+          "fetchExhaustively2",
+          () => arrayToAsyncGenerator([{ response: new Response(), data: [commit] }]),
+        ),
+      )
+    })
+  })
 })

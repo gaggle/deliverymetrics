@@ -1,8 +1,4 @@
-import * as z from "zod"
-import { deepMerge } from "std:deep-merge"
-
-import { fetchExhaustively } from "../../../fetching/mod.ts"
-import { parseWithZodSchema } from "../../../utils/mod.ts"
+import { fetchExhaustively2 } from "../../../fetching2/mod.ts"
 
 import { Epoch } from "../../../types.ts"
 
@@ -12,30 +8,21 @@ import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubCommit } from "./github-commit-schema.ts"
 
-type FetchCommitsOpts = { newerThan?: Epoch; fetchLike: typeof fetch }
+type FetchCommitsOpts = { newerThan?: Epoch }
 
 export async function* fetchGithubCommits(
   owner: string,
   repo: string,
   token?: string,
-  opts: Partial<FetchCommitsOpts> = {},
+  { newerThan }: Partial<FetchCommitsOpts> = {},
 ): AsyncGenerator<GithubCommit> {
-  const { newerThan, fetchLike }: FetchCommitsOpts = deepMerge({ fetchLike: fetch }, opts)
-
   const req = createGithubRequest({
     method: "GET",
     token,
     url: githubRestSpec.commits.getUrl(owner, repo, newerThan ? toISOStringWithoutMs(newerThan) : undefined),
   })
 
-  for await (const resp of fetchExhaustively(req, { fetchLike })) {
-    if (!resp.ok) {
-      throw new Error(`${resp.status} ${resp.statusText} (${req.url}): ${await resp.text()}`)
-    }
-
-    const data: z.infer<typeof githubRestSpec.commits.schema> = await resp.json()
-    parseWithZodSchema(data, githubRestSpec.commits.schema)
-
+  for await (const { data } of _internals.fetchExhaustively2(req, githubRestSpec.commits.schema)) {
     for (const el of data) {
       yield el
     }
@@ -44,4 +31,8 @@ export async function* fetchGithubCommits(
 
 function toISOStringWithoutMs(...args: ConstructorParameters<typeof Date>) {
   return new Date(...args).toISOString().split(".")[0] + "Z"
+}
+
+export const _internals = {
+  fetchExhaustively2,
 }
