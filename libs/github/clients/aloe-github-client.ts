@@ -193,7 +193,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
   async syncActionWorkflows(opts: { signal?: AbortSignal } = {}): Promise<{ syncedAt: Epoch }> {
     const result = await this.internalFetch({
       type: "action-workflow",
-      iteratorFn: (context) => _internals.fetchGithubActionWorkflows(this.owner, this.repo, this.token, context),
+      iteratorFn: () => _internals.fetchGithubActionWorkflows(this.owner, this.repo, this.token),
       upsertFn: async (workflow) => {
         await this.db.actionWorkflows.deleteOne({ node_id: workflow.node_id })
         await this.db.actionWorkflows.insertOne(workflow)
