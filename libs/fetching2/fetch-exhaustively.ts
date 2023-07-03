@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { BaseOpts, fetchWithRetry } from "./fetch-with-retry.ts"
+import { BaseOpts as FetchWithRetryBaseOpts, fetchWithRetry } from "./fetch-with-retry.ts"
 
 /**
  * Copied from https://github.com/SamVerschueren/github-parse-link/blob/master/index.js
@@ -36,20 +36,20 @@ export function getNextRequestFromLinkHeader(req: Request, resp: Response): Requ
 export async function* fetchExhaustively2<Schema extends z.ZodTypeAny>(
   req: Request,
   schema: Schema,
-  opts: BaseOpts = {},
+  opts: FetchWithRetryBaseOpts & { maxPages?: number } = {},
 ): AsyncGenerator<{ response: Response; data: z.infer<Schema> }> {
   let currentRequest: Request | undefined = req
   let pagesConsumed = 1
 
-  const maxPages = 1000
+  const maxPages = opts.maxPages === undefined ? 1000 : opts.maxPages
 
   do {
     const result = await fetchWithRetry(currentRequest, { retries: 6, ...opts, schema })
     yield result
+    pagesConsumed++
     currentRequest = getNextRequestFromLinkHeader(currentRequest, result.response)
     if (currentRequest && pagesConsumed > maxPages) {
       throw new Error(`cannot fetch more than ${maxPages} pages exhaustively`)
     }
-    pagesConsumed++
   } while (currentRequest)
 }
