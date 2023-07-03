@@ -1,3 +1,5 @@
+import { debug } from "std:log"
+
 import { z } from "zod"
 
 import { BaseOpts as FetchWithRetryBaseOpts, fetchWithRetry } from "./fetch-with-retry.ts"
@@ -44,7 +46,18 @@ export async function* fetchExhaustively2<Schema extends z.ZodTypeAny>(
   const maxPages = opts.maxPages === undefined ? 1000 : opts.maxPages
 
   do {
-    const result = await fetchWithRetry(currentRequest, { retries: 7, ...opts, schema })
+    const result = await fetchWithRetry(currentRequest, {
+      retries: 7,
+      progress: (progress) => {
+        switch (progress.type) {
+          case "retrying":
+            debug(`${progress.type}: ${progress.reason} (${progress.retry}/${progress.retries})`)
+            break
+        }
+      },
+      ...opts,
+      schema,
+    })
     yield result
     pagesConsumed++
     currentRequest = getNextRequestFromLinkHeader(currentRequest, result.response)
