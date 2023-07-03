@@ -3,7 +3,6 @@ import { debug } from "std:log"
 import { Acceptable, exists, Query } from "aloedb"
 
 import { AloeDatabase } from "../../db/mod.ts"
-import { retrierFactory } from "../../fetching/mod.ts"
 import { arrayToAsyncGenerator, asyncToArray, firstMaybe } from "../../utils/mod.ts"
 
 import { AbortError } from "../../errors.ts"
@@ -374,26 +373,18 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 
   private async internalFetch<T>(
     opts: {
-      iteratorFn: (context: { fetchLike: typeof fetch; newerThan?: Epoch }) => AsyncGenerator<T>
+      iteratorFn: (context: { newerThan?: Epoch }) => AsyncGenerator<T>
       type: SyncInfo["type"]
-      upsertFn: (el: T, context: { fetchLike: typeof fetch; newerThan?: Epoch }) => Promise<void>
-      saveFn: (context: { fetchLike: typeof fetch; newerThan?: Epoch }) => Promise<void>
+      upsertFn: (el: T, context: { newerThan?: Epoch }) => Promise<void>
+      saveFn: (context: { newerThan?: Epoch }) => Promise<void>
       signal?: AbortSignal
       newerThan?: Epoch
     },
   ): Promise<{ syncInfo: SyncInfo }> {
-    const rateLimitAwareRetrier = retrierFactory({ strategy: "rate-limit-exponential" })
-    rateLimitAwareRetrier.on(
-      "rate-limited",
-      async (args) =>
-        await this.emit("warning", { type: opts.type, category: "rate-limited", duration: args.duration }),
-    )
-
     let syncMarker = await this.db.syncs.insertOne({ type: opts.type, createdAt: Date.now(), updatedAt: undefined })
     await this.db.syncs.save()
 
     const context = {
-      fetchLike: rateLimitAwareRetrier.fetch.bind(rateLimitAwareRetrier),
       newerThan: await this.calcNewerThanBasedOnLatestSync({ type: opts.type, max: opts.newerThan }),
     }
     try {
