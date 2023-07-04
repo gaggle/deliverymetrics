@@ -9,9 +9,11 @@ Deno.test("githubCommitsAsCsv", async (t) => {
     const result = await asyncToArray(githubCommitsAsCsv(arrayToAsyncGenerator([{
       commit,
       coauthors: ["foo", "bar"],
+      contributors: ["ham", "spam", "foo", "bar"],
     }])))
     assertEquals(result, [{
       "Commit Co-Authors": "foo; bar",
+      "Contributors": "ham; spam; foo; bar",
       "author.avatar_url": commit.author!.avatar_url,
       "author.events_url": commit.author!.events_url,
       "author.followers_url": commit.author!.followers_url,

@@ -5,8 +5,9 @@ import { ReadonlyGithubClient } from "../github/mod.ts"
 import { AbortError } from "../errors.ts"
 
 type YieldCommitData = {
-  commit: GithubCommit
   coauthors: string[]
+  commit: GithubCommit
+  contributors: string[]
 }
 
 export async function* yieldCommitData(
@@ -30,11 +31,25 @@ export async function* yieldCommitData(
     if (signal?.aborted) {
       throw new AbortError()
     }
+    const coauthors = extractCoAuthoredBy(commit.commit.message)
     yield {
       commit,
-      coauthors: extractCoAuthoredBy(commit.commit.message),
+      coauthors,
+      contributors: ([
+        nameAndEmail(commit.commit.author || {}),
+        nameAndEmail(commit.commit.committer || {}),
+        ...coauthors,
+      ].filter((el) => el !== undefined) as string[]),
     }
   }
+}
+
+function nameAndEmail({ name, email }: { name?: string; email?: string }): string | undefined {
+  if (!name && !email) return
+  let msg = ""
+  if (name) msg += name
+  if (email) msg += name ? ` <${email}>` : `<${email}>`
+  return msg
 }
 
 function extractCoAuthoredBy(msg: string): string[] {
