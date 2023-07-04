@@ -8,7 +8,12 @@ import { BoundGithubPullCommit } from "../../libs/github/api/pull-commits/mod.ts
 import { sortPullCommitsByKey } from "../../libs/github/github-utils/mod.ts"
 
 import { getGithubClient } from "../../libs/github/mod.ts"
-import { yieldActionData, yieldPullRequestData, yieldPullRequestHistogram } from "../../libs/metrics/mod.ts"
+import {
+  yieldActionData,
+  yieldCommitData,
+  yieldPullRequestData,
+  yieldPullRequestHistogram,
+} from "../../libs/metrics/mod.ts"
 import {
   arrayToAsyncGenerator,
   inspectIter,
@@ -25,6 +30,8 @@ import {
   githubActionRunHeaders,
   githubActionWorkflowAsCsv,
   githubActionWorkflowHeaders,
+  githubCommitHeaders,
+  githubCommitsAsCsv,
   githubPullCommitHeaders,
   githubPullCommitsAsCsv,
   githubPullHeaders,
@@ -121,6 +128,16 @@ export async function reportHandler(
     )
   }))
 
+  // commits
+  jobs.push(limit(async () => {
+    await writeCSVToFile(
+      join(outputDir, "github-commits-data.csv"),
+      githubCommitsAsCsv(yieldCommitData(gh, { maxDays: dataTimeframe })),
+      { header: githubCommitHeaders },
+    )
+  }))
+
+  // pull-commits, pulls
   jobs.push(limit(async () => {
     const pullCommits: Array<BoundGithubPullCommit> = []
     await writeCSVToFile(
