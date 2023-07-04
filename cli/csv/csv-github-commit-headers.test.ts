@@ -4,8 +4,10 @@ import { getFakeGithubCommit } from "../../libs/github/api/commits/get-fake-gith
 import { assertEquals } from "dev:asserts"
 
 Deno.test("githubCommitsAsCsv", async (t) => {
-  await t.step("foo", async () => {
-    const commit = getFakeGithubCommit()
+  await t.step("converts commit data to a csv commit row", async () => {
+    const commit = getFakeGithubCommit({
+      commit: { message: "Title\n\nAnd body" },
+    })
     const result = await asyncToArray(githubCommitsAsCsv(arrayToAsyncGenerator([{
       commit,
       coauthors: ["foo", "bar"],
@@ -14,6 +16,7 @@ Deno.test("githubCommitsAsCsv", async (t) => {
     assertEquals(result, [{
       "Commit Co-Authors": "foo; bar",
       "Contributors": "ham; spam; foo; bar",
+      "Title": "Title",
       "author.avatar_url": commit.author!.avatar_url,
       "author.events_url": commit.author!.events_url,
       "author.followers_url": commit.author!.followers_url,

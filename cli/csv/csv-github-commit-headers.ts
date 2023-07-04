@@ -6,6 +6,7 @@ import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../libs
 const extraHeaders = [
   "Contributors",
   "Commit Co-Authors",
+  "Title",
 ] as const
 
 export const githubCommitHeaders = [
@@ -22,6 +23,7 @@ export async function* githubCommitsAsCsv(
     yield {
       "Commit Co-Authors": el.coauthors.join("; "),
       "Contributors": el.contributors.join("; "),
+      "Title": el.commit.commit.message.split("\n")[0],
       ...stringifyObject(flattenObject(el.commit), { stringifyUndefined: true }),
     }
   }
