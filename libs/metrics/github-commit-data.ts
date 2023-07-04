@@ -32,14 +32,17 @@ export async function* yieldCommitData(
       throw new AbortError()
     }
     const coauthors = extractCoAuthoredBy(commit.commit.message)
+    const contributors = ([
+      nameAndEmail(commit.commit.author || {}),
+      nameAndEmail(commit.commit.committer || {}),
+      ...coauthors,
+    ]
+      .filter((el) => el !== undefined)
+      .filter((v, i, a) => a.indexOf(v) === i)) as string[]
     yield {
       commit,
       coauthors,
-      contributors: ([
-        nameAndEmail(commit.commit.author || {}),
-        nameAndEmail(commit.commit.committer || {}),
-        ...coauthors,
-      ].filter((el) => el !== undefined) as string[]),
+      contributors,
     }
   }
 }

@@ -36,6 +36,21 @@ Deno.test("yieldCommitData", async (t) => {
     }])
   })
 
+  await t.step("dedupes contributors", async () => {
+    const gh = await createFakeReadonlyGithubClient({
+      syncInfos: [getFakeSyncInfo({ type: "commit", createdAt: 0, updatedAt: 0 })],
+      commits: [getFakeGithubCommit({
+        commit: {
+          author: { name: "Person", email: "person@github.com" },
+          committer: { name: "Person", email: "person@github.com" },
+        },
+      })],
+    })
+
+    const actual = await first(yieldCommitData(gh))
+    assertEquals(actual.contributors, ["Person <person@github.com>"])
+  })
+
   await t.step("supports no co-authors, author, or committer", async () => {
     const commit = getFakeGithubCommit({
       commit: {
