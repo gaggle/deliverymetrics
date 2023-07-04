@@ -15,7 +15,9 @@ Deno.test("githubCommitsAsCsv", async (t) => {
     }])))
     assertEquals(result, [{
       "Commit Co-Authors": "foo; bar",
+      "# Commit Co-Authors": "2",
       "Contributors": "ham; spam; foo; bar",
+      "# Contributors": "4",
       "Title": "Title",
       "author.avatar_url": commit.author!.avatar_url,
       "author.events_url": commit.author!.events_url,
