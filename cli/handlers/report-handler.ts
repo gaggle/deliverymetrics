@@ -93,10 +93,10 @@ export async function reportHandler(
 
   const jobs: Array<Promise<unknown>> = []
 
+  // action-run, action-workflows
   jobs.push(limit(async () => {
     const actionRunGenerators: Array<AsyncGenerator<{ actionRun: GithubActionRun; workflow: GithubActionWorkflow }>> =
       []
-    console.log()
     await writeCSVToFile(
       join(outputDir, `github-action-workflows-data.csv`),
       githubActionWorkflowAsCsv(
