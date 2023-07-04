@@ -4,8 +4,8 @@ import { yieldCommitData } from "../../libs/metrics/mod.ts"
 import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../libs/utils/mod.ts"
 
 const extraHeaders = [
-  "Commit Co-Authors",
   "Contributors",
+  "Commit Co-Authors",
 ] as const
 
 export const githubCommitHeaders = [
