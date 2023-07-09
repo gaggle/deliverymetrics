@@ -136,7 +136,7 @@ export async function reportHandler(
     await writeCSVToFile(
       join(outputDir, "github-commits-data.csv"),
       githubCommitsAsCsv(
-        yieldCommitData(gh, { authoredMaxDaysAgo: dataTimeframe, committedMaxDaysAgo: dataTimeframe }),
+        yieldCommitData(gh, { authoredMaxDaysAgo: dataTimeframe, committedMaxDaysAgo: dataTimeframe, signal }),
       ),
       { header: githubCommitHeaders },
     )
@@ -188,7 +188,7 @@ export async function reportHandler(
   jobs.push(limit(async () => {
     await writeCSVToFile(
       join(outputDir, "github-releases-data.csv"),
-      githubReleasesAsCsv(yieldReleaseData(gh, { publishedMaxDaysAgo: dataTimeframe })),
+      githubReleasesAsCsv(yieldReleaseData(gh, { publishedMaxDaysAgo: dataTimeframe, signal })),
       { header: githubReleaseHeaders },
     )
   }))
