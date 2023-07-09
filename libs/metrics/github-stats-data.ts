@@ -62,7 +62,7 @@ type YieldStatsContributorsData = {
 
 export async function* yieldStatsContributors(
   gh: ReadonlyGithubClient,
-  { signal }: Partial<{ maxDays: number; signal: AbortSignal }> = {},
+  { maxDays, signal }: Partial<{ maxDays: number; signal: AbortSignal }> = {},
 ): AsyncGenerator<YieldStatsContributorsData> {
   const latestSync = await gh.findLatestSync({ type: "stats-contributors" })
   if (!latestSync) return
@@ -71,6 +71,12 @@ export async function* yieldStatsContributors(
     if (signal?.aborted) {
       throw new AbortError()
     }
+
+    el.weeks = el.weeks.filter((hash) => {
+      if (!hash.w) return true
+      return daysBetween(new Date(hash.w * 1000), new Date(latestSync.updatedAt!)) <= (maxDays || Infinity)
+    })
+    el.total = el.weeks.reduce((acc, val) => acc + (val.c || 0), 0)
 
     yield {
       contributors: el,
