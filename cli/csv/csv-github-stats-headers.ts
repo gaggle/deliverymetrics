@@ -29,7 +29,16 @@ export async function* githubStatsCodeFrequenciesAsCsv(
   }
 }
 
-const extraStatsCommitActivityHeaders = [] as const
+const extraStatsCommitActivityHeaders = [
+  "Week Date",
+  "Sunday Commits",
+  "Monday Commits",
+  "Tuesday Commits",
+  "Wednesday Commits",
+  "Thursday Commits",
+  "Friday Commits",
+  "Saturday Commits",
+] as const
 export const githubStatsCommitActivityHeaders = [
   ...extraStatsCommitActivityHeaders,
   ...Object.keys(flattenObject(extractZodSchemaKeys(githubStatsCommitActivitySchema))).sort(),
@@ -41,6 +50,14 @@ export async function* githubStatsCommitActivityAsCsv(
 ): AsyncGenerator<GithubStatsCommitActivityRow> {
   for await (const el of iter) {
     yield {
+      "Week Date": el.weekStr,
+      "Sunday Commits": el.sunday.toString(),
+      "Monday Commits": el.monday.toString(),
+      "Tuesday Commits": el.tuesday.toString(),
+      "Wednesday Commits": el.wednesday.toString(),
+      "Thursday Commits": el.thursday.toString(),
+      "Friday Commits": el.friday.toString(),
+      "Saturday Commits": el.saturday.toString(),
       ...stringifyObject(flattenObject(el.commitActivity), { stringifyUndefined: true }),
     }
   }
