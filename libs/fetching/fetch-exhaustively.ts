@@ -1,4 +1,4 @@
-import { debug } from "std:log"
+import { debug, info } from "std:log"
 
 import { z } from "zod"
 
@@ -50,9 +50,11 @@ export async function* fetchExhaustively<Schema extends z.ZodTypeAny>(
       retries: 7,
       progress: (progress) => {
         switch (progress.type) {
-          case "retrying":
-            debug(`${progress.type}: ${progress.reason} (${progress.retry}/${progress.retries})`)
+          case "retrying": {
+            const fn = progress.retry > 6 ? info : debug
+            fn(`${progress.type}: ${progress.reason} (${progress.retry}/${progress.retries})`)
             break
+          }
         }
       },
       ...opts,
