@@ -10,7 +10,7 @@ import { Epoch } from "../../types.ts"
 
 import { BoundGithubPullCommit, fetchGithubPullCommits, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
 import { DBCodeFrequency, fetchGithubStatsCodeFrequency } from "../api/stats-code-frequency/mod.ts"
-import { DBPunchCard, fetchGithubStatsPunchCard } from "../api/stats-punch-card/mod.ts"
+import { DBPunchCard, DBPunchCardRead, fetchGithubStatsPunchCard } from "../api/stats-punch-card/mod.ts"
 import { GithubCommit } from "../api/commits/mod.ts"
 import { fetchGithubActionRuns, GithubActionRun } from "../api/action-run/mod.ts"
 import { fetchGithubActionWorkflows, GithubActionWorkflow } from "../api/action-workflows/mod.ts"
@@ -181,9 +181,10 @@ export class ReadonlyAloeGithubClient extends EventEmitter<GithubClientEvents> i
       yield el
     }
   }
-  async *findStatsPunchCards(): AsyncGenerator<DBPunchCard> {
+  async *findStatsPunchCards(): AsyncGenerator<DBPunchCardRead> {
     for (const el of await this.db.statsPunchCard.findMany()) {
-      yield el
+      yield el as DBPunchCardRead
+      // ↑ We know it's the read-variant because only the read-variants can be written to the DB
     }
   }
 }

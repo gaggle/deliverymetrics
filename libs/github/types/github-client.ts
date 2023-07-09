@@ -4,7 +4,7 @@ import { Epoch } from "../../types.ts"
 
 import { BoundGithubPullCommit, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
 import { DBCodeFrequency } from "../api/stats-code-frequency/mod.ts"
-import { DBPunchCard } from "../api/stats-punch-card/mod.ts"
+import { DBPunchCardRead } from "../api/stats-punch-card/mod.ts"
 import { GithubActionRun } from "../api/action-run/mod.ts"
 import { GithubActionWorkflow } from "../api/action-workflows/mod.ts"
 import { GithubCommit } from "../api/commits/mod.ts"
@@ -64,7 +64,7 @@ export interface ReadonlyGithubClient extends EventEmitter<GithubClientEvents> {
 
   findStatsParticipants(): AsyncGenerator<GithubStatsParticipation>
 
-  findStatsPunchCards(): AsyncGenerator<DBPunchCard>
+  findStatsPunchCards(): AsyncGenerator<DBPunchCardRead>
 }
 
 export interface GithubClient extends ReadonlyGithubClient {
