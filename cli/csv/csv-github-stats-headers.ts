@@ -2,7 +2,6 @@ import { dbCodeFrequencySchema } from "../../libs/github/api/stats-code-frequenc
 import { dbPunchCardSchema } from "../../libs/github/api/stats-punch-card/mod.ts"
 import { githubStatsCommitActivitySchema } from "../../libs/github/api/stats-commit-activity/mod.ts"
 import { githubStatsContributorSchema } from "../../libs/github/api/stats-contributors/mod.ts"
-import { githubStatsParticipationSchema } from "../../libs/github/api/stats-participation/mod.ts"
 
 import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../libs/utils/mod.ts"
 import {
@@ -64,18 +63,35 @@ export async function* githubStatsContributorsAsCsv(
   }
 }
 
-const extraStatsParticipationHeaders = [] as const
+const extraStatsParticipationHeaders = [
+  "Weeks Ago",
+  "Week Start",
+  "Week End",
+  "Total Commits",
+  "Owner Commits",
+  "Non Owner Commits",
+] as const
 export const githubStatsParticipationHeaders = [
   ...extraStatsParticipationHeaders,
-  ...Object.keys(flattenObject(extractZodSchemaKeys(githubStatsParticipationSchema))).sort(),
 ]
-export type GithubStatsParticipationRow = Record<typeof extraStatsParticipationHeaders[number], string>
+export type GithubStatsParticipationRow = Record<typeof githubStatsParticipationHeaders[number], string>
+
 export async function* githubStatsParticipationAsCsv(
   iter: ReturnType<typeof yieldStatsParticipation>,
 ): AsyncGenerator<GithubStatsParticipationRow> {
   for await (const el of iter) {
-    yield {
-      ...stringifyObject(flattenObject(el.participation), { stringifyUndefined: true }),
+    for (const [idx, totalCommits] of el.totalCommitsPerWeek.entries()) {
+      const ownerCommits = el.ownerCommitsPerWeek[idx]
+      const nonOwnerCommits = el.nonOwnerCommitsPerWeek[idx]
+      const dates = el.weekDates[idx]
+      yield {
+        "Week Start": dates.start.toISOString(),
+        "Week End": dates.end.toISOString(),
+        "Weeks Ago": idx.toString(),
+        "Total Commits": totalCommits.toString(),
+        "Owner Commits": ownerCommits.toString(),
+        "Non Owner Commits": nonOwnerCommits.toString(),
+      }
     }
   }
 }
