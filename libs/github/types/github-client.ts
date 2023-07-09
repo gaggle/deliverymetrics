@@ -8,6 +8,7 @@ import { BoundGithubPullCommit, GithubPullCommitDateKey } from "../api/pull-comm
 import { GithubCommit } from "../api/commits/github-commit-schema.ts"
 import { GithubPull, GithubPullDateKey } from "../api/pulls/github-pull-schema.ts"
 import { SyncInfo } from "./sync-info-schema.ts"
+import { GithubRelease } from "../api/releases/github-release-schema.ts"
 
 export type GithubClientEvents = {
   "aborted": [{ type: SyncInfo["type"] }]
@@ -46,6 +47,8 @@ export interface ReadonlyGithubClient extends EventEmitter<GithubClientEvents> {
   findUnclosedPulls(): AsyncGenerator<GithubPull>
 
   findLatestPull(): Promise<GithubPull | undefined>
+
+  findReleases(): AsyncGenerator<GithubRelease>
 }
 
 export interface GithubClient extends ReadonlyGithubClient {

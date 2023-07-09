@@ -153,6 +153,12 @@ export class ReadonlyAloeGithubClient extends EventEmitter<GithubClientEvents> i
   findLatestPull(): Promise<GithubPull | undefined> {
     return firstMaybe(this.findPulls({ sort: { key: "updated_at", order: "desc" } }))
   }
+
+  async *findReleases(): AsyncGenerator<GithubRelease> {
+    for (const el of await this.db.releases.findMany()) {
+      yield el
+    }
+  }
 }
 
 export class AloeGithubClient extends ReadonlyAloeGithubClient implements GithubClient {
