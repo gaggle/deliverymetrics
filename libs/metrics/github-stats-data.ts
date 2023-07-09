@@ -2,7 +2,6 @@ import { DBCodeFrequency } from "../github/api/stats-code-frequency/mod.ts"
 import { DBPunchCard } from "../github/api/stats-punch-card/mod.ts"
 import { GithubStatsCommitActivity } from "../github/api/stats-commit-activity/mod.ts"
 import { GithubStatsContributor } from "../github/api/stats-contributors/mod.ts"
-import { GithubStatsParticipation } from "../github/api/stats-participation/mod.ts"
 
 import { ReadonlyGithubClient } from "../github/mod.ts"
 import { daysBetween } from "../utils/mod.ts"
@@ -80,12 +79,15 @@ export async function* yieldStatsContributors(
 }
 
 type YieldStatsParticipationData = {
-  participation: GithubStatsParticipation
+  totalCommitsPerWeek: number[]
+  ownerCommitsPerWeek: number[]
+  nonOwnerCommitsPerWeek: number[]
+  weekDates: Array<{ start: Date; end: Date }>
 }
 
 export async function* yieldStatsParticipation(
   gh: ReadonlyGithubClient,
-  { signal }: Partial<{ maxDays: number; signal: AbortSignal }> = {},
+  { signal }: Partial<{ signal: AbortSignal }> = {},
 ): AsyncGenerator<YieldStatsParticipationData> {
   const latestSync = await gh.findLatestSync({ type: "stats-participation" })
   if (!latestSync) return
@@ -95,8 +97,30 @@ export async function* yieldStatsParticipation(
       throw new AbortError()
     }
 
+    // The most recent week is seven days ago at UTC midnight to today at UTC midnight.
+    const mostRecentWeekEnd = new Date(latestSync.updatedAt!)
+    mostRecentWeekEnd.setUTCHours(0, 0, 0, 0)
+
+    const mostRecentWeekStart = new Date(mostRecentWeekEnd)
+    mostRecentWeekStart.setUTCDate(mostRecentWeekStart.getUTCDate() - 7)
+
+    const weekDates = el.all.map((_, idx) => {
+      const daysAgo = 7 * idx
+
+      const weekEnd = new Date(mostRecentWeekEnd)
+      weekEnd.setUTCDate(weekEnd.getUTCDate() - daysAgo)
+
+      const weekStart = new Date(mostRecentWeekStart)
+      weekStart.setUTCDate(weekStart.getUTCDate() - daysAgo)
+
+      return { start: weekStart, end: weekEnd }
+    })
+
     yield {
-      participation: el,
+      totalCommitsPerWeek: el.all,
+      ownerCommitsPerWeek: el.owner,
+      nonOwnerCommitsPerWeek: el.all.map((total, index) => total - el.owner[index]),
+      weekDates,
     }
   }
 }
