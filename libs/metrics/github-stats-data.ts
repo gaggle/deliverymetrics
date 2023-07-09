@@ -1,4 +1,8 @@
 import { DBCodeFrequency } from "../github/api/stats-code-frequency/mod.ts"
+import { DBPunchCard } from "../github/api/stats-punch-card/mod.ts"
+import { GithubStatsCommitActivity } from "../github/api/stats-commit-activity/mod.ts"
+import { GithubStatsContributor } from "../github/api/stats-contributors/mod.ts"
+import { GithubStatsParticipation } from "../github/api/stats-participation/mod.ts"
 
 import { ReadonlyGithubClient } from "../github/mod.ts"
 import { daysBetween } from "../utils/mod.ts"
@@ -29,4 +33,104 @@ export async function* yieldStatsCodeFrequency(
       codeFrequency: el,
     }
   }
+}
+
+type YieldStatsCommitActivityData = {
+  commitActivity: GithubStatsCommitActivity
+}
+
+export async function* yieldStatsCommitActivity(
+  gh: ReadonlyGithubClient,
+  { signal }: Partial<{ maxDays: number; signal: AbortSignal }> = {},
+): AsyncGenerator<YieldStatsCommitActivityData> {
+  const latestSync = await gh.findLatestSync({ type: "stats-commit-activity" })
+  if (!latestSync) return
+
+  for await (const el of gh.findStatsCommitActivities()) {
+    if (signal?.aborted) {
+      throw new AbortError()
+    }
+
+    yield {
+      commitActivity: el,
+    }
+  }
+}
+
+type YieldStatsContributorsData = {
+  contributors: GithubStatsContributor
+}
+
+export async function* yieldStatsContributors(
+  gh: ReadonlyGithubClient,
+  { signal }: Partial<{ maxDays: number; signal: AbortSignal }> = {},
+): AsyncGenerator<YieldStatsContributorsData> {
+  const latestSync = await gh.findLatestSync({ type: "stats-contributors" })
+  if (!latestSync) return
+
+  for await (const el of gh.findStatsContributors()) {
+    if (signal?.aborted) {
+      throw new AbortError()
+    }
+
+    yield {
+      contributors: el,
+    }
+  }
+}
+
+type YieldStatsParticipationData = {
+  participation: GithubStatsParticipation
+}
+
+export async function* yieldStatsParticipation(
+  gh: ReadonlyGithubClient,
+  { signal }: Partial<{ maxDays: number; signal: AbortSignal }> = {},
+): AsyncGenerator<YieldStatsParticipationData> {
+  const latestSync = await gh.findLatestSync({ type: "stats-participation" })
+  if (!latestSync) return
+
+  for await (const el of gh.findStatsParticipants()) {
+    if (signal?.aborted) {
+      throw new AbortError()
+    }
+
+    yield {
+      participation: el,
+    }
+  }
+}
+
+type YieldStatsPunchCardData = {
+  punchCard: DBPunchCard
+  dayStr: string
+}
+
+export async function* yieldStatsPunchCard(
+  gh: ReadonlyGithubClient,
+  { signal }: Partial<{ signal: AbortSignal }> = {},
+): AsyncGenerator<YieldStatsPunchCardData> {
+  const latestSync = await gh.findLatestSync({ type: "stats-punch-card" })
+  if (!latestSync) return
+
+  for await (const el of gh.findStatsPunchCards()) {
+    if (signal?.aborted) {
+      throw new AbortError()
+    }
+
+    yield {
+      punchCard: el,
+      dayStr: dayIdxToStr[el.day],
+    }
+  }
+}
+
+const dayIdxToStr = {
+  0: "Sunday",
+  1: "Monday",
+  2: "Tuesday",
+  3: "Wednesday",
+  4: "Thursday",
+  5: "Friday",
+  6: "Saturday",
 }
