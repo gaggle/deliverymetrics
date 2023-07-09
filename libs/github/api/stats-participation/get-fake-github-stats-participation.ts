@@ -1,5 +1,3 @@
-import { deepMerge } from "std:deep-merge"
-
 import { DeepPartial } from "../../../types.ts"
 
 import { GithubStatsParticipation } from "./github-stats-participation-schema.ts"
@@ -127,5 +125,5 @@ export function getFakeGithubStatsParticipation(
       3,
     ],
   }
-  return deepMerge(base, partial as GithubStatsParticipation)
+  return { ...base, ...partial }
 }
