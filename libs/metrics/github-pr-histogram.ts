@@ -1,4 +1,4 @@
-import { warning } from "std:log"
+import { debug } from "std:log"
 
 import { GithubPull, MergedGithubPull } from "../github/api/pulls/mod.ts"
 
@@ -150,7 +150,7 @@ export async function* yieldPullRequestHistogram(
     const commit = await gh.findEarliestPullCommit({ pr: pull.number })
     const timeToMerge = commit ? calculatePullRequestTimeToMerge(pull, commit) : undefined
     if (!timeToMerge) {
-      warning(
+      debug(
         commit
           ? `Failed to calculate Time to Merge for pull ${pull.number}`
           : `No commits found for pull ${pull.number}`,
