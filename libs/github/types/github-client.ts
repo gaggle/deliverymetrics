@@ -2,13 +2,14 @@ import { EventEmitter } from "event"
 
 import { Epoch } from "../../types.ts"
 
-import { GithubActionRun } from "../api/action-run/github-action-run-schema.ts"
-import { GithubActionWorkflow } from "../api/action-workflows/github-action-workflow-schema.ts"
-import { BoundGithubPullCommit, GithubPullCommitDateKey } from "../api/pull-commits/github-pull-commit-schema.ts"
-import { GithubCommit } from "../api/commits/github-commit-schema.ts"
-import { GithubPull, GithubPullDateKey } from "../api/pulls/github-pull-schema.ts"
+import { BoundGithubPullCommit, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
+import { GithubActionRun } from "../api/action-run/mod.ts"
+import { GithubActionWorkflow } from "../api/action-workflows/mod.ts"
+import { GithubCommit } from "../api/commits/mod.ts"
+import { GithubPull, GithubPullDateKey } from "../api/pulls/mod.ts"
+import { GithubRelease } from "../api/releases/mod.ts"
+
 import { SyncInfo } from "./sync-info-schema.ts"
-import { GithubRelease } from "../api/releases/github-release-schema.ts"
 
 export type GithubClientEvents = {
   "aborted": [{ type: SyncInfo["type"] }]
