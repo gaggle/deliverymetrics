@@ -40,7 +40,7 @@ type YieldStatsCommitActivityData = {
 
 export async function* yieldStatsCommitActivity(
   gh: ReadonlyGithubClient,
-  { signal }: Partial<{ maxDays: number; signal: AbortSignal }> = {},
+  { signal }: Partial<{ signal: AbortSignal }> = {},
 ): AsyncGenerator<YieldStatsCommitActivityData> {
   const latestSync = await gh.findLatestSync({ type: "stats-commit-activity" })
   if (!latestSync) return
