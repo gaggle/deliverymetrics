@@ -43,6 +43,24 @@ Deno.test("yieldStatsContributors", async (t) => {
       },
     ])
   })
+
+  await t.step("fully removes entry if no weeks are left", async () => {
+    const fakeContributor = getFakeGithubStatsContributor({
+      total: 1,
+      weeks: [{ "w": getTimeInSec("1999-06-18"), "a": 1, "d": 1, "c": 1 }],
+    })
+    const gh = await createFakeReadonlyGithubClient({
+      syncInfos: [
+        getFakeSyncInfo({
+          type: "stats-contributors",
+          createdAt: new Date("2023-07-02").getTime(),
+          updatedAt: new Date("2023-07-02").getTime(),
+        }),
+      ],
+      statsContributors: [fakeContributor],
+    })
+    assertEquals(await asyncToArray(yieldStatsContributors(gh, { maxDays: 1 })), [])
+  })
 })
 
 Deno.test("yieldStatsParticipation", async (t) => {

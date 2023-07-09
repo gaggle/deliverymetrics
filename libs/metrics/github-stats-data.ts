@@ -76,6 +76,7 @@ export async function* yieldStatsContributors(
       if (!hash.w) return true
       return daysBetween(new Date(hash.w * 1000), new Date(latestSync.updatedAt!)) <= (maxDays || Infinity)
     })
+    if (el.weeks.length === 0) continue
     el.total = el.weeks.reduce((acc, val) => acc + (val.c || 0), 0)
 
     yield {
