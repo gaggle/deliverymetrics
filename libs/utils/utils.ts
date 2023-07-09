@@ -532,3 +532,10 @@ export async function streamToString(stream: ReadableStream<Uint8Array>): Promis
 export function isDebugLoggingActive(logger?: Logger): boolean {
   return (logger || getLogger()).level <= 10
 }
+
+export async function timeCtx(msg: string, fn: () => Promise<unknown>) {
+  const start = new Date().getTime()
+  await fn()
+  const duration = new Date().getTime() - start
+  debug(`${msg} (${duration / 1000}s)`)
+}
