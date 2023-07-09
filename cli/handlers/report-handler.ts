@@ -200,7 +200,7 @@ export async function reportHandler(
   jobs.push(limit(async () => {
     await writeCSVToFile(
       join(outputDir, "github-stats-code-frequency-data.csv"),
-      githubStatsCodeFrequenciesAsCsv(yieldStatsCodeFrequency(gh, {signal})),
+      githubStatsCodeFrequenciesAsCsv(yieldStatsCodeFrequency(gh, { maxDays: dataTimeframe, signal })),
       { header: githubStatsCodeFrequencyHeaders },
     )
   }))
