@@ -36,11 +36,19 @@ export async function* yieldStatsCodeFrequency(
 
 type YieldStatsCommitActivityData = {
   commitActivity: GithubStatsCommitActivity
+  sunday: number
+  monday: number
+  tuesday: number
+  wednesday: number
+  thursday: number
+  friday: number
+  saturday: number
+  weekStr: string
 }
 
 export async function* yieldStatsCommitActivity(
   gh: ReadonlyGithubClient,
-  { signal }: Partial<{ signal: AbortSignal }> = {},
+  { maxDays, signal }: Partial<{ maxDays: number; signal: AbortSignal }> = {},
 ): AsyncGenerator<YieldStatsCommitActivityData> {
   const latestSync = await gh.findLatestSync({ type: "stats-commit-activity" })
   if (!latestSync) return
@@ -50,8 +58,20 @@ export async function* yieldStatsCommitActivity(
       throw new AbortError()
     }
 
+    if (daysBetween(new Date(el.week * 1000), new Date(latestSync.updatedAt!)) > (maxDays || Infinity)) {
+      continue
+    }
+
     yield {
       commitActivity: el,
+      sunday: el.days[0],
+      monday: el.days[1],
+      tuesday: el.days[2],
+      wednesday: el.days[3],
+      thursday: el.days[4],
+      friday: el.days[5],
+      saturday: el.days[6],
+      weekStr: new Date(el.week * 1000).toISOString(),
     }
   }
 }
