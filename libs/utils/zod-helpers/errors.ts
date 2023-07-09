@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { isDebugLoggingActive, toCurlCommand } from "../mod.ts"
+import { toCurlCommand } from "../mod.ts"
 
 import { stringifyZodError } from "./stringify-zod-error.ts"
 
@@ -32,9 +32,9 @@ export class EnrichedZodError extends z.ZodError {
       msg += `\n  ↳ response: ${this.#response.status} ${this.#response.statusText}`
     }
 
-    if (isDebugLoggingActive()) {
-      msg += `\n  ↳ data: ${this.#data}`
-    }
+    // if (isDebugLoggingActive()) {
+    //   msg += `\n  ↳ data: ${this.#data}`
+    // }
 
     return msg
   }
