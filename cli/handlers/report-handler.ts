@@ -15,6 +15,10 @@ import {
   yieldPullRequestHistogram,
   yieldReleaseData,
   yieldStatsCodeFrequency,
+  yieldStatsCommitActivity,
+  yieldStatsContributors,
+  yieldStatsParticipation,
+  yieldStatsPunchCard,
 } from "../../libs/metrics/mod.ts"
 import {
   arrayToAsyncGenerator,
@@ -42,6 +46,14 @@ import {
   githubReleasesAsCsv,
   githubStatsCodeFrequenciesAsCsv,
   githubStatsCodeFrequencyHeaders,
+  githubStatsCommitActivityAsCsv,
+  githubStatsCommitActivityHeaders,
+  githubStatsContributorsAsCsv,
+  githubStatsContributorsHeaders,
+  githubStatsParticipationAsCsv,
+  githubStatsParticipationHeaders,
+  githubStatsPunchCardAsCsv,
+  githubStatsPunchCardHeaders,
   pullRequestHistogramAsCsv,
   pullRequestHistogramHeaders,
 } from "../csv/mod.ts"
@@ -202,6 +214,42 @@ export async function reportHandler(
       join(outputDir, "github-stats-code-frequency-data.csv"),
       githubStatsCodeFrequenciesAsCsv(yieldStatsCodeFrequency(gh, { maxDays: dataTimeframe, signal })),
       { header: githubStatsCodeFrequencyHeaders },
+    )
+  }))
+
+  // stats-commit-activity
+  jobs.push(limit(async () => {
+    await writeCSVToFile(
+      join(outputDir, "github-stats-commit-activity-data.csv"),
+      githubStatsCommitActivityAsCsv(yieldStatsCommitActivity(gh, { maxDays: dataTimeframe, signal })),
+      { header: githubStatsCommitActivityHeaders },
+    )
+  }))
+
+  // stats-contributors
+  jobs.push(limit(async () => {
+    await writeCSVToFile(
+      join(outputDir, "github-stats-contributors-data.csv"),
+      githubStatsContributorsAsCsv(yieldStatsContributors(gh, { maxDays: dataTimeframe, signal })),
+      { header: githubStatsContributorsHeaders },
+    )
+  }))
+
+  // stats-participation
+  jobs.push(limit(async () => {
+    await writeCSVToFile(
+      join(outputDir, "github-stats-participation-data.csv"),
+      githubStatsParticipationAsCsv(yieldStatsParticipation(gh, { maxDays: dataTimeframe, signal })),
+      { header: githubStatsParticipationHeaders },
+    )
+  }))
+
+  // stats-punch-card
+  jobs.push(limit(async () => {
+    await writeCSVToFile(
+      join(outputDir, "github-stats-punch-card-data.csv"),
+      githubStatsPunchCardAsCsv(yieldStatsPunchCard(gh, { signal })),
+      { header: githubStatsPunchCardHeaders },
     )
   }))
 
