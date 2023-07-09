@@ -226,7 +226,7 @@ export async function reportHandler(
     await timeCtx("stats-commit-activity", async () => {
       await writeCSVToFile(
         join(outputDir, "github-stats-commit-activity-data.csv"),
-        githubStatsCommitActivityAsCsv(yieldStatsCommitActivity(gh, { signal })),
+        githubStatsCommitActivityAsCsv(yieldStatsCommitActivity(gh, { maxDays: dataTimeframe, signal })),
         { header: githubStatsCommitActivityHeaders },
       )
     })
