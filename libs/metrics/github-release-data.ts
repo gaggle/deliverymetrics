@@ -1,9 +1,9 @@
 import { GithubRelease } from "../github/api/releases/mod.ts"
 
 import { ReadonlyGithubClient } from "../github/mod.ts"
+import { daysBetween } from "../utils/mod.ts"
 
 import { AbortError } from "../errors.ts"
-import { daysBetween } from "../utils/date-utils.ts"
 
 type YieldReleaseData = {
   release: GithubRelease
