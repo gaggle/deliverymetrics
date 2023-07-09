@@ -348,7 +348,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
       iteratorFn: () => _internals.fetchGithubStatsContributors(this.owner, this.repo, this.token),
       upsertFn: async (el) => {
         const author = el.author
-        await this.db.statsContributors.deleteOne(author === null ? { author: null } : { author: { id: author.id } })
+        await this.db.statsContributors.deleteMany(author === null ? { author: null } : { author: { id: author.id } })
         await this.db.statsContributors.insertOne(el)
       },
       saveFn: () => this.db.statsContributors.save(),
