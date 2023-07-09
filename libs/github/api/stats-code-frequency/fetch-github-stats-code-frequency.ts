@@ -17,7 +17,9 @@ export async function* fetchGithubStatsCodeFrequency(
     url: githubRestSpec.statsCodeFrequency.getUrl(owner, repo),
   })
 
-  for await (const { data } of _internals.fetchExhaustively(req, githubRestSpec.statsCodeFrequency.schema)) {
+  for await (
+    const { data } of _internals.fetchExhaustively(req, githubRestSpec.statsCodeFrequency.schema, { retries: 10 })
+  ) {
     for (const el of data) {
       yield el
     }
