@@ -19,6 +19,7 @@ export const githubStatsCodeFrequencyHeaders = [
   ...Object.keys(flattenObject(extractZodSchemaKeys(dbCodeFrequencySchema))).sort(),
 ]
 export type GithubStatsCodeFrequencyRow = Record<typeof githubStatsCodeFrequencyHeaders[number], string>
+
 export async function* githubStatsCodeFrequenciesAsCsv(
   iter: ReturnType<typeof yieldStatsCodeFrequency>,
 ): AsyncGenerator<GithubStatsCodeFrequencyRow> {
@@ -34,7 +35,8 @@ export const githubStatsCommitActivityHeaders = [
   ...extraStatsCommitActivityHeaders,
   ...Object.keys(flattenObject(extractZodSchemaKeys(githubStatsCommitActivitySchema))).sort(),
 ]
-export type GithubStatsCommitActivityRow = Record<typeof extraStatsCommitActivityHeaders[number], string>
+export type GithubStatsCommitActivityRow = Record<typeof githubStatsCommitActivityHeaders[number], string>
+
 export async function* githubStatsCommitActivityAsCsv(
   iter: ReturnType<typeof yieldStatsCommitActivity>,
 ): AsyncGenerator<GithubStatsCommitActivityRow> {
@@ -50,7 +52,8 @@ export const githubStatsContributorsHeaders = [
   ...extraStatsContributorsHeaders,
   ...Object.keys(flattenObject(extractZodSchemaKeys(githubStatsContributorSchema))).sort(),
 ]
-export type GithubStatsContributorsRow = Record<typeof extraStatsContributorsHeaders[number], string>
+export type GithubStatsContributorsRow = Record<typeof githubStatsContributorsHeaders[number], string>
+
 export async function* githubStatsContributorsAsCsv(
   iter: ReturnType<typeof yieldStatsContributors>,
 ): AsyncGenerator<GithubStatsContributorsRow> {
@@ -82,7 +85,8 @@ export const githubStatsPunchCardHeaders = [
   ...extraStatsPunchCardHeaders,
   ...Object.keys(flattenObject(extractZodSchemaKeys(dbPunchCardSchema))).sort(),
 ]
-export type GithubStatsPunchCardRow = Record<typeof extraStatsPunchCardHeaders[number], string>
+export type GithubStatsPunchCardRow = Record<typeof githubStatsPunchCardHeaders[number], string>
+
 export async function* githubStatsPunchCardAsCsv(
   iter: ReturnType<typeof yieldStatsPunchCard>,
 ): AsyncGenerator<GithubStatsPunchCardRow> {
