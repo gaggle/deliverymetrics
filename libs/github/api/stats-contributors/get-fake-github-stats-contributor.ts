@@ -7,7 +7,8 @@ import { GithubStatsContributor } from "./github-stats-contributor-schema.ts"
 /**
  * # Get all contributor commit activity
  *
- * Returns the total number of commits authored by the contributor. In addition, the response includes a Weekly Hash (weeks array) with the following information:
+ * Returns the total number of commits authored by the contributor.
+ * In addition, the response includes a Weekly Hash (weeks array) with the following information:
  * * w - Start of the week, given as a Unix timestamp.
  * * a - Number of additions
  * * d - Number of deletions
@@ -38,7 +39,8 @@ export function getFakeGithubStatsContributor(
       "site_admin": false,
     },
     "total": 135,
-    "weeks": [{ "w": 1367712000, "a": 6898, "d": 77, "c": 10 }],
+    "weeks": partial.weeks || [{ "w": 1367712000, "a": 6898, "d": 77, "c": 10 }],
   }
+  delete partial.weeks
   return deepMerge(base, partial as GithubStatsContributor)
 }
