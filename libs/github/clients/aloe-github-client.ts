@@ -165,6 +165,27 @@ export class ReadonlyAloeGithubClient extends EventEmitter<GithubClientEvents> i
       yield el
     }
   }
+
+  async *findStatsCommitActivities(): AsyncGenerator<GithubStatsCommitActivity> {
+    for (const el of await this.db.statsCommitActivity.findMany()) {
+      yield el
+    }
+  }
+  async *findStatsContributors(): AsyncGenerator<GithubStatsContributor> {
+    for (const el of await this.db.statsContributors.findMany()) {
+      yield el
+    }
+  }
+  async *findStatsParticipants(): AsyncGenerator<GithubStatsParticipation> {
+    for (const el of await this.db.statsParticipation.findMany()) {
+      yield el
+    }
+  }
+  async *findStatsPunchCards(): AsyncGenerator<DBPunchCard> {
+    for (const el of await this.db.statsPunchCard.findMany()) {
+      yield el
+    }
+  }
 }
 
 export class AloeGithubClient extends ReadonlyAloeGithubClient implements GithubClient {

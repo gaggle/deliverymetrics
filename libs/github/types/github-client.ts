@@ -4,11 +4,15 @@ import { Epoch } from "../../types.ts"
 
 import { BoundGithubPullCommit, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
 import { DBCodeFrequency } from "../api/stats-code-frequency/mod.ts"
+import { DBPunchCard } from "../api/stats-punch-card/mod.ts"
 import { GithubActionRun } from "../api/action-run/mod.ts"
 import { GithubActionWorkflow } from "../api/action-workflows/mod.ts"
 import { GithubCommit } from "../api/commits/mod.ts"
 import { GithubPull, GithubPullDateKey } from "../api/pulls/mod.ts"
 import { GithubRelease } from "../api/releases/mod.ts"
+import { GithubStatsCommitActivity } from "../api/stats-commit-activity/mod.ts"
+import { GithubStatsContributor } from "../api/stats-contributors/mod.ts"
+import { GithubStatsParticipation } from "../api/stats-participation/mod.ts"
 
 import { SyncInfo } from "./sync-info-schema.ts"
 
@@ -53,6 +57,14 @@ export interface ReadonlyGithubClient extends EventEmitter<GithubClientEvents> {
   findReleases(): AsyncGenerator<GithubRelease>
 
   findStatsCodeFrequencies(): AsyncGenerator<DBCodeFrequency>
+
+  findStatsCommitActivities(): AsyncGenerator<GithubStatsCommitActivity>
+
+  findStatsContributors(): AsyncGenerator<GithubStatsContributor>
+
+  findStatsParticipants(): AsyncGenerator<GithubStatsParticipation>
+
+  findStatsPunchCards(): AsyncGenerator<DBPunchCard>
 }
 
 export interface GithubClient extends ReadonlyGithubClient {
