@@ -1,6 +1,7 @@
 import { GithubCommit } from "../github/api/commits/mod.ts"
 
 import { ReadonlyGithubClient } from "../github/mod.ts"
+import { daysBetween } from "../utils/mod.ts"
 
 import { AbortError } from "../errors.ts"
 
@@ -12,14 +13,10 @@ type YieldCommitData = {
 
 export async function* yieldCommitData(
   gh: ReadonlyGithubClient,
-  { signal }: Partial<
+  { authoredMaxDaysAgo, committedMaxDaysAgo, signal }: Partial<
     {
-      maxDays: number
-      includeBranches: Array<string | RegExp>
-      excludeBranches: Array<string | RegExp>
-      includeLabels: Array<string | RegExp>
-      excludeLabels: Array<string | RegExp>
-      includeCancelled: boolean
+      authoredMaxDaysAgo: number
+      committedMaxDaysAgo: number
       signal: AbortSignal
     }
   > = {},
@@ -31,6 +28,25 @@ export async function* yieldCommitData(
     if (signal?.aborted) {
       throw new AbortError()
     }
+
+    if (
+      authoredMaxDaysAgo !== undefined &&
+      commit.commit.author?.date &&
+      daysBetween(new Date(commit.commit.author.date), new Date(latestSync.updatedAt!)) >
+      (authoredMaxDaysAgo || Infinity)
+    ) {
+      continue
+    }
+
+    if (
+      committedMaxDaysAgo !== undefined &&
+      commit.commit.committer?.date &&
+      daysBetween(new Date(commit.commit.committer.date), new Date(latestSync.updatedAt!)) >
+      (committedMaxDaysAgo || Infinity)
+    ) {
+      continue
+    }
+
     const coauthors = extractCoAuthoredBy(commit.commit.message)
     const contributors = ([
       nameAndEmail(commit.commit.author || {}),

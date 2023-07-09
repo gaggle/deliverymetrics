@@ -85,4 +85,46 @@ Deno.test("yieldCommitData", async (t) => {
     const actual = await first(yieldCommitData(gh))
     assertEquals(actual.contributors, ["Author", "<committer@github.com>"])
   })
+
+  await t.step("doesn't yield commits that were committed more than specified days ago", async () => {
+    const gh = await createFakeReadonlyGithubClient({
+      syncInfos: [
+        getFakeSyncInfo({
+          type: "commit",
+          createdAt: new Date("1980-01-10T00:00:00Z").getTime(),
+          updatedAt: new Date("1980-01-10T00:00:00Z").getTime(),
+        }),
+      ],
+      commits: [
+        getFakeGithubCommit({ commit: { committer: { date: "1980-01-04T00:00:00Z" } }, node_id: "6d" }),
+        getFakeGithubCommit({ commit: { committer: { date: "1980-01-05T00:00:00Z" } }, node_id: "5d" }),
+        getFakeGithubCommit({ commit: { committer: { date: "1980-01-10T00:00:00Z" } }, node_id: "0d" }),
+      ],
+    })
+
+    const actual = await asyncToArray(yieldCommitData(gh, { committedMaxDaysAgo: 5 }))
+
+    assertEquals(actual.map((el) => el.commit.node_id), ["5d", "0d"])
+  })
+
+  await t.step("doesn't yield commits that were AUTHORED more than specified days ago", async () => {
+    const gh = await createFakeReadonlyGithubClient({
+      syncInfos: [
+        getFakeSyncInfo({
+          type: "commit",
+          createdAt: new Date("1980-01-10T00:00:00Z").getTime(),
+          updatedAt: new Date("1980-01-10T00:00:00Z").getTime(),
+        }),
+      ],
+      commits: [
+        getFakeGithubCommit({ commit: { author: { date: "1980-01-04T00:00:00Z" } }, node_id: "6d", }),
+        getFakeGithubCommit({ commit: { author: { date: "1980-01-05T00:00:00Z" } }, node_id: "5d", }),
+        getFakeGithubCommit({ commit: { author: { date: "1980-01-10T00:00:00Z" } }, node_id: "0d", }),
+      ],
+    })
+
+    const actual = await asyncToArray(yieldCommitData(gh, {authoredMaxDaysAgo:5}))
+
+    assertEquals(actual.map((el) => el.commit.node_id), ["5d", "0d"])
+  })
 })
