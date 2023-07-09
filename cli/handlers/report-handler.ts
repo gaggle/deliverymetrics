@@ -239,7 +239,7 @@ export async function reportHandler(
   jobs.push(limit(async () => {
     await writeCSVToFile(
       join(outputDir, "github-stats-participation-data.csv"),
-      githubStatsParticipationAsCsv(yieldStatsParticipation(gh, { maxDays: dataTimeframe, signal })),
+      githubStatsParticipationAsCsv(yieldStatsParticipation(gh, { signal })),
       { header: githubStatsParticipationHeaders },
     )
   }))
