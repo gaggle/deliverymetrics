@@ -652,8 +652,7 @@ export const githubPullSchema = z.object({
             .describe("The merge method to use."),
           commit_title: z.union([z.string(), z.null()])
             .describe("Title for the merge commit message."),
-          commit_message: z
-            .string()
+          commit_message: z.union([z.null(), z.string()])
             .describe("Commit message for the merge commit."),
         })
         .describe("The status of auto merging a pull request."),
