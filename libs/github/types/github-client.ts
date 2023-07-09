@@ -21,20 +21,6 @@ export interface ReadonlyGithubClient extends EventEmitter<GithubClientEvents> {
 
   findLatestSync(opts?: Partial<{ type: SyncInfo["type"]; includeUnfinished: boolean }>): Promise<SyncInfo | undefined>
 
-  findPulls(opts?: Sortable<GithubPullDateKey>): AsyncGenerator<GithubPull>
-
-  findUnclosedPulls(): AsyncGenerator<GithubPull>
-
-  findLatestPull(): Promise<GithubPull | undefined>
-
-  findPullCommits(
-    opts?: Partial<{ pr: GithubPull["number"] } & Sortable<GithubPullCommitDateKey>>,
-  ): AsyncGenerator<BoundGithubPullCommit>
-
-  findEarliestPullCommit(opts?: Partial<{ pr: GithubPull["number"] }>): Promise<BoundGithubPullCommit | undefined>
-
-  findCommits(): AsyncGenerator<GithubCommit>
-
   findActionRuns(
     opts?:
       & Partial<{
@@ -46,6 +32,20 @@ export interface ReadonlyGithubClient extends EventEmitter<GithubClientEvents> {
   ): AsyncGenerator<GithubActionRun>
 
   findActionWorkflows(): AsyncGenerator<GithubActionWorkflow>
+
+  findCommits(): AsyncGenerator<GithubCommit>
+
+  findPullCommits(
+    opts?: Partial<{ pr: GithubPull["number"] } & Sortable<GithubPullCommitDateKey>>,
+  ): AsyncGenerator<BoundGithubPullCommit>
+
+  findEarliestPullCommit(opts?: Partial<{ pr: GithubPull["number"] }>): Promise<BoundGithubPullCommit | undefined>
+
+  findPulls(opts?: Sortable<GithubPullDateKey>): AsyncGenerator<GithubPull>
+
+  findUnclosedPulls(): AsyncGenerator<GithubPull>
+
+  findLatestPull(): Promise<GithubPull | undefined>
 }
 
 export interface GithubClient extends ReadonlyGithubClient {

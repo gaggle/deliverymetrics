@@ -62,65 +62,6 @@ export class ReadonlyAloeGithubClient extends EventEmitter<GithubClientEvents> i
     return syncs[syncs.length - 1]
   }
 
-  /**
-   * Yield pulls
-   *
-   * Default sort is by `updated_at`
-   */
-  async *findPulls(
-    { sort }: Partial<{ sort: { key: GithubPullDateKey; order?: "asc" | "desc" } }> = {},
-  ): AsyncGenerator<GithubPull> {
-    const sortedPulls = sortPullsByKey(
-      await this.db.pulls.findMany(),
-      sort?.key ?? "updated_at",
-    )
-    if (sort?.order === "desc") {
-      sortedPulls.reverse()
-    }
-    for (const el of sortedPulls) {
-      yield el
-    }
-  }
-
-  async *findUnclosedPulls(): AsyncGenerator<GithubPull> {
-    for (
-      const el of (await asyncToArray(this.findPulls())).filter((pull) => pull.state !== "closed")
-    ) {
-      yield el
-    }
-  }
-
-  findLatestPull(): Promise<GithubPull | undefined> {
-    return firstMaybe(this.findPulls({ sort: { key: "updated_at", order: "desc" } }))
-  }
-
-  async *findPullCommits(
-    { sort, pr }: Partial<{ pr: GithubPull["number"] } & Sortable<GithubPullCommitDateKey>> = {},
-  ): AsyncGenerator<BoundGithubPullCommit> {
-    const sortedPullCommits: BoundGithubPullCommit[] = sortPullCommitsByKey(
-      await this.db.pullCommits.findMany(pr ? { pr } : undefined),
-      sort?.key ?? "commit.author",
-    )
-    if (sort?.order === "desc") {
-      sortedPullCommits.reverse()
-    }
-    for (const el of sortedPullCommits) {
-      yield el
-    }
-  }
-
-  findEarliestPullCommit(
-    { pr }: Partial<{ pr: GithubPull["number"] }> = {},
-  ): Promise<BoundGithubPullCommit | undefined> {
-    return firstMaybe(this.findPullCommits({ pr, sort: { key: "commit.author", order: "asc" } }))
-  }
-
-  async *findCommits(): AsyncGenerator<GithubCommit> {
-    for (const el of await this.db.commits.findMany()) {
-      yield el
-    }
-  }
-
   async *findActionRuns(opts: Partial<{
     branch: string | RegExp
     conclusion: string | RegExp
@@ -152,6 +93,65 @@ export class ReadonlyAloeGithubClient extends EventEmitter<GithubClientEvents> i
     for (const wf of workflows) {
       yield wf
     }
+  }
+
+  async *findCommits(): AsyncGenerator<GithubCommit> {
+    for (const el of await this.db.commits.findMany()) {
+      yield el
+    }
+  }
+
+  async *findPullCommits(
+    { sort, pr }: Partial<{ pr: GithubPull["number"] } & Sortable<GithubPullCommitDateKey>> = {},
+  ): AsyncGenerator<BoundGithubPullCommit> {
+    const sortedPullCommits: BoundGithubPullCommit[] = sortPullCommitsByKey(
+      await this.db.pullCommits.findMany(pr ? { pr } : undefined),
+      sort?.key ?? "commit.author",
+    )
+    if (sort?.order === "desc") {
+      sortedPullCommits.reverse()
+    }
+    for (const el of sortedPullCommits) {
+      yield el
+    }
+  }
+
+  findEarliestPullCommit(
+    { pr }: Partial<{ pr: GithubPull["number"] }> = {},
+  ): Promise<BoundGithubPullCommit | undefined> {
+    return firstMaybe(this.findPullCommits({ pr, sort: { key: "commit.author", order: "asc" } }))
+  }
+
+  /**
+   * Yield pulls
+   *
+   * Default sort is by `updated_at`
+   */
+  async *findPulls(
+    { sort }: Partial<{ sort: { key: GithubPullDateKey; order?: "asc" | "desc" } }> = {},
+  ): AsyncGenerator<GithubPull> {
+    const sortedPulls = sortPullsByKey(
+      await this.db.pulls.findMany(),
+      sort?.key ?? "updated_at",
+    )
+    if (sort?.order === "desc") {
+      sortedPulls.reverse()
+    }
+    for (const el of sortedPulls) {
+      yield el
+    }
+  }
+
+  async *findUnclosedPulls(): AsyncGenerator<GithubPull> {
+    for (
+      const el of (await asyncToArray(this.findPulls())).filter((pull) => pull.state !== "closed")
+    ) {
+      yield el
+    }
+  }
+
+  findLatestPull(): Promise<GithubPull | undefined> {
+    return firstMaybe(this.findPulls({ sort: { key: "updated_at", order: "desc" } }))
   }
 }
 
