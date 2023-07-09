@@ -14,6 +14,7 @@ import {
   yieldPullRequestData,
   yieldPullRequestHistogram,
   yieldReleaseData,
+  yieldStatsCodeFrequency,
 } from "../../libs/metrics/mod.ts"
 import {
   arrayToAsyncGenerator,
@@ -39,6 +40,8 @@ import {
   githubPullsAsCsv,
   githubReleaseHeaders,
   githubReleasesAsCsv,
+  githubStatsCodeFrequenciesAsCsv,
+  githubStatsCodeFrequencyHeaders,
   pullRequestHistogramAsCsv,
   pullRequestHistogramHeaders,
 } from "../csv/mod.ts"
@@ -190,6 +193,15 @@ export async function reportHandler(
       join(outputDir, "github-releases-data.csv"),
       githubReleasesAsCsv(yieldReleaseData(gh, { publishedMaxDaysAgo: dataTimeframe, signal })),
       { header: githubReleaseHeaders },
+    )
+  }))
+
+  // stats-code-frequency
+  jobs.push(limit(async () => {
+    await writeCSVToFile(
+      join(outputDir, "github-stats-code-frequency-data.csv"),
+      githubStatsCodeFrequenciesAsCsv(yieldStatsCodeFrequency(gh, {signal})),
+      { header: githubStatsCodeFrequencyHeaders },
     )
   }))
 
