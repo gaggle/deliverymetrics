@@ -13,6 +13,7 @@ import {
   yieldCommitData,
   yieldPullRequestData,
   yieldPullRequestHistogram,
+  yieldReleaseData,
 } from "../../libs/metrics/mod.ts"
 import {
   arrayToAsyncGenerator,
@@ -36,6 +37,8 @@ import {
   githubPullCommitsAsCsv,
   githubPullHeaders,
   githubPullsAsCsv,
+  githubReleaseHeaders,
+  githubReleasesAsCsv,
   pullRequestHistogramAsCsv,
   pullRequestHistogramHeaders,
 } from "../csv/mod.ts"
@@ -178,6 +181,15 @@ export async function reportHandler(
           headerOrder: github.pullCommits?.headerOrder,
         }),
       },
+    )
+  }))
+
+  // releases
+  jobs.push(limit(async () => {
+    await writeCSVToFile(
+      join(outputDir, "github-releases-data.csv"),
+      githubReleasesAsCsv(yieldReleaseData(gh, { publishedMaxDaysAgo: dataTimeframe })),
+      { header: githubReleaseHeaders },
     )
   }))
 
