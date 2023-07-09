@@ -9,17 +9,17 @@ import { AbortError } from "../../errors.ts"
 import { Epoch } from "../../types.ts"
 
 import { BoundGithubPullCommit, fetchGithubPullCommits, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
+import { DBCodeFrequency, fetchGithubStatsCodeFrequency } from "../api/stats-code-frequency/mod.ts"
+import { DBPunchCard, fetchGithubStatsPunchCard } from "../api/stats-punch-card/mod.ts"
 import { GithubCommit } from "../api/commits/mod.ts"
 import { fetchGithubActionRuns, GithubActionRun } from "../api/action-run/mod.ts"
 import { fetchGithubActionWorkflows, GithubActionWorkflow } from "../api/action-workflows/mod.ts"
 import { fetchGithubCommits } from "../api/commits/mod.ts"
 import { fetchGithubPulls, GithubPull, GithubPullDateKey } from "../api/pulls/mod.ts"
 import { fetchGithubReleases, GithubRelease } from "../api/releases/mod.ts"
-import { DBCodeFrequency, fetchGithubStatsCodeFrequency } from "../api/stats-code-frequency/mod.ts"
 import { fetchGithubStatsCommitActivity, GithubStatsCommitActivity } from "../api/stats-commit-activity/mod.ts"
 import { fetchGithubStatsContributors, GithubStatsContributor } from "../api/stats-contributors/mod.ts"
 import { fetchGithubStatsParticipation, GithubStatsParticipation } from "../api/stats-participation/mod.ts"
-import { DBPunchCard, fetchGithubStatsPunchCard } from "../api/stats-punch-card/mod.ts"
 
 import { sortActionRunsKey, sortPullCommitsByKey, sortPullsByKey } from "../github-utils/mod.ts"
 
@@ -156,6 +156,12 @@ export class ReadonlyAloeGithubClient extends EventEmitter<GithubClientEvents> i
 
   async *findReleases(): AsyncGenerator<GithubRelease> {
     for (const el of await this.db.releases.findMany()) {
+      yield el
+    }
+  }
+
+  async *findStatsCodeFrequencies(): AsyncGenerator<DBCodeFrequency> {
+    for (const el of await this.db.statsCodeFrequency.findMany()) {
       yield el
     }
   }

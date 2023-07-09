@@ -3,6 +3,7 @@ import { EventEmitter } from "event"
 import { Epoch } from "../../types.ts"
 
 import { BoundGithubPullCommit, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
+import { DBCodeFrequency } from "../api/stats-code-frequency/mod.ts"
 import { GithubActionRun } from "../api/action-run/mod.ts"
 import { GithubActionWorkflow } from "../api/action-workflows/mod.ts"
 import { GithubCommit } from "../api/commits/mod.ts"
@@ -50,6 +51,8 @@ export interface ReadonlyGithubClient extends EventEmitter<GithubClientEvents> {
   findLatestPull(): Promise<GithubPull | undefined>
 
   findReleases(): AsyncGenerator<GithubRelease>
+
+  findStatsCodeFrequencies(): AsyncGenerator<DBCodeFrequency>
 }
 
 export interface GithubClient extends ReadonlyGithubClient {
