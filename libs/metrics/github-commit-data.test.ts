@@ -117,13 +117,13 @@ Deno.test("yieldCommitData", async (t) => {
         }),
       ],
       commits: [
-        getFakeGithubCommit({ commit: { author: { date: "1980-01-04T00:00:00Z" } }, node_id: "6d", }),
-        getFakeGithubCommit({ commit: { author: { date: "1980-01-05T00:00:00Z" } }, node_id: "5d", }),
-        getFakeGithubCommit({ commit: { author: { date: "1980-01-10T00:00:00Z" } }, node_id: "0d", }),
+        getFakeGithubCommit({ commit: { author: { date: "1980-01-04T00:00:00Z" } }, node_id: "6d" }),
+        getFakeGithubCommit({ commit: { author: { date: "1980-01-05T00:00:00Z" } }, node_id: "5d" }),
+        getFakeGithubCommit({ commit: { author: { date: "1980-01-10T00:00:00Z" } }, node_id: "0d" }),
       ],
     })
 
-    const actual = await asyncToArray(yieldCommitData(gh, {authoredMaxDaysAgo:5}))
+    const actual = await asyncToArray(yieldCommitData(gh, { authoredMaxDaysAgo: 5 }))
 
     assertEquals(actual.map((el) => el.commit.node_id), ["5d", "0d"])
   })

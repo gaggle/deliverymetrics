@@ -33,7 +33,7 @@ export async function* yieldCommitData(
       authoredMaxDaysAgo !== undefined &&
       commit.commit.author?.date &&
       daysBetween(new Date(commit.commit.author.date), new Date(latestSync.updatedAt!)) >
-      (authoredMaxDaysAgo || Infinity)
+        (authoredMaxDaysAgo || Infinity)
     ) {
       continue
     }
@@ -42,7 +42,7 @@ export async function* yieldCommitData(
       committedMaxDaysAgo !== undefined &&
       commit.commit.committer?.date &&
       daysBetween(new Date(commit.commit.committer.date), new Date(latestSync.updatedAt!)) >
-      (committedMaxDaysAgo || Infinity)
+        (committedMaxDaysAgo || Infinity)
     ) {
       continue
     }
