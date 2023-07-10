@@ -1,3 +1,4 @@
+import { brightRed } from "std:color"
 import { debug, getLogger, Logger } from "std:log"
 import { distinct } from "std:distinct"
 import { z } from "zod"
@@ -536,6 +537,7 @@ export function isDebugLoggingActive(logger?: Logger): boolean {
 export async function timeCtx(msg: string, fn: () => Promise<unknown>) {
   const start = new Date().getTime()
   await fn()
-  const duration = new Date().getTime() - start
-  debug(`${msg} (${duration / 1000}s)`)
+  const duration = (new Date().getTime() - start) / 1000
+  const durationStr = duration > 10 ? brightRed(`${(duration.toFixed(2))}s`) : `${(duration.toFixed(2))}s`
+  debug(`${msg} (${durationStr})`)
 }
