@@ -17,7 +17,12 @@ export async function* fetchGithubStatsPunchCard(
     url: githubRestSpec.statsPunchCard.getUrl(owner, repo),
   })
 
-  for await (const { data } of _internals.fetchExhaustively(req, githubRestSpec.statsPunchCard.schema)) {
+  for await (
+    const { data } of _internals.fetchExhaustively(req, githubRestSpec.statsPunchCard.schema, {
+      strategy: "github-backoff",
+      retries: 10,
+    })
+  ) {
     for (const el of data) {
       yield el
     }

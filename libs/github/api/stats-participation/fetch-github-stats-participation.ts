@@ -17,7 +17,12 @@ export async function* fetchGithubStatsParticipation(
     url: githubRestSpec.statsParticipation.getUrl(owner, repo),
   })
 
-  for await (const { data } of _internals.fetchExhaustively(req, githubRestSpec.statsParticipation.schema)) {
+  for await (
+    const { data } of _internals.fetchExhaustively(req, githubRestSpec.statsParticipation.schema, {
+      strategy: "github-backoff",
+      retries: 10,
+    })
+  ) {
     yield data
   }
 }

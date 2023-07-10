@@ -20,6 +20,7 @@ export async function* fetchGithubStatsContributors(
   for await (
     const { data } of _internals.fetchExhaustively(req, githubRestSpec.statsContributors.schema, {
       strategy: "github-backoff",
+      retries: 10,
     })
   ) {
     for (const el of data) {
