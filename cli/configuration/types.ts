@@ -13,12 +13,10 @@ const positiveNumberOrInfinitySchema = z
   .optional()
 
 const jiraSyncSchema = z.object({
-  name: z.string().min(1),
-  project: z.string(),
-  query_type: z.string(),
-  max_days: positiveNumberOrInfinitySchema,
+  search_query: z.string(),
   api_token: z.string(),
   api_user: z.string(),
+  max_days: positiveNumberOrInfinitySchema,
 }).strict()
 
 export type JiraSync = z.infer<typeof jiraSyncSchema>

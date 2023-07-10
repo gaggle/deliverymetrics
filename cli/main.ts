@@ -7,7 +7,7 @@ import { parseGithubUrl } from "../libs/github/mod.ts"
 import { yargs, YargsArguments, YargsInstance } from "../cli/yargs.ts"
 
 import { reportHandler, ReportSpec, syncHandler, SyncSpec } from "./handlers/mod.ts"
-import { GithubSync, loadConfiguration } from "./configuration/mod.ts"
+import { GithubSync, JiraSync, loadConfiguration } from "./configuration/mod.ts"
 
 const logLevels = ["DEBUG", "INFO", "WARNING"] as const
 type LogLevel = typeof logLevels[number]
@@ -82,7 +82,9 @@ export function main(args: Array<string>) {
       async (argv: YargsArguments & { config: ReturnType<typeof loadConfiguration>; cache: string }) => {
         const { signal } = interceptSigint()
 
-        const xformToSyncSpec = (el: GithubSync): SyncSpec => {
+        const syncSpecs: Array<SyncSpec> = []
+
+        const xformGitHubToSyncSpec = (el: GithubSync): SyncSpec => {
           const { owner, repo } = parseGithubUrl(el.repo)
           return {
             type: "github",
@@ -90,12 +92,24 @@ export function main(args: Array<string>) {
             repo,
             token: el.token,
             maxDays: el.max_days === "Infinity" ? undefined : el.max_days || 90,
-            //                                   ↑ no max days means infinite days 👍
+            //                                    ↑ no max days means infinite days 👍
           }
         }
-        const syncSpecs: Array<SyncSpec> = []
         if (argv.config.sync?.github) {
-          syncSpecs.push(xformToSyncSpec(argv.config.sync.github))
+          syncSpecs.push(xformGitHubToSyncSpec(argv.config.sync.github))
+        }
+        const xformJiraToSyncSpec = (el: JiraSync): SyncSpec => {
+          return {
+            type: "jira",
+            searchQuery: el.search_query,
+            apiUser: el.api_user,
+            apiToken: el.api_token,
+            maxDays: el.max_days === "Infinity" ? undefined : el.max_days || 90,
+            //                                    ↑ no max days means infinite days 👍
+          }
+        }
+        if (argv.config.sync?.jira) {
+          syncSpecs.push(xformJiraToSyncSpec(argv.config.sync.jira))
         }
 
         await syncHandler({

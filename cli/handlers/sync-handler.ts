@@ -14,10 +14,9 @@ export type SyncSpec = {
   maxDays?: number
 } | {
   type: "jira"
-  project: string
-  queryType: string
-  apiToken: string
+  searchQuery: string
   apiUser: string
+  apiToken: string
   maxDays?: number
 }
 
@@ -43,7 +42,7 @@ export async function syncHandler(
         )
         break
       case "jira":
-        write(`JIRA ${syncSpec.project}`)
+        write(`Jira sync spec: ${JSON.stringify(syncSpec, null, 2)}`)
         break
     }
   }
