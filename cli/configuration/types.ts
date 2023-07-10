@@ -24,7 +24,6 @@ const jiraSyncSchema = z.object({
 export type JiraSync = z.infer<typeof jiraSyncSchema>
 
 const githubSyncSchema = z.object({
-  name: z.string().min(1),
   repo: z.string().regex(/.*\/.*/),
   token: z.string().startsWith("ghp").optional(),
   max_days: positiveNumberOrInfinitySchema,
