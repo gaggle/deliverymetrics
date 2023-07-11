@@ -541,3 +541,10 @@ export async function timeCtx(msg: string, fn: () => Promise<unknown>) {
   const durationStr = duration > 10 ? brightRed(`${(duration.toFixed(2))}s`) : `${(duration.toFixed(2))}s`
   debug(`${msg} (${durationStr})`)
 }
+
+export async function hash(message: string): Promise<string> {
+  const data = new TextEncoder().encode(message)
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+}

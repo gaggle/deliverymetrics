@@ -19,6 +19,7 @@ import {
   flattenObject,
   getEnv,
   hasDupes,
+  hash,
   isDebugLoggingActive,
   last,
   limit,
@@ -722,5 +723,11 @@ Deno.test("isDebugLoggingActive", async (t) => {
 
   await t.step("detects a logger not in DEBUG mode", () => {
     assertEquals(isDebugLoggingActive(new Logger("foo", "INFO")), false)
+  })
+})
+
+Deno.test("hash", async (t) => {
+  await t.step("hashes a string", async () => {
+    assertEquals(await hash("12345"), "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5")
   })
 })
