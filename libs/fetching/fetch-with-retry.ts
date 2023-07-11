@@ -101,6 +101,7 @@ export async function fetchWithRetry(
     try {
       attemptNumber++
       await progress({ type: "fetching", retry: attemptNumber, retries, request })
+      const requestBody = await request.clone().text()
       const response = await _fetch(request)
 
       const isJson = response.headers.get("Content-Type")?.includes("application/json") || false
@@ -111,7 +112,7 @@ export async function fetchWithRetry(
         data = await response.clone().text()
       }
       if (schema) {
-        parseWithZodSchemaFromRequest({ data, schema, request, response })
+        parseWithZodSchemaFromRequest({ data, schema, request, requestBody, response })
       }
       await progress({ type: "fetched", retry: attemptNumber, retries, response })
       await processResponse(response, data)
