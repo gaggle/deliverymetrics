@@ -1,4 +1,4 @@
-import * as z from "zod"
+import { z } from "zod"
 
 import { GithubPull, githubPullSchema } from "./pulls/mod.ts"
 import { githubActionRunSchema } from "./action-run/mod.ts"
