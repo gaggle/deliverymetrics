@@ -14,6 +14,7 @@ const positiveNumberOrInfinitySchema = z
 
 const jiraSyncSchema = z.object({
   search_query: z.string(),
+  host: z.string().url(),
   api_token: z.string(),
   api_user: z.string(),
   max_days: positiveNumberOrInfinitySchema,

@@ -102,6 +102,7 @@ export function main(args: Array<string>) {
           return {
             type: "jira",
             searchQuery: el.search_query,
+            host: el.host,
             apiUser: el.api_user,
             apiToken: el.api_token,
             maxDays: el.max_days === "Infinity" ? undefined : el.max_days || 90,

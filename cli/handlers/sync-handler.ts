@@ -15,6 +15,7 @@ export type SyncSpec = {
 } | {
   type: "jira"
   searchQuery: string
+  host: string
   apiUser: string
   apiToken: string
   maxDays?: number
