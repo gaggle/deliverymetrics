@@ -30,6 +30,7 @@ export function getNextRequestFromLinkHeader(req: Request, resp: Response): Requ
 
 export type FetchExhaustivelyProgress = FetchWithRetryProgress | {
   type: "paging"
+  to: Request
   pagesConsumed: number
   maxPages: number
 }
@@ -70,7 +71,9 @@ export async function* fetchExhaustively<Schema extends z.ZodTypeAny>(
     yield result
     pagesConsumed++
     currentRequest = getNextRequestFromLinkHeader(currentRequest, result.response)
-    await progress({ type: "paging", pagesConsumed, maxPages })
+    if (currentRequest) {
+      await progress({ type: "paging", to: currentRequest, pagesConsumed, maxPages })
+    }
     if (currentRequest && pagesConsumed > maxPages) {
       throw new Error(`cannot fetch more than ${maxPages} pages exhaustively`)
     }
