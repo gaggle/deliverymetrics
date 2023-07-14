@@ -27,9 +27,11 @@ Deno.test("fetch-github-api-exhaustively", async (t) => {
   }
 
   await t.step("paginates through GitHub header links", async () => {
-    const [r1, r2, r3] = await asyncToArray(fetchGithubApiExhaustively(new Request("https://example.com"), z.string(), {
-      _fetch: getCan().fetch,
-    }))
+    const [r1, r2, r3] = await asyncToArray(fetchGithubApiExhaustively(
+      new Request("https://example.com"),
+      z.string(),
+      { _fetch: getCan().fetch, maxRetries: 0 },
+    ))
     assertEquals(r1.data, "1")
     assertEquals(r2.data, "2")
     assertEquals(r3.data, "3")
