@@ -9,6 +9,9 @@ export const fetchAPIExhaustively: FetchExhaustivelyLike = (req, schema, opts) =
     ...opts,
     progress: (call) => {
       switch (call.type) {
+        case "paging":
+          debug(`${call.type} (${call.pagesConsumed}/${call.maxPages})`)
+          break
         case "retrying":
           debug(`${call.type}: ${call.reason} (${call.retry}/${call.retries})`)
           break
