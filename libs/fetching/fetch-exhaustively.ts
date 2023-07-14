@@ -48,9 +48,10 @@ export async function* fetchExhaustively<Schema extends z.ZodTypeAny>(
     yield result
     pagesConsumed++
 
-    if (opts.paginationCallback) {
-      currentRequest = opts.paginationCallback({ request: currentRequest, ...result })
-    }
+    currentRequest = opts.paginationCallback
+      ? opts.paginationCallback({ request: currentRequest, ...result })
+      : undefined
+
     if (currentRequest && pagesConsumed > maxPages) {
       throw new Error(`cannot fetch more than ${maxPages} pages exhaustively`)
     }
