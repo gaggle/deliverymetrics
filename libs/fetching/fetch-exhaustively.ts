@@ -40,7 +40,7 @@ export async function* fetchExhaustively<Schema extends z.ZodTypeAny>(
   do {
     const result: Awaited<ReturnType<typeof fetchWithRetry>> = await fetchWithRetry(currentRequest, {
       progress,
-      retries: opts.maxRetries || 8,
+      retries: opts.maxRetries === undefined ? 8 : opts.maxRetries,
       schema,
       strategy: opts.retryStrategy,
       _fetch: opts._fetch,
