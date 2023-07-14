@@ -2,7 +2,7 @@ import { Epoch } from "../../../types.ts"
 
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
-import { fetchAPIExhaustively } from "../fetch-api-exhaustively.ts"
+import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubCommit } from "./github-commit-schema.ts"
@@ -21,7 +21,7 @@ export async function* fetchGithubCommits(
     url: githubRestSpec.commits.getUrl(owner, repo, newerThan ? toISOStringWithoutMs(newerThan) : undefined),
   })
 
-  for await (const { data } of _internals.fetchAPIExhaustively(req, githubRestSpec.commits.schema)) {
+  for await (const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.commits.schema)) {
     for (const el of data) {
       yield el
     }
@@ -33,5 +33,5 @@ function toISOStringWithoutMs(...args: ConstructorParameters<typeof Date>) {
 }
 
 export const _internals = {
-  fetchAPIExhaustively: fetchAPIExhaustively,
+  fetchGithubApiExhaustively,
 }

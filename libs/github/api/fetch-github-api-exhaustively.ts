@@ -4,7 +4,7 @@ import { fetchExhaustively } from "../../fetching/fetch-exhaustively.ts"
 
 type FetchExhaustivelyLike = (...args: Parameters<typeof fetchExhaustively>) => ReturnType<typeof fetchExhaustively>
 
-export const fetchAPIExhaustively: FetchExhaustivelyLike = (req, schema, opts) => {
+export const fetchGithubApiExhaustively: FetchExhaustivelyLike = (req, schema, opts) => {
   return fetchExhaustively(req, schema, {
     ...opts,
     paginationCallback: (opts) => getNextRequestFromLinkHeader(opts.request, opts.response),

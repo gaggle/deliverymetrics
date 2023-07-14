@@ -1,6 +1,6 @@
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
-import { fetchAPIExhaustively } from "../fetch-api-exhaustively.ts"
+import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubStatsParticipation } from "./github-stats-participation-schema.ts"
@@ -17,7 +17,7 @@ export async function* fetchGithubStatsParticipation(
   })
 
   for await (
-    const { data } of _internals.fetchAPIExhaustively(req, githubRestSpec.statsParticipation.schema, {
+    const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.statsParticipation.schema, {
       retryStrategy: "github-backoff",
       maxRetries: 10,
     })
@@ -27,5 +27,5 @@ export async function* fetchGithubStatsParticipation(
 }
 
 export const _internals = {
-  fetchAPIExhaustively: fetchAPIExhaustively,
+  fetchGithubApiExhaustively,
 }

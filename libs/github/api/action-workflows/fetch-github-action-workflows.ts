@@ -1,6 +1,6 @@
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
-import { fetchAPIExhaustively } from "../fetch-api-exhaustively.ts"
+import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubActionWorkflow } from "./github-action-workflow-schema.ts"
@@ -16,7 +16,7 @@ export async function* fetchGithubActionWorkflows(
     url: githubRestSpec.actionWorkflows.getUrl(owner, repo),
   })
 
-  for await (const { data } of fetchAPIExhaustively(req, githubRestSpec.actionWorkflows.schema)) {
+  for await (const { data } of fetchGithubApiExhaustively(req, githubRestSpec.actionWorkflows.schema)) {
     for (const el of data.workflows) {
       yield el
     }

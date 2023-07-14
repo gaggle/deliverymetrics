@@ -1,6 +1,6 @@
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
-import { fetchAPIExhaustively } from "../fetch-api-exhaustively.ts"
+import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubRepository } from "./github-repository-schema.ts"
@@ -16,11 +16,11 @@ export async function* fetchRepositoryData(
     url: githubRestSpec.repository.getUrl(owner, repo),
   })
 
-  for await (const { data } of _internals.fetchAPIExhaustively(req, githubRestSpec.repository.schema)) {
+  for await (const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.repository.schema)) {
     yield data
   }
 }
 
 export const _internals = {
-  fetchAPIExhaustively: fetchAPIExhaustively,
+  fetchGithubApiExhaustively,
 }

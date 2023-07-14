@@ -1,4 +1,4 @@
-import { fetchAPIExhaustively } from "../fetch-api-exhaustively.ts"
+import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
 
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
@@ -18,7 +18,7 @@ export async function* fetchGithubStatsCodeFrequency(
   })
 
   for await (
-    const { data } of _internals.fetchAPIExhaustively(req, githubRestSpec.statsCodeFrequency.schema, {
+    const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.statsCodeFrequency.schema, {
       retryStrategy: "github-backoff",
       maxRetries: 10,
     })
@@ -30,5 +30,5 @@ export async function* fetchGithubStatsCodeFrequency(
 }
 
 export const _internals = {
-  fetchAPIExhaustively: fetchAPIExhaustively,
+  fetchGithubApiExhaustively,
 }

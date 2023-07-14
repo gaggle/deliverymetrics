@@ -1,6 +1,6 @@
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
-import { fetchAPIExhaustively } from "../fetch-api-exhaustively.ts"
+import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubStatsCommitActivity } from "./github-stats-commit-activity-schema.ts"
@@ -17,7 +17,7 @@ export async function* fetchGithubStatsCommitActivity(
   })
 
   for await (
-    const { data } of _internals.fetchAPIExhaustively(req, githubRestSpec.statsCommitActivity.schema, {
+    const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.statsCommitActivity.schema, {
       retryStrategy: "github-backoff",
       maxRetries: 10,
     })
@@ -29,5 +29,5 @@ export async function* fetchGithubStatsCommitActivity(
 }
 
 export const _internals = {
-  fetchAPIExhaustively: fetchAPIExhaustively,
+  fetchGithubApiExhaustively,
 }

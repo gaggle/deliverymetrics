@@ -5,7 +5,7 @@ import { arrayToAsyncGenerator, asyncToArray } from "../../../utils/mod.ts"
 
 import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../dev-utils.ts"
 
-import { fetchAPIExhaustively } from "../fetch-api-exhaustively.ts"
+import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { _internals, fetchGithubCommits } from "./fetch-github-commits.ts"
@@ -19,7 +19,7 @@ Deno.test("fetchCommits", async (t) => {
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubCommits("owner", "repo", "token"))
 
-          const [, schema] = extractCallArgsFromStub<typeof fetchAPIExhaustively>(fetchExhaustivelyStub, 0, {
+          const [, schema] = extractCallArgsFromStub<typeof fetchGithubApiExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 2,
           })
@@ -27,7 +27,7 @@ Deno.test("fetchCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchAPIExhaustively",
+          "fetchGithubApiExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [commit] }]),
         ),
       )
@@ -41,7 +41,7 @@ Deno.test("fetchCommits", async (t) => {
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubCommits("octocat", "Hello-World", "token"))
 
-          const [req] = extractCallArgsFromStub<typeof fetchAPIExhaustively>(fetchExhaustivelyStub, 0, {
+          const [req] = extractCallArgsFromStub<typeof fetchGithubApiExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 2,
           })
@@ -58,7 +58,7 @@ Deno.test("fetchCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchAPIExhaustively",
+          "fetchGithubApiExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [commit] }]),
         ),
       )
@@ -72,7 +72,7 @@ Deno.test("fetchCommits", async (t) => {
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubCommits("octocat", "Hello-World", "token", { newerThan: 10_000 }))
 
-          const [req] = extractCallArgsFromStub<typeof fetchAPIExhaustively>(fetchExhaustivelyStub, 0, {
+          const [req] = extractCallArgsFromStub<typeof fetchGithubApiExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 2,
           })
@@ -83,7 +83,7 @@ Deno.test("fetchCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchAPIExhaustively",
+          "fetchGithubApiExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [commit] }]),
         ),
       )
@@ -101,7 +101,7 @@ Deno.test("fetchCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchAPIExhaustively",
+          "fetchGithubApiExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [commit] }]),
         ),
       )
