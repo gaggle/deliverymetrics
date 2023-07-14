@@ -1,12 +1,12 @@
 import { debug } from "std:log"
 
-import { fetchExhaustively } from "../../../fetching/mod.ts"
 import { stringifyPull } from "../../../utils/mod.ts"
 
 import { Epoch } from "../../../types.ts"
 
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
+import { fetchAPIExhaustively } from "../fetch-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubPull } from "./github-pull-schema.ts"
@@ -25,7 +25,7 @@ export async function* fetchGithubPulls(
     url: githubRestSpec.pulls.getUrl(owner, repo),
   })
 
-  for await (const { data } of _internals.fetchExhaustively(req, githubRestSpec.pulls.schema)) {
+  for await (const { data } of _internals.fetchAPIExhaustively(req, githubRestSpec.pulls.schema)) {
     for (const pull of data) {
       if (newerThan) {
         const updatedAtDate = new Date(pull.updated_at)
@@ -40,5 +40,5 @@ export async function* fetchGithubPulls(
 }
 
 export const _internals = {
-  fetchExhaustively: fetchExhaustively,
+  fetchAPIExhaustively: fetchAPIExhaustively,
 }

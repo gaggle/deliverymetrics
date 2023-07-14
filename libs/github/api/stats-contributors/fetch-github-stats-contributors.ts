@@ -1,7 +1,6 @@
-import { fetchExhaustively } from "../../../fetching/mod.ts"
-
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
+import { fetchAPIExhaustively } from "../fetch-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubStatsContributor } from "./github-stats-contributor-schema.ts"
@@ -18,9 +17,9 @@ export async function* fetchGithubStatsContributors(
   })
 
   for await (
-    const { data } of _internals.fetchExhaustively(req, githubRestSpec.statsContributors.schema, {
-      strategy: "github-backoff",
-      retries: 10,
+    const { data } of _internals.fetchAPIExhaustively(req, githubRestSpec.statsContributors.schema, {
+      retryStrategy: "github-backoff",
+      maxRetries: 10,
     })
   ) {
     for (const el of data) {
@@ -30,5 +29,5 @@ export async function* fetchGithubStatsContributors(
 }
 
 export const _internals = {
-  fetchExhaustively: fetchExhaustively,
+  fetchAPIExhaustively: fetchAPIExhaustively,
 }

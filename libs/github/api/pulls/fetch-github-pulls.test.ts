@@ -2,12 +2,12 @@ import { assertEquals, assertInstanceOf } from "dev:asserts"
 import { stub } from "dev:mock"
 
 import { arrayToAsyncGenerator, asyncToArray } from "../../../utils/mod.ts"
-import { fetchExhaustively } from "../../../fetching/mod.ts"
 
 import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../dev-utils.ts"
 
 import { getFakeGithubPull } from "../../api/pulls/mod.ts"
 
+import { fetchAPIExhaustively } from "../fetch-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { _internals, fetchGithubPulls } from "./fetch-github-pulls.ts"
@@ -20,7 +20,7 @@ Deno.test("fetchPulls", async (t) => {
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubPulls("owner", "repo", "token"))
 
-          const [, schema] = extractCallArgsFromStub<typeof fetchExhaustively>(fetchExhaustivelyStub, 0, {
+          const [, schema] = extractCallArgsFromStub<typeof fetchAPIExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 2,
           })
@@ -28,7 +28,7 @@ Deno.test("fetchPulls", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively",
+          "fetchAPIExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [pull] }]),
         ),
       )
@@ -42,7 +42,7 @@ Deno.test("fetchPulls", async (t) => {
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubPulls("owner", "repo", "token"))
 
-          const [req] = extractCallArgsFromStub<typeof fetchExhaustively>(fetchExhaustivelyStub, 0, {
+          const [req] = extractCallArgsFromStub<typeof fetchAPIExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 2,
           })
@@ -59,7 +59,7 @@ Deno.test("fetchPulls", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively",
+          "fetchAPIExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [pull] }]),
         ),
       )
@@ -77,7 +77,7 @@ Deno.test("fetchPulls", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively",
+          "fetchAPIExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [pull] }]),
         ),
       )
@@ -121,7 +121,7 @@ Deno.test("fetchPulls", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively",
+          "fetchAPIExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [pull1, pull2, pull3] }]),
         ),
       )

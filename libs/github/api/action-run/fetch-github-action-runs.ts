@@ -1,7 +1,6 @@
 import { debug } from "std:log"
 
 import { first } from "../../../utils/mod.ts"
-import { fetchExhaustively } from "../../../fetching/mod.ts"
 
 import { Epoch } from "../../../types.ts"
 
@@ -9,6 +8,7 @@ import { createGithubRequest } from "../../github-utils/mod.ts"
 
 import { fetchRepositoryData } from "../repository/mod.ts"
 
+import { fetchAPIExhaustively } from "../fetch-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubActionRun } from "./github-action-run-schema.ts"
@@ -30,7 +30,7 @@ export async function* fetchGithubActionRuns(
   })
 
   for await (
-    const { data } of fetchExhaustively(req, githubRestSpec.actionRuns.schema, {
+    const { data } of fetchAPIExhaustively(req, githubRestSpec.actionRuns.schema, {
       maxPages: 10_000,
       // ↑ There are often many, MANY, runs
     })

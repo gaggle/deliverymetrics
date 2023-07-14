@@ -1,8 +1,6 @@
-import { debug } from "std:log"
-
 import { z } from "zod"
 
-import { BaseOpts as FetchWithRetryBaseOpts, fetchWithRetry } from "./fetch-with-retry.ts"
+import { fetchWithRetry, FetchWithRetryProgress } from "./fetch-with-retry.ts"
 
 /**
  * Copied from https://github.com/SamVerschueren/github-parse-link/blob/master/index.js
@@ -30,6 +28,12 @@ export function getNextRequestFromLinkHeader(req: Request, resp: Response): Requ
   return newReq
 }
 
+export type FetchExhaustivelyProgress = FetchWithRetryProgress | {
+  type: "paging"
+  pagesConsumed: number
+  maxPages: number
+}
+
 /**
  * Fetches `request` and yields response,
  * and if response has a `Link.next` header
@@ -38,8 +42,18 @@ export function getNextRequestFromLinkHeader(req: Request, resp: Response): Requ
 export async function* fetchExhaustively<Schema extends z.ZodTypeAny>(
   req: Request,
   schema: Schema,
-  opts: FetchWithRetryBaseOpts & { maxPages?: number } = {},
+  opts: Partial<{
+    maxPages: number
+    maxRetries: number
+    retryStrategy: "rate-limit-aware-backoff" | "github-backoff"
+    progress: (opts: FetchExhaustivelyProgress) => void | Promise<void>
+    /**
+     * For test-purposes a fetch-like function can be injected. Defaults to global fetch.
+     */
+    _fetch: typeof fetch
+  }> = {},
 ): AsyncGenerator<{ response: Response; data: z.infer<Schema> }> {
+  const progress = opts.progress || noop
   let currentRequest: Request | undefined = req
   let pagesConsumed = 1
 
@@ -47,23 +61,20 @@ export async function* fetchExhaustively<Schema extends z.ZodTypeAny>(
 
   do {
     const result = await fetchWithRetry(currentRequest, {
-      retries: opts.retries || 8,
-      progress: (progress) => {
-        switch (progress.type) {
-          case "retrying": {
-            debug(`${progress.type}: ${progress.reason} (${progress.retry}/${progress.retries})`)
-            break
-          }
-        }
-      },
-      ...opts,
+      progress,
+      retries: opts.maxRetries || 8,
       schema,
+      strategy: opts.retryStrategy,
+      _fetch: opts._fetch,
     })
     yield result
     pagesConsumed++
     currentRequest = getNextRequestFromLinkHeader(currentRequest, result.response)
+    await progress({ type: "paging", pagesConsumed, maxPages })
     if (currentRequest && pagesConsumed > maxPages) {
       throw new Error(`cannot fetch more than ${maxPages} pages exhaustively`)
     }
   } while (currentRequest)
 }
+
+const noop = () => {}

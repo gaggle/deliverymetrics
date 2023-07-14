@@ -2,12 +2,12 @@ import { assertEquals, assertInstanceOf } from "dev:asserts"
 import { stub } from "dev:mock"
 
 import { arrayToAsyncGenerator, asyncToArray } from "../../../utils/mod.ts"
-import { fetchExhaustively } from "../../../fetching/mod.ts"
 
 import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../dev-utils.ts"
 
 import { getFakeGithubPull } from "../pulls/mod.ts"
 
+import { fetchAPIExhaustively } from "../fetch-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { getFakeGithubPullCommit } from "./get-fake-github-pull-commit.ts"
@@ -22,7 +22,7 @@ Deno.test("fetchPullCommits", async (t) => {
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubPullCommits(pull, "token"))
 
-          const [, schema] = extractCallArgsFromStub<typeof fetchExhaustively>(fetchExhaustivelyStub, 0, {
+          const [, schema] = extractCallArgsFromStub<typeof fetchAPIExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 2,
           })
@@ -30,7 +30,7 @@ Deno.test("fetchPullCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively",
+          "fetchAPIExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [pullCommit] }]),
         ),
       )
@@ -48,7 +48,7 @@ Deno.test("fetchPullCommits", async (t) => {
         async (fetchExhaustivelyStub) => {
           await asyncToArray(fetchGithubPullCommits(pull, "token"))
 
-          const [req] = extractCallArgsFromStub<typeof fetchExhaustively>(fetchExhaustivelyStub, 0, {
+          const [req] = extractCallArgsFromStub<typeof fetchAPIExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
             expectedArgs: 2,
           })
@@ -65,7 +65,7 @@ Deno.test("fetchPullCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively",
+          "fetchAPIExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [pullCommit] }]),
         ),
       )
@@ -84,7 +84,7 @@ Deno.test("fetchPullCommits", async (t) => {
         },
         stub(
           _internals,
-          "fetchExhaustively",
+          "fetchAPIExhaustively",
           () => arrayToAsyncGenerator([{ response: new Response(), data: [pullCommit] }]),
         ),
       )
