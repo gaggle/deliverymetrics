@@ -46,8 +46,8 @@ export async function* fetchExhaustively<Schema extends z.ZodTypeAny>(
   opts: Partial<{
     maxPages: number
     maxRetries: number
-    retryStrategy: "rate-limit-aware-backoff" | "github-backoff"
     progress: (opts: FetchExhaustivelyProgress) => void | Promise<void>
+    retryStrategy: "rate-limit-aware-backoff" | "github-backoff"
     /**
      * For test-purposes a fetch-like function can be injected. Defaults to global fetch.
      */
