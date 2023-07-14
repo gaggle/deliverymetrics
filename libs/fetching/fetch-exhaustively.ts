@@ -23,8 +23,8 @@ export type FetchExhaustivelyOpts<Schema extends z.ZodTypeAny = z.ZodTypeAny> = 
 
 /**
  * Fetches `request` and yields response,
- * and if response has a `Link.next` header
- * then continue to yield those (up to `maxPages`)
+ * and as long as `paginationCallback` returns new requests then those will also be fetched and yielded
+ * (up to `maxPages`)
  */
 export async function* fetchExhaustively<Schema extends z.ZodTypeAny>(
   req: Request,
