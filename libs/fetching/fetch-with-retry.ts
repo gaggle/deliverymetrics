@@ -2,6 +2,8 @@ import { z } from "zod"
 
 import { filterUndefined, parseWithZodSchemaFromRequest, sleep } from "../utils/mod.ts"
 
+import { AbortError } from "../errors.ts"
+
 import { githubBackoff, rateLimitAwareBackoff } from "./rate-limit-aware-backoff.ts"
 
 export type FetchWithRetryProgress =
@@ -80,6 +82,9 @@ export async function fetchWithRetry(
 
     await progress({ type: "retrying", retry: attemptNumber, retries, reason, delay: backoffDelay })
     await sleep(backoffDelay, { signal })
+    if (signal?.aborted) {
+      throw new AbortError()
+    }
   }
 
   const processError = async (error: Error): Promise<void> => {
@@ -93,6 +98,9 @@ export async function fetchWithRetry(
     }
     await progress({ type: "retrying", retry: attemptNumber, retries, reason, delay: backoffDelay })
     await sleep(backoffDelay, { signal })
+    if (signal?.aborted) {
+      throw new AbortError()
+    }
   }
 
   let returnResponse: { data: unknown; response: Response } | undefined = undefined
@@ -118,6 +126,9 @@ export async function fetchWithRetry(
       await processResponse(response, data)
     } catch (error) {
       await progress({ type: "error", retry: attemptNumber, retries, error })
+      if (signal?.aborted) {
+        throw new AbortError(error)
+      }
       await processError(error)
     }
   }
