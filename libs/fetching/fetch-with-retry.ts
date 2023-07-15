@@ -9,7 +9,7 @@ export type FetchWithRetryProgress =
   | { type: "error"; retry: number; retries: number; error: Error }
   | { type: "fetched"; retry: number; retries: number; response: Response }
   | { type: "fetching"; retry: number; retries: number; request: Request }
-  | { type: "retrying"; retry: number; retries: number; reason?: "rate-limited" | string }
+  | { type: "retrying"; retry: number; retries: number; reason?: "rate-limited" | string; delay: number }
 
 export type BaseOpts = {
   /**
@@ -78,7 +78,7 @@ export async function fetchWithRetry(
       return
     }
 
-    await progress({ type: "retrying", retry: attemptNumber, retries, reason })
+    await progress({ type: "retrying", retry: attemptNumber, retries, reason, delay: backoffDelay })
     await sleep(backoffDelay)
   }
 
@@ -91,7 +91,7 @@ export async function fetchWithRetry(
       await progress({ type: "done", retry: attemptNumber, retries, error })
       throw error
     }
-    await progress({ type: "retrying", retry: attemptNumber, retries, reason })
+    await progress({ type: "retrying", retry: attemptNumber, retries, reason, delay: backoffDelay })
     await sleep(backoffDelay)
   }
 
