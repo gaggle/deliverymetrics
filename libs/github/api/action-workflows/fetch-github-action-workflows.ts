@@ -9,6 +9,7 @@ export async function* fetchGithubActionWorkflows(
   owner: string,
   repo: string,
   token?: string,
+  { signal }: Partial<{ signal: AbortSignal }> = {},
 ): AsyncGenerator<GithubActionWorkflow> {
   const req = createGithubRequest({
     method: "GET",
@@ -16,7 +17,9 @@ export async function* fetchGithubActionWorkflows(
     url: githubRestSpec.actionWorkflows.getUrl(owner, repo),
   })
 
-  for await (const { data } of fetchGithubApiExhaustively(req, githubRestSpec.actionWorkflows.schema)) {
+  for await (
+    const { data } of fetchGithubApiExhaustively(req, githubRestSpec.actionWorkflows.schema, { signal })
+  ) {
     for (const el of data.workflows) {
       yield el
     }

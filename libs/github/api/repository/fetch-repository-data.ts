@@ -9,6 +9,7 @@ export async function* fetchRepositoryData(
   owner: string,
   repo: string,
   token?: string,
+  { signal }: Partial<{ signal: AbortSignal }> = {},
 ): AsyncGenerator<GithubRepository> {
   const req = createGithubRequest({
     method: "GET",
@@ -16,7 +17,9 @@ export async function* fetchRepositoryData(
     url: githubRestSpec.repository.getUrl(owner, repo),
   })
 
-  for await (const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.repository.schema)) {
+  for await (
+    const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.repository.schema, { signal })
+  ) {
     yield data
   }
 }

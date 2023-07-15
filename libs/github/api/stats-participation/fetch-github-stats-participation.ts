@@ -9,6 +9,7 @@ export async function* fetchGithubStatsParticipation(
   owner: string,
   repo: string,
   token?: string,
+  { signal }: Partial<{ signal: AbortSignal }> = {},
 ): AsyncGenerator<GithubStatsParticipation> {
   const req = createGithubRequest({
     method: "GET",
@@ -20,6 +21,7 @@ export async function* fetchGithubStatsParticipation(
     const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.statsParticipation.schema, {
       retryStrategy: "github-backoff",
       maxRetries: 10,
+      signal,
     })
   ) {
     yield data

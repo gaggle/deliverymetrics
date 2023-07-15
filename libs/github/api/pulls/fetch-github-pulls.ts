@@ -11,13 +11,13 @@ import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubPull } from "./github-pull-schema.ts"
 
-type FetchPullsOpts = { newerThan?: Epoch }
+type FetchPullsOpts = { newerThan?: Epoch; signal?: AbortSignal }
 
 export async function* fetchGithubPulls(
   owner: string,
   repo: string,
   token?: string,
-  { newerThan }: Partial<FetchPullsOpts> = {},
+  { newerThan, signal }: Partial<FetchPullsOpts> = {},
 ): AsyncGenerator<GithubPull> {
   const req = createGithubRequest({
     method: "GET",
@@ -25,7 +25,7 @@ export async function* fetchGithubPulls(
     url: githubRestSpec.pulls.getUrl(owner, repo),
   })
 
-  for await (const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.pulls.schema)) {
+  for await (const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.pulls.schema, { signal })) {
     for (const pull of data) {
       if (newerThan) {
         const updatedAtDate = new Date(pull.updated_at)

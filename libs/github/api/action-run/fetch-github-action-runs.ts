@@ -13,13 +13,13 @@ import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubActionRun } from "./github-action-run-schema.ts"
 
-type FetchRunsOpts = { newerThan?: Epoch }
+type FetchRunsOpts = { newerThan?: Epoch; signal?: AbortSignal }
 
 export async function* fetchGithubActionRuns(
   owner: string,
   repo: string,
   token?: string,
-  { newerThan }: Partial<FetchRunsOpts> = {},
+  { newerThan, signal }: Partial<FetchRunsOpts> = {},
 ): AsyncGenerator<GithubActionRun> {
   const repoData = await first(fetchRepositoryData(owner, repo, token))
 
@@ -33,6 +33,7 @@ export async function* fetchGithubActionRuns(
     const { data } of fetchGithubApiExhaustively(req, githubRestSpec.actionRuns.schema, {
       maxPages: 10_000,
       // ↑ There are often many, MANY, runs
+      signal,
     })
   ) {
     for (const el of data.workflow_runs) {

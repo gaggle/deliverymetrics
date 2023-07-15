@@ -22,7 +22,7 @@ Deno.test("fetchPulls", async (t) => {
 
           const [, schema] = extractCallArgsFromStub<typeof fetchGithubApiExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
-            expectedArgs: 2,
+            expectedArgs: 3,
           })
           assertEquals(schema, githubRestSpec.pulls.schema)
         },
@@ -44,7 +44,7 @@ Deno.test("fetchPulls", async (t) => {
 
           const [req] = extractCallArgsFromStub<typeof fetchGithubApiExhaustively>(fetchExhaustivelyStub, 0, {
             expectedCalls: 1,
-            expectedArgs: 2,
+            expectedArgs: 3,
           })
           assertInstanceOf(req, Request)
 

@@ -10,6 +10,7 @@ import { GithubPullCommit } from "./github-pull-commit-schema.ts"
 export async function* fetchGithubPullCommits(
   pull: Pick<GithubPull, "commits_url">,
   token?: string,
+  { signal }: Partial<{ signal: AbortSignal }> = {},
 ): AsyncGenerator<GithubPullCommit> {
   const req = createGithubRequest({
     method: "GET",
@@ -17,7 +18,9 @@ export async function* fetchGithubPullCommits(
     url: githubRestSpec.pullCommits.getUrl(pull),
   })
 
-  for await (const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.pullCommits.schema)) {
+  for await (
+    const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.pullCommits.schema, { signal })
+  ) {
     for (const el of data) {
       yield el
     }

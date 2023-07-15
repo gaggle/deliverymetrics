@@ -9,6 +9,7 @@ export async function* fetchGithubStatsContributors(
   owner: string,
   repo: string,
   token?: string,
+  { signal }: Partial<{ signal: AbortSignal }> = {},
 ): AsyncGenerator<GithubStatsContributor> {
   const req = createGithubRequest({
     method: "GET",
@@ -20,6 +21,7 @@ export async function* fetchGithubStatsContributors(
     const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.statsContributors.schema, {
       retryStrategy: "github-backoff",
       maxRetries: 10,
+      signal,
     })
   ) {
     for (const el of data) {

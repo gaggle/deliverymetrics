@@ -45,7 +45,7 @@ Deno.test("fetch-github-stats-contributors", async (t) => {
           )
           assertInstanceOf(req, Request)
           assertEquals(schema, githubRestSpec.statsContributors.schema)
-          assertEquals(opts, { retryStrategy: "github-backoff", maxRetries: 10 })
+          assertEquals(opts, { retryStrategy: "github-backoff", maxRetries: 10, signal: undefined })
         },
         stub(
           _internals,

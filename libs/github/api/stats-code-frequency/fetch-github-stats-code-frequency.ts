@@ -10,6 +10,7 @@ export async function* fetchGithubStatsCodeFrequency(
   owner: string,
   repo: string,
   token?: string,
+  { signal }: Partial<{ signal: AbortSignal }> = {},
 ): AsyncGenerator<GithubStatsCodeFrequency> {
   const req = createGithubRequest({
     method: "GET",
@@ -21,6 +22,7 @@ export async function* fetchGithubStatsCodeFrequency(
     const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.statsCodeFrequency.schema, {
       retryStrategy: "github-backoff",
       maxRetries: 10,
+      signal,
     })
   ) {
     for (const el of data) {
