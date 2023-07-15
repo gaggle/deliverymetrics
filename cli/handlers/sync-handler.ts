@@ -27,21 +27,17 @@ export async function syncHandler(
   write("Syncing...")
   for (const syncSpec of opts.syncSpecs) {
     switch (syncSpec.type) {
-      case "github":
-        await _internals.fullGithubSync(
-          await _internals.getGithubClient({
-            type: "GithubClient",
-            persistenceDir: join(opts.cacheRoot, "github", syncSpec.owner, syncSpec.repo),
-            repo: syncSpec.repo,
-            owner: syncSpec.owner,
-            token: syncSpec.token,
-          }),
-          {
-            maxDaysToSync: syncSpec.maxDays,
-            signal: opts.signal,
-          },
-        )
+      case "github": {
+        const client = await _internals.getGithubClient({
+          type: "GithubClient",
+          persistenceDir: join(opts.cacheRoot, "github", syncSpec.owner, syncSpec.repo),
+          repo: syncSpec.repo,
+          owner: syncSpec.owner,
+          token: syncSpec.token,
+        })
+        await _internals.fullGithubSync(client, { maxDaysToSync: syncSpec.maxDays, signal: opts.signal })
         break
+      }
       case "jira":
         write(`Jira sync spec: ${JSON.stringify(syncSpec, null, 2)}`)
         break
