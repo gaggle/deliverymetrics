@@ -21,4 +21,15 @@ Deno.test("calculateExponentialBackoff", async (t) => {
     )
     assertEquals(delays, [1000, 2000, 3000, 3000, 3000])
   })
+
+  await t.step("can produce a curve well-suited for retrying 202s", () => {
+    const delays = Array.from(Array(10).keys()).map((attempt) =>
+      calculateExponentialBackoff(attempt, {
+        factor: 1.5,
+        minTimeout: 500,
+        maxTimeout: 9000,
+      })
+    )
+    assertEquals(delays, [500, 750, 1125, 1688, 2531, 3797, 5695, 8543, 9000, 9000])
+  })
 })

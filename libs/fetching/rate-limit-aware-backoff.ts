@@ -40,7 +40,12 @@ export function rateLimitAwareBackoff(
  */
 export function githubBackoff(opts: BackoffOpts): ReturnType<typeof rateLimitAwareBackoff> {
   if (opts.response?.status === 202) {
-    const delay = calculateExponentialBackoff(opts.attemptNumber, { factor: 4, minTimeout: 50, randomize: true })
+    const delay = calculateExponentialBackoff(opts.attemptNumber, {
+      factor: 1.5,
+      minTimeout: 500,
+      maxTimeout: 9000,
+      randomize: true,
+    })
     return { delay, reason: "202 response" }
   }
   return rateLimitAwareBackoff(opts)
