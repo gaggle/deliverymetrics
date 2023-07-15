@@ -189,6 +189,8 @@ export class ReadonlyAloeGithubClient extends EventEmitter<GithubClientEvents> i
   }
 }
 
+type Context = { newerThan?: Epoch; signal?: AbortSignal }
+
 export class AloeGithubClient extends ReadonlyAloeGithubClient implements GithubClient {
   private readonly owner: string
   private readonly repo: string
@@ -407,10 +409,10 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 
   private async internalFetch<T>(
     opts: {
-      iteratorFn: (context: { newerThan?: Epoch }) => AsyncGenerator<T>
+      iteratorFn: (context: Context) => AsyncGenerator<T>
       type: SyncInfo["type"]
-      upsertFn: (el: T, context: { newerThan?: Epoch }) => Promise<void>
-      saveFn: (context: { newerThan?: Epoch }) => Promise<void>
+      upsertFn: (el: T, context: Context) => Promise<void>
+      saveFn: (context: Context) => Promise<void>
       signal?: AbortSignal
       newerThan?: Epoch
     },
@@ -420,6 +422,7 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
 
     const context = {
       newerThan: await this.calcNewerThanBasedOnLatestSync({ type: opts.type, max: opts.newerThan }),
+      signal: opts.signal,
     }
     try {
       for await (
