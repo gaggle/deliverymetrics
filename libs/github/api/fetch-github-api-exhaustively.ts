@@ -14,7 +14,7 @@ export const fetchGithubApiExhaustively: FetchExhaustivelyLike = (req, schema, o
           debug(`${call.type}: ${call.to.url} (${call.pagesConsumed}/${call.maxPages})`)
           break
         case "retrying":
-          debug(`${call.type}: ${call.reason} (${call.retry}/${call.retries})`)
+          debug(`${call.type} in ${(call.delay / 1000).toFixed(2)}s: ${call.reason} (${call.retry}/${call.retries})`)
           break
       }
       if (opts?.progress) opts.progress(call)
