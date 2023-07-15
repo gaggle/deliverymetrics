@@ -16,14 +16,13 @@ export type BaseOpts = {
    * For test-purposes a fetch-like function can be injected. Defaults to global fetch.
    */
   _fetch?: typeof fetch
+  progress?: (opts: FetchWithRetryProgress) => void | Promise<void>
   /**
    * Number of retries to attempt, defaults to 5
    */
   retries?: number
+  signal?: AbortSignal
   strategy?: "rate-limit-aware-backoff" | "github-backoff"
-  progress?: (
-    opts: FetchWithRetryProgress,
-  ) => void | Promise<void>
 }
 export type OptsSchemaless = BaseOpts & { schema?: undefined }
 export type OptsSchema<T extends z.ZodTypeAny> = BaseOpts & { schema: T }
@@ -48,6 +47,7 @@ export async function fetchWithRetry(
     progress,
     retries,
     schema,
+    signal,
   } = {
     _fetch: fetch,
     progress: noop,
@@ -79,7 +79,7 @@ export async function fetchWithRetry(
     }
 
     await progress({ type: "retrying", retry: attemptNumber, retries, reason, delay: backoffDelay })
-    await sleep(backoffDelay)
+    await sleep(backoffDelay, { signal })
   }
 
   const processError = async (error: Error): Promise<void> => {
@@ -92,7 +92,7 @@ export async function fetchWithRetry(
       throw error
     }
     await progress({ type: "retrying", retry: attemptNumber, retries, reason, delay: backoffDelay })
-    await sleep(backoffDelay)
+    await sleep(backoffDelay, { signal })
   }
 
   let returnResponse: { data: unknown; response: Response } | undefined = undefined
@@ -102,7 +102,7 @@ export async function fetchWithRetry(
       attemptNumber++
       await progress({ type: "fetching", retry: attemptNumber, retries, request })
       const requestBody = await request.clone().text()
-      const response = await _fetch(request)
+      const response = await _fetch(request, { signal })
 
       const isJson = response.headers.get("Content-Type")?.includes("application/json") || false
       let data: unknown

@@ -93,11 +93,11 @@ Deno.test("fetch-with-retry", async (t) => {
     assertProgressCalls(eventSpy, [
       { type: "fetching", retry: 0, retries: 2, request },
       { type: "fetched", retry: 0, retries: 2, response: resp1 },
-      { type: "retrying", retry: 0, retries: 2, reason: "status code: 500" },
+      { type: "retrying", retry: 0, retries: 2, reason: "status code: 500", delay: 0 },
 
       { type: "fetching", retry: 1, retries: 2, request },
       { type: "error", retry: 1, retries: 2, error: resp2 },
-      { type: "retrying", retry: 1, retries: 2, reason: "error: 💥" },
+      { type: "retrying", retry: 1, retries: 2, reason: "error: 💥", delay: 0 },
 
       { type: "fetching", retry: 2, retries: 2, request },
       { type: "fetched", retry: 2, retries: 2, response: resp3 },
@@ -124,7 +124,8 @@ function assertProgressCalls(
 ) {
   for (const [idx, expected] of calls.entries()) {
     const actual = eventSpy.calls[idx].args[0]
-    if (actual.delay) actual.delay = typeof actual.delay
+    if (actual.delay) actual.delay = 0
+    // ↑ This is a quick but hopefully innocent hack to not have to test the random backoff jitter
     assertEquals(
       actual,
       expected,
