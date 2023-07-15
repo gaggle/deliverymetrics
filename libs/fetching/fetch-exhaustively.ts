@@ -15,6 +15,7 @@ export type FetchExhaustivelyOpts<Schema extends z.ZodTypeAny = z.ZodTypeAny> = 
   paginationCallback: (opts: { request: Request; response: Response; data: z.output<Schema> }) => Request | undefined
   progress: (opts: FetchExhaustivelyProgress) => void | Promise<void>
   retryStrategy: "rate-limit-aware-backoff" | "github-backoff"
+  signal: AbortSignal
   /**
    * For test-purposes a fetch-like function can be injected. Defaults to global fetch.
    */
@@ -42,6 +43,7 @@ export async function* fetchExhaustively<Schema extends z.ZodTypeAny>(
       progress,
       retries: opts.maxRetries === undefined ? 8 : opts.maxRetries,
       schema,
+      signal: opts.signal,
       strategy: opts.retryStrategy,
       _fetch: opts._fetch,
     })
