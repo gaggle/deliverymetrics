@@ -95,6 +95,11 @@ export async function* arrayToAsyncGenerator<T>(
 
 export function sleep(ms = 1000, { signal }: { signal?: AbortSignal } = {}): Promise<void> {
   return new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new AbortError(signal?.reason))
+      return
+    }
+
     const abortListener = () => {
       clearTimeout(t)
       signal?.removeEventListener("abort", abortListener)
