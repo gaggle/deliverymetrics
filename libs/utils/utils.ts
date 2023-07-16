@@ -5,6 +5,8 @@ import { z } from "zod"
 
 import { GithubPull } from "../github/api/pulls/mod.ts"
 
+import { FetchExhaustivelyProgress } from "../fetching/mod.ts"
+
 import { AbortError } from "../errors.ts"
 import { Entries } from "../types.ts"
 
@@ -552,4 +554,15 @@ export async function hash(message: string): Promise<string> {
   const hashBuffer = await crypto.subtle.digest("SHA-256", data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+}
+
+export function stdFetchExhaustivelyProgressLogging(call: FetchExhaustivelyProgress): void {
+  switch (call.type) {
+    case "paging":
+      debug(`${call.type}: ${call.to.url} (${call.pagesConsumed}/${call.maxPages})`)
+      break
+    case "retrying":
+      debug(`${call.type} in ${(call.delay / 1000).toFixed(2)}s: ${call.reason} (${call.retry}/${call.retries})`)
+      break
+  }
 }

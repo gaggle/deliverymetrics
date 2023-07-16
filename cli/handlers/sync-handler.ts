@@ -1,10 +1,14 @@
 import { join } from "std:path"
+import { slugify } from "slugify"
 
 import { getGithubClient, GithubClient, SyncInfo, syncInfoTypes } from "../../libs/github/mod.ts"
+import { getJiraClient, JiraClient } from "../../libs/jira/mod.ts"
 
 import { AbortError } from "../../libs/errors.ts"
 
 import { dot, write } from "./formatting.ts"
+
+slugify.extend({ ":": "-" })
 
 export type SyncSpec = {
   type: "github"
@@ -39,10 +43,39 @@ export async function syncHandler(
         break
       }
       case "jira":
-        write(`Jira sync spec: ${JSON.stringify(syncSpec, null, 2)}`)
+        await _internals.fullJiraSync(
+          await _internals.getJiraClient({
+            type: "SyncingJiraClient",
+            persistenceDir: join(opts.cacheRoot, "jira", slugify(syncSpec.host), slugify(syncSpec.apiUser)),
+            host: syncSpec.host,
+            user: syncSpec.apiUser,
+            token: syncSpec.apiToken,
+          }),
+          syncSpec.searchQuery,
+          {
+            maxDaysToSync: syncSpec.maxDays,
+            signal: opts.signal,
+          },
+        )
         break
     }
   }
+}
+
+export async function fullJiraSync(
+  jira: JiraClient,
+  jql: string,
+  { maxDaysToSync, signal, _stdOutLike }: Partial<{
+    maxDaysToSync: number
+    signal: AbortSignal
+    _stdOutLike: Deno.WriterSync
+  }> = {},
+): Promise<void> {
+  let syncNewerThan: number | undefined
+  if (maxDaysToSync !== undefined) {
+    syncNewerThan = Date.now() - maxDaysToSync * dayInMs
+  }
+  await jira.syncSearchIssues(jql, { newerThan: syncNewerThan, signal })
 }
 
 /**
@@ -143,6 +176,8 @@ export class RegisteredError extends Error {
 }
 
 export const _internals = {
-  getGithubClient,
   fullGithubSync,
+  fullJiraSync,
+  getGithubClient,
+  getJiraClient,
 }

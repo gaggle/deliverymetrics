@@ -1,11 +1,11 @@
-import { debug } from "std:log"
 import { ZodType } from "zod"
 
-import { fetchExhaustively, FetchExhaustivelyOpts } from "../../fetching/fetch-exhaustively.ts"
+import { fetchExhaustively, FetchExhaustivelyOpts } from "../../fetching/mod.ts"
+import { stdFetchExhaustivelyProgressLogging } from "../../utils/mod.ts"
 
-import { PaginationFields } from "./jira-rest-api-spec.ts"
+import { JiraPaginationFields } from "../jira-pagination-fields-schema.ts"
 
-export function fetchJiraApiExhaustively<Schema extends ZodType<PaginationFields>>(
+export function fetchJiraApiExhaustively<Schema extends ZodType<JiraPaginationFields>>(
   getRequest: (startAt?: number, maxResults?: number) => Request,
   schema: Schema,
   opts: FetchExhaustivelyOpts<Schema>,
@@ -19,14 +19,7 @@ export function fetchJiraApiExhaustively<Schema extends ZodType<PaginationFields
       return getRequest(cursor, data.maxResults)
     },
     progress: (call) => {
-      switch (call.type) {
-        case "paging":
-          debug(`${call.type}: ${call.to.url} (${call.pagesConsumed}/${call.maxPages})`)
-          break
-        case "retrying":
-          debug(`${call.type}: ${call.reason} (${call.retry}/${call.retries})`)
-          break
-      }
+      stdFetchExhaustivelyProgressLogging(call)
       if (opts?.progress) opts.progress(call)
     },
   })

@@ -534,6 +534,7 @@
     "https://deno.land/x/semaphore@v1.1.2/mod.ts": "431abb51927a16c537cec1cfb05bf2de6a8f3916331f1ec3f9f13ad7ad6a4ea5",
     "https://deno.land/x/semaphore@v1.1.2/mutex.ts": "2cc6490481f0fdfe97c6b326a2073819d76b76eac3877864a8ada6a2127492f2",
     "https://deno.land/x/semaphore@v1.1.2/semaphore.ts": "a3da40292cd49c3f31be392aa16831d00c1ddf6daca50dd74eb61aa6ae8f52a3",
+    "https://deno.land/x/slugify@0.3.0/mod.ts": "a862dd4af7aac637a44bb3a3507acaca4b52386f8bebf4483b5a43e9458af315",
     "https://deno.land/x/y18n@v5.0.0-deno/build/lib/index.d.ts": "11f40d97041eb271cc1a1c7b296c6e7a068d4843759575e7416f0d14ebf8239c",
     "https://deno.land/x/y18n@v5.0.0-deno/build/lib/index.js": "92c4624714aa508d33c6d21c0b0ffa072369a8b306e5f8c7727662f570bbd026",
     "https://deno.land/x/y18n@v5.0.0-deno/deno.ts": "80997f0709a0b43d29931e2b33946f2bbc32b13fd82f80a5409628455427e28d",

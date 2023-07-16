@@ -1,6 +1,5 @@
-import { debug } from "std:log"
-
-import { fetchExhaustively } from "../../fetching/fetch-exhaustively.ts"
+import { fetchExhaustively } from "../../fetching/mod.ts"
+import { stdFetchExhaustivelyProgressLogging } from "../../utils/mod.ts"
 
 type FetchExhaustivelyLike = (...args: Parameters<typeof fetchExhaustively>) => ReturnType<typeof fetchExhaustively>
 
@@ -9,14 +8,7 @@ export const fetchGithubApiExhaustively: FetchExhaustivelyLike = (req, schema, o
     ...opts,
     paginationCallback: (opts) => getNextRequestFromLinkHeader(opts.request, opts.response),
     progress: (call) => {
-      switch (call.type) {
-        case "paging":
-          debug(`${call.type}: ${call.to.url} (${call.pagesConsumed}/${call.maxPages})`)
-          break
-        case "retrying":
-          debug(`${call.type} in ${(call.delay / 1000).toFixed(2)}s: ${call.reason} (${call.retry}/${call.retries})`)
-          break
-      }
+      stdFetchExhaustivelyProgressLogging(call)
       if (opts?.progress) opts.progress(call)
     },
   })

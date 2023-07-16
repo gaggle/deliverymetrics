@@ -5,8 +5,9 @@ import { asyncToArray } from "../../utils/mod.ts"
 
 import { CannedResponses } from "../../dev-utils.ts"
 
+import { jiraPaginationFieldsSchema } from "../jira-pagination-fields-schema.ts"
+
 import { fetchJiraApiExhaustively } from "./fetch-jira-api-exhaustively.ts"
-import { paginationFieldsSchema } from "./jira-rest-api-spec.ts"
 
 Deno.test("fetch-jira-api-exhaustively", async (t) => {
   function getCan() {
@@ -34,7 +35,7 @@ Deno.test("fetch-jira-api-exhaustively", async (t) => {
     const can = getCan()
     const actual = await asyncToArray(fetchJiraApiExhaustively(
       (startAt) => new Request(`https://example.com?startAt=${startAt}`),
-      paginationFieldsSchema.extend({ issues: z.array(z.number()) }),
+      jiraPaginationFieldsSchema.extend({ issues: z.array(z.number()) }),
       { _fetch: can.fetch, maxRetries: 0 },
     ))
     assertEquals(can.fetchSpy.calls.map((el) => el.args[0].url), [
