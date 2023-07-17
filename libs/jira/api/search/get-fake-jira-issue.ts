@@ -2,10 +2,10 @@ import { deepMerge } from "std:deep-merge"
 
 import { DeepPartial } from "../../../types.ts"
 
-import { JiraIssue } from "./jira-search-schema.ts"
+import { JiraSearchIssue } from "./jira-search-schema.ts"
 
-export function getFakeJiraIssue(partial: DeepPartial<JiraIssue> = {}): JiraIssue {
-  const base: JiraIssue = {
+export function getFakeJiraIssue(partial: DeepPartial<JiraSearchIssue> = {}): JiraSearchIssue {
+  const base: JiraSearchIssue = {
     "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
     "id": "1234567",
     "self": "https://atlassian.net/rest/api/2/issue/1234567",
@@ -184,5 +184,5 @@ export function getFakeJiraIssue(partial: DeepPartial<JiraIssue> = {}): JiraIssu
       "resolutiondate": "2023-07-10T16:00:34.172+0100",
     },
   }
-  return deepMerge(base, partial as JiraIssue)
+  return deepMerge(base, partial as JiraSearchIssue)
 }

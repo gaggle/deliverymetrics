@@ -6,7 +6,7 @@ import { Epoch } from "../../../types.ts"
 import { fetchJiraApiExhaustively } from "../fetch-jira-api-exhaustively.ts"
 import { jiraRestSpec } from "../jira-rest-api-spec.ts"
 
-import { JiraIssue } from "./jira-search-schema.ts"
+import { JiraSearchIssue, JiraSearchNames } from "./jira-search-schema.ts"
 
 export async function* fetchJiraSearchIssues(
   { host, user, token, jql, newerThan, signal }: {
@@ -17,7 +17,7 @@ export async function* fetchJiraSearchIssues(
     newerThan?: Epoch
     signal?: AbortSignal
   },
-): AsyncGenerator<{ issue: JiraIssue; names: string[] }> {
+): AsyncGenerator<{ issue: JiraSearchIssue; names: JiraSearchNames }> {
   for await (
     const { data } of _internals.fetchJiraApiExhaustively(
       (startAt) => jiraRestSpec.search.getReq(host, user, token, `${jql} ORDER BY updatedDate desc`, { startAt }),

@@ -3,17 +3,25 @@ import { EventEmitter } from "event"
 import { join } from "std:path"
 
 import { AloeDatabase } from "../db/mod.ts"
+import { hash } from "../utils/mod.ts"
 
 import { AbortError } from "../errors.ts"
 import { Epoch } from "../types.ts"
 
-import { fetchJiraSearchIssues, JiraIssue, jiraIssue } from "./api/search/mod.ts"
+import {
+  DBJiraSearchIssue,
+  dbJiraSearchIssueSchema,
+  DBJiraSearchNames,
+  dbJiraSearchNamesSchema,
+  fetchJiraSearchIssues,
+} from "./api/search/mod.ts"
 
 import { JiraClient } from "./types.ts"
 import { JiraSyncInfo, jiraSyncInfoSchema } from "./jira-sync-info-schema.ts"
 
 interface AloeJiraClientDb {
-  issues: AloeDatabase<JiraIssue>
+  searchIssues: AloeDatabase<DBJiraSearchIssue>
+  searchNames: AloeDatabase<DBJiraSearchNames>
   syncs: AloeDatabase<JiraSyncInfo>
 }
 
@@ -66,10 +74,19 @@ export class AloeDBSyncingJiraClient extends EventEmitter<JiraClientEvents> impl
           ...context,
         }),
       upsertFn: async (el) => {
-        await this.db.issues.deleteOne({ key: el.issue.key })
-        await this.db.issues.insertOne(el.issue)
+        const namesHash = await hash(JSON.stringify(el.names))
+        const dbIssue: DBJiraSearchIssue = { ...el.issue, namesHash }
+        const dbNames: DBJiraSearchNames = { hash: namesHash, names: el.names }
+        await this.db.searchIssues.deleteOne({ key: dbIssue.key })
+        await this.db.searchIssues.insertOne(dbIssue)
+        const existing = await this.db.searchNames.findOne({ hash: namesHash })
+        if (!existing) {
+          await this.db.searchNames.insertOne(dbNames)
+        }
       },
-      saveFn: () => this.db.issues.save(),
+      saveFn: async () => {
+        await Promise.all([this.db.searchIssues.save(), this.db.searchNames.save()])
+      },
       ...opts,
     })
     return Promise.resolve({ syncedAt: result.syncInfo.createdAt })
@@ -146,9 +163,13 @@ export async function getJiraClient(opts: {
       path: join(opts.persistenceDir, "syncs.json"),
       schema: jiraSyncInfoSchema,
     }),
-    issues: await AloeDatabase.new({
-      path: join(opts.persistenceDir, "issues.json"),
-      schema: jiraIssue,
+    searchIssues: await AloeDatabase.new({
+      path: join(opts.persistenceDir, "search-issues.json"),
+      schema: dbJiraSearchIssueSchema,
+    }),
+    searchNames: await AloeDatabase.new({
+      path: join(opts.persistenceDir, "search-names.json"),
+      schema: dbJiraSearchNamesSchema,
     }),
   }
   return new AloeDBSyncingJiraClient({ db, host: opts.host, user: opts.user, token: opts.token })

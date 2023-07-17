@@ -2,7 +2,7 @@ import { z } from "zod"
 
 import { jiraPaginationFieldsSchema } from "../../jira-pagination-fields-schema.ts"
 
-export const jiraIssue = z
+export const jiraSearchIssueSchema = z
   .object({
     expand: z.string().optional(),
     id: z.string().optional(),
@@ -177,20 +177,36 @@ export const jiraIssue = z
   })
   .strict()
 
-export type JiraIssue = z.infer<typeof jiraIssue>
+export type JiraSearchIssue = z.infer<typeof jiraSearchIssueSchema>
+
+export const dbJiraSearchIssueSchema = jiraSearchIssueSchema.extend({
+  namesHash: z.string().optional(),
+})
+
+export type DBJiraSearchIssue = z.infer<typeof dbJiraSearchIssueSchema>
+
+export const jiraSearchNamesSchema = z
+  .object({})
+  .catchall(z.any())
+
+export type JiraSearchNames = z.infer<typeof jiraSearchNamesSchema>
+
+export const dbJiraSearchNamesSchema = z.object({ hash: z.string(), names: jiraSearchNamesSchema })
+
+export type DBJiraSearchNames = z.infer<typeof dbJiraSearchNamesSchema>
+
+export const jiraSearchSchemaSchema = z
+  .object({})
+  .catchall(z.any())
+
+export type JiraSearchSchema = z.infer<typeof jiraSearchSchemaSchema>
 
 export const jiraSearchResponseSchema = jiraPaginationFieldsSchema.extend({
   expand: z.string().optional(),
-  issues: z.array(jiraIssue).optional(),
+  issues: z.array(jiraSearchIssueSchema).optional(),
   warningMessages: z.array(z.string()).optional(),
-  names: z
-    .object({})
-    .catchall(z.any())
-    .optional(),
-  schema: z
-    .object({})
-    .catchall(z.any())
-    .optional(),
+  names: jiraSearchNamesSchema.optional(),
+  schema: jiraSearchSchemaSchema.optional(),
 })
   .strict()
 
