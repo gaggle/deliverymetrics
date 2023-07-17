@@ -1,4 +1,4 @@
-import * as z from "zod"
+import { z } from "zod"
 import { assertEquals } from "dev:asserts"
 
 import { AloeDatabase, MockAloeDatabase } from "./aloe-database.ts"

@@ -1,4 +1,4 @@
-import * as z from "zod"
+import { z } from "zod"
 import { dirname, join, relative, resolve } from "std:path"
 import { ensureDir, ensureFile, walk } from "std:fs"
 

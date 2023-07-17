@@ -1,4 +1,4 @@
-import * as z from "zod"
+import { z } from "zod"
 import { assertEquals, assertMatch, assertRejects } from "dev:asserts"
 import { dirname, fromFileUrl, join, resolve } from "std:path"
 
