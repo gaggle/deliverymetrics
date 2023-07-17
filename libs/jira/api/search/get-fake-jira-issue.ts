@@ -2,7 +2,7 @@ import { deepMerge } from "std:deep-merge"
 
 import { DeepPartial } from "../../../types.ts"
 
-import { JiraSearchIssue } from "./jira-search-schema.ts"
+import { DBJiraSearchIssue, DBJiraSearchNames, JiraSearchIssue, JiraSearchNames } from "./jira-search-schema.ts"
 
 export function getFakeJiraIssue(partial: DeepPartial<JiraSearchIssue> = {}): JiraSearchIssue {
   const base: JiraSearchIssue = {
@@ -185,4 +185,58 @@ export function getFakeJiraIssue(partial: DeepPartial<JiraSearchIssue> = {}): Ji
     },
   }
   return deepMerge(base, partial as JiraSearchIssue)
+}
+
+export function getFakeDbJiraSearchIssue(partial: DeepPartial<DBJiraSearchIssue> = {}): DBJiraSearchIssue {
+  const base = getFakeJiraIssue()
+  return deepMerge({ ...base, namesHash: "123" }, partial as DBJiraSearchIssue)
+}
+
+export function getFakeJiraSearchNames(partial: DeepPartial<JiraSearchNames> = {}): JiraSearchNames {
+  const base: JiraSearchNames = {
+    "aggregatetimeoriginalestimate": "Σ Original Estimate",
+    "subtasks": "Sub-tasks",
+    "customfield_19175": "In Progress Date",
+    "timeestimate": "Remaining Estimate",
+    "aggregatetimespent": "Σ Time Spent",
+    "labels": "Labels",
+    "reporter": "Reporter",
+    "statuscategorychangedate": "Status Category Changed",
+    "priority": "Priority",
+    "created": "Created",
+    "assignee": "Assignee",
+    "status": "Status",
+    "timespent": "Time Spent",
+    "components": "Components",
+    "progress": "Progress",
+    "project": "Project",
+    "issuetype": "Issue Type",
+    "environment": "Environment",
+    "workratio": "Work Ratio",
+    "timeoriginalestimate": "Original estimate",
+    "parent": "Parent",
+    "votes": "Votes",
+    "duedate": "Due date",
+    "aggregateprogress": "Σ Progress",
+    "security": "Security Level",
+    "lastViewed": "Last Viewed",
+    "issuelinks": "Linked Issues",
+    "updated": "Updated",
+    "summary": "Summary",
+    "versions": "Affects versions",
+    "resolution": "Resolution",
+    "watches": "Watchers",
+    "description": "Description",
+    "fixVersions": "Fix versions",
+    "aggregatetimeestimate": "Σ Remaining Estimate",
+    "creator": "Creator",
+    "resolutiondate": "Resolved",
+  }
+
+  return deepMerge(base, partial as JiraSearchNames)
+}
+
+export function getFakeDbJiraSearchNames(partial: DeepPartial<DBJiraSearchNames> = {}): DBJiraSearchNames {
+  const base = getFakeJiraSearchNames()
+  return deepMerge({ names: base, hash: "123" }, partial as DBJiraSearchNames)
 }
