@@ -144,16 +144,17 @@ export function main(args: Array<string>) {
         }
 
         const githubSync = argv.config.sync.github
-        if (!githubSync) {
-          console.error("No GitHub sync found in config file, so no report can be created")
-          Deno.exit(1)
-        }
 
         const { signal } = interceptSigint()
 
         const reportSpec: ReportSpec = {
           cacheRoot: argv.cache,
-          github: {
+          outputDir: resolve(dirname(argv.config.fp), configReport.outdir),
+          signal,
+        }
+
+        if (githubSync) {
+          reportSpec.github = {
             ...parseGithubUrl(githubSync.repo),
             actionRuns: {
               branch: configReport.github?.actionRuns?.branch,
@@ -174,10 +175,9 @@ export function main(args: Array<string>) {
               ignoreLabels: configReport.github?.pulls?.ignore_labels || [],
               includeCancelled: configReport.github?.pulls?.include_cancelled || false,
             },
-          },
-          outputDir: resolve(dirname(argv.config.fp), configReport.outdir),
-          signal,
+          }
         }
+
         await reportHandler(reportSpec)
         if (sigints > 0) {
           Deno.exit(1)
