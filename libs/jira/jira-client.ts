@@ -14,9 +14,11 @@ import {
   DBJiraSearchNames,
   dbJiraSearchNamesSchema,
   fetchJiraSearchIssues,
+  getFakeDbJiraSearchIssue,
+  getFakeDbJiraSearchNames,
 } from "./api/search/mod.ts"
 
-import { JiraClient } from "./types.ts"
+import { JiraClient, JiraClientEvents, ReadonlyJiraClient } from "./types.ts"
 import { JiraSyncInfo, jiraSyncInfoSchema } from "./jira-sync-info-schema.ts"
 
 interface AloeJiraClientDb {
@@ -27,22 +29,26 @@ interface AloeJiraClientDb {
 
 type Context = { newerThan?: Epoch; signal?: AbortSignal }
 
-export type JiraClientEvents = {
-  "aborted": [{ type: JiraSyncInfo["type"] }]
-  "finished": [{ type: JiraSyncInfo["type"] }]
-  "progress": [{ type: JiraSyncInfo["type"] }]
-  "warning": [{ type: JiraSyncInfo["type"]; category: "rate-limited"; duration: number }]
+export class AloeDBReadonlyJiraClient extends EventEmitter<JiraClientEvents> implements ReadonlyJiraClient {
+  protected readonly db: AloeJiraClientDb
+
+  constructor(opts: { db: AloeJiraClientDb }) {
+    super()
+    this.db = opts.db
+  }
+
+  async *findSearchIssues(): AsyncGenerator<{ issue: DBJiraSearchIssue; names: DBJiraSearchNames }> {
+    yield { issue: getFakeDbJiraSearchIssue(), names: getFakeDbJiraSearchNames() }
+  }
 }
 
-export class AloeDBSyncingJiraClient extends EventEmitter<JiraClientEvents> implements JiraClient {
+export class AloeDBSyncingJiraClient extends AloeDBReadonlyJiraClient implements JiraClient {
   private readonly host: string
   private readonly token: string
   private readonly user: string
-  protected readonly db: AloeJiraClientDb
 
   constructor(opts: { db: AloeJiraClientDb; host: string; user: string; token: string }) {
-    super()
-    this.db = opts.db
+    super(opts)
     this.host = opts.host
     this.token = opts.token
     this.user = opts.user
@@ -151,13 +157,31 @@ export class AloeDBSyncingJiraClient extends EventEmitter<JiraClientEvents> impl
   }
 }
 
-export async function getJiraClient(opts: {
+type GetSyncingJiraClientOpts = {
   type: "SyncingJiraClient"
   persistenceDir: string
   host: string
   user: string
   token: string
-}): Promise<JiraClient> {
+}
+
+type GetReadonlyJiraClientOpts = {
+  type: "ReadonlyJiraClient"
+  persistenceDir: string
+  host?: never
+  user?: never
+  token?: never
+}
+
+export async function getJiraClient(
+  opts: GetSyncingJiraClientOpts,
+): Promise<JiraClient>
+export async function getJiraClient(
+  opts: GetReadonlyJiraClientOpts,
+): Promise<ReadonlyJiraClient>
+export async function getJiraClient(
+  opts: GetSyncingJiraClientOpts | GetReadonlyJiraClientOpts,
+): Promise<JiraClient | ReadonlyJiraClient> {
   const db: AloeJiraClientDb = {
     syncs: await AloeDatabase.new({
       path: join(opts.persistenceDir, "syncs.json"),
@@ -172,5 +196,7 @@ export async function getJiraClient(opts: {
       schema: dbJiraSearchNamesSchema,
     }),
   }
-  return new AloeDBSyncingJiraClient({ db, host: opts.host, user: opts.user, token: opts.token })
+  return opts.type === "ReadonlyJiraClient"
+    ? new AloeDBReadonlyJiraClient({ db })
+    : new AloeDBSyncingJiraClient({ db, host: opts.host, user: opts.user, token: opts.token })
 }

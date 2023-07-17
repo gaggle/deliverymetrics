@@ -144,6 +144,7 @@ export function main(args: Array<string>) {
         }
 
         const githubSync = argv.config.sync.github
+        const jiraSync = argv.config.sync.jira
 
         const { signal } = interceptSigint()
 
@@ -175,6 +176,13 @@ export function main(args: Array<string>) {
               ignoreLabels: configReport.github?.pulls?.ignore_labels || [],
               includeCancelled: configReport.github?.pulls?.include_cancelled || false,
             },
+          }
+        }
+
+        if (jiraSync) {
+          reportSpec.jira = {
+            apiUser: jiraSync.api_user,
+            host: jiraSync.host,
           }
         }
 

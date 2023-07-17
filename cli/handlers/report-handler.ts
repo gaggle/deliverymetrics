@@ -1,5 +1,6 @@
 import { join } from "std:path"
 import { makeRunWithLimit as makeLimit } from "run-with-limit"
+import { slugify } from "slugify"
 
 import { GithubActionRun } from "../../libs/github/api/action-run/mod.ts"
 import { GithubActionWorkflow } from "../../libs/github/api/action-workflows/mod.ts"
@@ -8,6 +9,7 @@ import { BoundGithubPullCommit } from "../../libs/github/api/pull-commits/mod.ts
 import { sortPullCommitsByKey } from "../../libs/github/github-utils/mod.ts"
 
 import { getGithubClient } from "../../libs/github/mod.ts"
+import { getJiraClient } from "../../libs/jira/mod.ts"
 import {
   yieldActionData,
   yieldCommitData,
@@ -92,15 +94,21 @@ type ReportSpecGitHub = {
   repo: string
 }
 
+type ReportSpecJira = {
+  host: string
+  apiUser: string
+}
+
 export interface ReportSpec {
   cacheRoot: string
   github?: ReportSpecGitHub
+  jira?: ReportSpecJira
   outputDir: string
   signal?: AbortSignal
 }
 
 export async function reportHandler(
-  { cacheRoot, github, outputDir, signal }: ReportSpec,
+  { cacheRoot, github, jira, outputDir, signal }: ReportSpec,
 ): Promise<void> {
   const dataTimeframe = 90
 
@@ -115,6 +123,13 @@ export async function reportHandler(
     ))
   }
 
+  if (jira) {
+    await asyncToArray(mapIter(
+      (el) => jobs.push(limit(el)),
+      queueJiraReportJobs(jira, { cacheRoot, dataTimeframe, outputDir, signal }),
+    ))
+  }
+
   try {
     await Promise.all(jobs)
   } catch (err) {
@@ -125,8 +140,6 @@ export async function reportHandler(
     }
   }
 }
-
-export const _internals = { getGithubClient }
 
 async function* queueGitHubReportJobs(spec: ReportSpecGitHub, { cacheRoot, dataTimeframe, outputDir, signal }: {
   cacheRoot: string
@@ -316,4 +329,26 @@ async function* queueGitHubReportJobs(spec: ReportSpecGitHub, { cacheRoot, dataT
       })
     }
   }
+}
+
+async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
+  cacheRoot: string
+  dataTimeframe: number
+  outputDir: string
+  signal?: AbortSignal
+}): AsyncGenerator<() => Promise<void>> {
+  const jc = await _internals.getJiraClient({
+    type: "ReadonlyJiraClient",
+    persistenceDir: join(opts.cacheRoot, "jira", slugify(jira.host), slugify(jira.apiUser)),
+  })
+  yield async () => {
+    await timeCtx("jira-search-issues", async () => {
+      await asyncToArray(jc.findSearchIssues())
+    })
+  }
+}
+
+export const _internals = {
+  getGithubClient,
+  getJiraClient,
 }
