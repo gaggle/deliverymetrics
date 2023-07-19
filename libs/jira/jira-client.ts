@@ -3,7 +3,7 @@ import { EventEmitter } from "event"
 import { join } from "std:path"
 
 import { AloeDatabase } from "../db/mod.ts"
-import { hash } from "../utils/mod.ts"
+import { hash, sortObject } from "../utils/mod.ts"
 
 import { AbortError } from "../errors.ts"
 import { Epoch } from "../types.ts"
@@ -84,14 +84,15 @@ export class AloeDBSyncingJiraClient extends AloeDBReadonlyJiraClient implements
           ...context,
         }),
       upsertFn: async (el) => {
-        const namesHash = await hash(JSON.stringify(el.names))
+        const names = sortObject(el.names)
+        const namesHash = await hash(JSON.stringify(names))
         const dbIssue: DBJiraSearchIssue = { issue: el.issue, issueId: el.issue.id, issueKey: el.issue.key, namesHash }
         await this.db.searchIssues.deleteOne({ issueId: dbIssue.issueId })
         await this.db.searchIssues.insertOne(dbIssue)
 
         const existingNames = await this.db.searchNames.findOne({ hash: namesHash })
         if (!existingNames) {
-          const dbNames: DBJiraSearchNames = { hash: namesHash, names: el.names }
+          const dbNames: DBJiraSearchNames = { hash: namesHash, names: names }
           await this.db.searchNames.insertOne(dbNames)
         }
       },

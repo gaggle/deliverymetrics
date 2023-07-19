@@ -568,5 +568,5 @@ export function stdFetchExhaustivelyProgressLogging(call: FetchExhaustivelyProgr
 }
 
 export function sortObject(obj: Record<string, unknown>) {
-  return Object.fromEntries(Object.entries(obj).sort())
+  return Object.fromEntries(Object.entries(obj).sort(([keyA], [keyB]) => keyA.localeCompare(keyB)))
 }
