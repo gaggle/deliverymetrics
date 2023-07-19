@@ -179,7 +179,10 @@ export const jiraSearchIssueSchema = z
 
 export type JiraSearchIssue = z.infer<typeof jiraSearchIssueSchema>
 
-export const dbJiraSearchIssueSchema = jiraSearchIssueSchema.extend({
+export const dbJiraSearchIssueSchema = z.object({
+  issue: jiraSearchIssueSchema,
+  issueKey: z.string().optional(),
+  issueId: z.string().optional(),
   namesHash: z.string().optional(),
 })
 

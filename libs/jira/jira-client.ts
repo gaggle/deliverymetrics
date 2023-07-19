@@ -16,6 +16,8 @@ import {
   fetchJiraSearchIssues,
   getFakeDbJiraSearchIssue,
   getFakeDbJiraSearchNames,
+  JiraSearchIssue,
+  JiraSearchNames,
 } from "./api/search/mod.ts"
 
 import { JiraClient, JiraClientEvents, ReadonlyJiraClient } from "./types.ts"
@@ -37,8 +39,10 @@ export class AloeDBReadonlyJiraClient extends EventEmitter<JiraClientEvents> imp
     this.db = opts.db
   }
 
-  async *findSearchIssues(): AsyncGenerator<{ issue: DBJiraSearchIssue; names: DBJiraSearchNames }> {
-    yield { issue: getFakeDbJiraSearchIssue(), names: getFakeDbJiraSearchNames() }
+  async *findSearchIssues(): AsyncGenerator<{ issue: JiraSearchIssue; names: JiraSearchNames }> {
+    const dbJiraSearchIssue = getFakeDbJiraSearchIssue()
+    const dbJiraSearchNames = getFakeDbJiraSearchNames()
+    yield { issue: dbJiraSearchIssue.issue, names: dbJiraSearchNames.names }
   }
 }
 
@@ -81,12 +85,13 @@ export class AloeDBSyncingJiraClient extends AloeDBReadonlyJiraClient implements
         }),
       upsertFn: async (el) => {
         const namesHash = await hash(JSON.stringify(el.names))
-        const dbIssue: DBJiraSearchIssue = { ...el.issue, namesHash }
-        const dbNames: DBJiraSearchNames = { hash: namesHash, names: el.names }
-        await this.db.searchIssues.deleteOne({ key: dbIssue.key })
+        const dbIssue: DBJiraSearchIssue = { issue: el.issue, issueId: el.issue.id, issueKey: el.issue.key, namesHash }
+        await this.db.searchIssues.deleteOne({ issueId: dbIssue.issueId })
         await this.db.searchIssues.insertOne(dbIssue)
-        const existing = await this.db.searchNames.findOne({ hash: namesHash })
-        if (!existing) {
+
+        const existingNames = await this.db.searchNames.findOne({ hash: namesHash })
+        if (!existingNames) {
+          const dbNames: DBJiraSearchNames = { hash: namesHash, names: el.names }
           await this.db.searchNames.insertOne(dbNames)
         }
       },
