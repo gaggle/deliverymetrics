@@ -566,3 +566,7 @@ export function stdFetchExhaustivelyProgressLogging(call: FetchExhaustivelyProgr
       break
   }
 }
+
+export function sortObject(obj: Record<string, unknown>) {
+  return Object.fromEntries(Object.entries(obj).sort())
+}

@@ -31,6 +31,7 @@ import {
   regexIntersect,
   single,
   sleep,
+  sortObject,
   streamToString,
   stringifyObject,
   stringifyPull,
@@ -729,5 +730,27 @@ Deno.test("isDebugLoggingActive", async (t) => {
 Deno.test("hash", async (t) => {
   await t.step("hashes a string", async () => {
     assertEquals(await hash("12345"), "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5")
+  })
+})
+
+Deno.test("sortObject", async (t) => {
+  await t.step("sorts", () => {
+    const actual = sortObject({
+      car: 300,
+      bike: 60,
+      motorbike: 200,
+      airplane: 1000,
+      helicopter: 400,
+      rocket: 8 * 60 * 60,
+    })
+
+    assertEquals(actual, {
+      "bike": 60,
+      "motorbike": 200,
+      "car": 300,
+      "helicopter": 400,
+      "airplane": 1000,
+      "rocket": 28800,
+    })
   })
 })
