@@ -20,7 +20,7 @@ Deno.test("fetchJiraSearchIssues", async (t) => {
           async (fetchStub) => {
             await asyncToArray(
               fetchJiraSearchIssues({
-                jql: "project = PRD",
+                projectKeys: ["PRD"],
                 user: "example@atlassian.com",
                 token: "token",
                 host: "https://example.com",
@@ -36,7 +36,7 @@ Deno.test("fetchJiraSearchIssues", async (t) => {
             assertInstanceOf(request, Request)
             assertEquals(request.url, "https://example.com/rest/api/2/search")
             assertEquals(request.method, "POST")
-            assertEquals(await request.json(), { expand: ["names"], jql: "project = PRD ORDER BY updatedDate desc" })
+            assertEquals(await request.json(), { expand: ["names"], jql: "project in (PRD) ORDER BY updated desc" })
             assertEquals(
               Object.fromEntries(request.headers),
               Object.fromEntries(
@@ -62,7 +62,7 @@ Deno.test("fetchJiraSearchIssues", async (t) => {
           async (fetchStub) => {
             await asyncToArray(
               fetchJiraSearchIssues({
-                jql: "project = PRD",
+                projectKeys: ["PRD"],
                 user: "example@atlassian.com",
                 token: "token",
                 host: "example.com",
@@ -92,7 +92,7 @@ Deno.test("fetchJiraSearchIssues", async (t) => {
       await withStubs(
         async () => {
           const result = await asyncToArray(fetchJiraSearchIssues({
-            jql: "project = PRD",
+            projectKeys: ["PRD"],
             user: "example@atlassian.com",
             token: "token",
             host: "example.com",

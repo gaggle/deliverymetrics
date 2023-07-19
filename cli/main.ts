@@ -101,10 +101,15 @@ export function main(args: Array<string>) {
         const xformJiraToSyncSpec = (el: JiraSync): SyncSpec => {
           return {
             type: "jira",
-            searchQuery: el.search_query,
-            host: el.host,
-            apiUser: el.api_user,
-            apiToken: el.api_token,
+            credentials: {
+              apiToken: el.api_token,
+              apiUser: el.api_user,
+              host: el.host,
+            },
+            search: {
+              key: el.project_key,
+              syncSubtasks: el.sync_subtasks || false,
+            },
             maxDays: el.max_days === "Infinity" ? undefined : el.max_days || 90,
             //                                    ↑ no max days means infinite days 👍
           }

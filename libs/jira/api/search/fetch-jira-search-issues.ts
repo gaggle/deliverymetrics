@@ -9,25 +9,24 @@ import { jiraRestSpec } from "../jira-rest-api-spec.ts"
 import { JiraSearchIssue, JiraSearchNames } from "./jira-search-schema.ts"
 
 export async function* fetchJiraSearchIssues(
-  { host, user, token, jql, newerThan, signal }: {
+  { host, user, token, projectKeys, newerThan, signal }: {
     host: string
     user: string
     token: string
-    jql: string
+    projectKeys: string[]
     newerThan?: Epoch
     signal?: AbortSignal
   },
 ): AsyncGenerator<{ issue: JiraSearchIssue; names: JiraSearchNames }> {
+  const jql = `project in (${projectKeys.join(", ")}) ORDER BY updated desc`
   for await (
     const { data } of _internals.fetchJiraApiExhaustively(
-      (startAt) => jiraRestSpec.search.getReq(host, user, token, `${jql} ORDER BY updatedDate desc`, { startAt }),
+      (startAt) => jiraRestSpec.search.getReq(host, user, token, jql, { startAt }),
       jiraRestSpec.search.schema,
       {
         paginationCallback: ({ data }) => {
           if (!data.startAt || !data.maxResults) return undefined
-          return jiraRestSpec.search.getReq(host, user, token, jql, {
-            startAt: data.startAt + data.maxResults,
-          })
+          return jiraRestSpec.search.getReq(host, user, token, jql, { startAt: data.startAt + data.maxResults })
         },
       },
     )

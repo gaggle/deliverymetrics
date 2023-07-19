@@ -66,9 +66,9 @@ export class AloeDBSyncingJiraClient extends AloeDBReadonlyJiraClient implements
   }
 
   async syncSearchIssues(
-    jql: string,
-    opts: Partial<{ newerThan: number; signal: AbortSignal }> = {},
-  ): Promise<unknown> {
+    projectKey: string,
+    opts: Partial<{ syncSubtasks?: boolean; newerThan?: number; signal?: AbortSignal }> = {},
+  ): Promise<{ syncedAt: Epoch }> {
     const result = await this.internalFetch({
       type: "search",
       iteratorFn: (context) =>
@@ -76,7 +76,7 @@ export class AloeDBSyncingJiraClient extends AloeDBReadonlyJiraClient implements
           host: this.host,
           user: this.user,
           token: this.token,
-          jql,
+          projectKeys: [projectKey],
           ...context,
         }),
       upsertFn: async (el) => {

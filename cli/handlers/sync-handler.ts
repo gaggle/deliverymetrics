@@ -18,10 +18,8 @@ export type SyncSpec = {
   maxDays?: number
 } | {
   type: "jira"
-  searchQuery: string
-  host: string
-  apiUser: string
-  apiToken: string
+  credentials: { host: string; apiUser: string; apiToken: string }
+  search: { key: string; syncSubtasks: boolean }
   maxDays?: number
 }
 
@@ -42,40 +40,45 @@ export async function syncHandler(
         await _internals.fullGithubSync(client, { maxDaysToSync: syncSpec.maxDays, signal: opts.signal })
         break
       }
-      case "jira":
+      case "jira": {
+        const { apiToken: token, apiUser: user, host } = syncSpec.credentials
+        const client = await _internals.getJiraClient({
+          type: "SyncingJiraClient",
+          persistenceDir: join(opts.cacheRoot, "jira", slugify(host), slugify(user)),
+          host,
+          user,
+          token,
+        })
         await _internals.fullJiraSync(
-          await _internals.getJiraClient({
-            type: "SyncingJiraClient",
-            persistenceDir: join(opts.cacheRoot, "jira", slugify(syncSpec.host), slugify(syncSpec.apiUser)),
-            host: syncSpec.host,
-            user: syncSpec.apiUser,
-            token: syncSpec.apiToken,
-          }),
-          syncSpec.searchQuery,
+          client,
           {
+            projectKey: syncSpec.search.key,
+            syncSubtasks: syncSpec.search.syncSubtasks,
             maxDaysToSync: syncSpec.maxDays,
             signal: opts.signal,
           },
         )
         break
+      }
     }
   }
 }
 
 export async function fullJiraSync(
   jira: JiraClient,
-  jql: string,
-  { maxDaysToSync, signal, _stdOutLike }: Partial<{
-    maxDaysToSync: number
-    signal: AbortSignal
-    _stdOutLike: Deno.WriterSync
-  }> = {},
+  { projectKey, syncSubtasks, maxDaysToSync, signal, _stdOutLike }: {
+    projectKey: string
+    maxDaysToSync?: number
+    signal?: AbortSignal
+    syncSubtasks?: boolean
+    _stdOutLike?: Deno.WriterSync
+  },
 ): Promise<void> {
   let syncNewerThan: number | undefined
   if (maxDaysToSync !== undefined) {
     syncNewerThan = Date.now() - maxDaysToSync * dayInMs
   }
-  await jira.syncSearchIssues(jql, { newerThan: syncNewerThan, signal })
+  await jira.syncSearchIssues(projectKey, { syncSubtasks, newerThan: syncNewerThan, signal })
 }
 
 /**

@@ -1,5 +1,7 @@
 import { EventEmitter } from "event"
 
+import { Epoch } from "../types.ts"
+
 import { JiraSyncInfo } from "./jira-sync-info-schema.ts"
 import { JiraSearchIssue, JiraSearchNames } from "./api/search/jira-search-schema.ts"
 
@@ -15,5 +17,12 @@ export interface ReadonlyJiraClient extends EventEmitter<JiraClientEvents> {
 }
 
 export interface JiraClient extends ReadonlyJiraClient {
-  syncSearchIssues(jql: string, opts?: Partial<{ newerThan: number; signal: AbortSignal }>): Promise<unknown>
+  syncSearchIssues(
+    projectKey: string,
+    opts?: Partial<{
+      syncSubtasks?: boolean
+      newerThan?: number
+      signal?: AbortSignal
+    }>,
+  ): Promise<{ syncedAt: Epoch }>
 }

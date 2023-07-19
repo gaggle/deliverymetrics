@@ -13,14 +13,11 @@ const positiveNumberOrInfinitySchema = z
   .optional()
 
 const jiraSyncSchema = z.object({
-  search_query: z.custom<string>((v) => {
-    if (typeof v !== "string") return false
-    if (v.toLowerCase().includes("order by")) return false
-    return true
-  }),
+  project_key: z.string(),
   host: z.string().url(),
-  api_token: z.string(),
   api_user: z.string(),
+  api_token: z.string(),
+  sync_subtasks: z.boolean().optional(),
   max_days: positiveNumberOrInfinitySchema,
 }).strict()
 
