@@ -16,7 +16,7 @@ export const jiraRestSpec = {
         jql: query,
         startAt: opts.startAt,
         maxResults: opts.maxResults,
-        expand: ["names"],
+        expand: ["body", "changelog", "history", "names", "transitions"],
       }
       const headers: HeadersInit = {
         "content-type": "application/json",

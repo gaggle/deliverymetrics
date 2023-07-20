@@ -2,8 +2,9 @@ import { EventEmitter } from "event"
 
 import { Epoch } from "../types.ts"
 
+import { DBJiraSearchIssue, DBJiraSearchNames } from "./api/search/mod.ts"
+
 import { JiraSyncInfo } from "./jira-sync-info-schema.ts"
-import { JiraSearchIssue, JiraSearchNames } from "./api/search/jira-search-schema.ts"
 
 export type JiraClientEvents = {
   "aborted": [{ type: JiraSyncInfo["type"] }]
@@ -13,7 +14,15 @@ export type JiraClientEvents = {
 }
 
 export interface ReadonlyJiraClient extends EventEmitter<JiraClientEvents> {
-  findSearchIssues(): AsyncGenerator<{ issue: JiraSearchIssue; names: JiraSearchNames }>
+  findLatestSync(
+    opts?: Partial<{ type: JiraSyncInfo["type"]; includeUnfinished: boolean }>,
+  ): Promise<JiraSyncInfo | undefined>
+
+  findSearchIssues(): AsyncGenerator<DBJiraSearchIssue>
+
+  findSearchNames(): AsyncGenerator<DBJiraSearchNames>
+
+  findSearchNameByHash(hash: string): Promise<DBJiraSearchNames | undefined>
 }
 
 export interface JiraClient extends ReadonlyJiraClient {

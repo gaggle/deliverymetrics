@@ -188,8 +188,13 @@ export function getFakeJiraIssue(partial: DeepPartial<JiraSearchIssue> = {}): Ji
 }
 
 export function getFakeDbJiraSearchIssue(partial: DeepPartial<DBJiraSearchIssue> = {}): DBJiraSearchIssue {
-  const base = getFakeJiraIssue()
-  return deepMerge({ ...base, namesHash: "123" }, partial as DBJiraSearchIssue)
+  const base = deepMerge(getFakeJiraIssue(), partial.issue || {})
+  return {
+    issue: base,
+    issueId: base.id || partial.issueId,
+    issueKey: base.key || partial.issueKey,
+    namesHash: "123" || partial.namesHash,
+  }
 }
 
 export function getFakeJiraSearchNames(partial: DeepPartial<JiraSearchNames> = {}): JiraSearchNames {
@@ -236,7 +241,11 @@ export function getFakeJiraSearchNames(partial: DeepPartial<JiraSearchNames> = {
   return deepMerge(base, partial as JiraSearchNames)
 }
 
-export function getFakeDbJiraSearchNames(partial: DeepPartial<DBJiraSearchNames> = {}): DBJiraSearchNames {
-  const base = getFakeJiraSearchNames()
+export function getFakeDbJiraSearchNames(partial: Partial<DBJiraSearchNames> = {}): DBJiraSearchNames {
+  let base = getFakeJiraSearchNames()
+  if (partial.names) {
+    base = partial.names
+    delete partial.names
+  }
   return deepMerge({ names: base, hash: "123" }, partial as DBJiraSearchNames)
 }

@@ -14,14 +14,11 @@ import {
   DBJiraSearchNames,
   dbJiraSearchNamesSchema,
   fetchJiraSearchIssues,
-  getFakeDbJiraSearchIssue,
-  getFakeDbJiraSearchNames,
-  JiraSearchIssue,
-  JiraSearchNames,
 } from "./api/search/mod.ts"
 
 import { JiraClient, JiraClientEvents, ReadonlyJiraClient } from "./types.ts"
 import { JiraSyncInfo, jiraSyncInfoSchema } from "./jira-sync-info-schema.ts"
+import { debug } from "std:log"
 
 interface AloeJiraClientDb {
   searchIssues: AloeDatabase<DBJiraSearchIssue>
@@ -39,10 +36,33 @@ export class AloeDBReadonlyJiraClient extends EventEmitter<JiraClientEvents> imp
     this.db = opts.db
   }
 
-  async *findSearchIssues(): AsyncGenerator<{ issue: JiraSearchIssue; names: JiraSearchNames }> {
-    const dbJiraSearchIssue = getFakeDbJiraSearchIssue()
-    const dbJiraSearchNames = getFakeDbJiraSearchNames()
-    yield { issue: dbJiraSearchIssue.issue, names: dbJiraSearchNames.names }
+  async findLatestSync(
+    opts: Partial<{ type: JiraSyncInfo["type"]; includeUnfinished: boolean }> = {},
+  ): Promise<JiraSyncInfo | undefined> {
+    const args: Query<Acceptable<JiraSyncInfo>> = { type: opts.type, updatedAt: exists() }
+    if (opts.includeUnfinished) {
+      delete args["updatedAt"]
+    }
+    const syncs = await this.db.syncs.findMany(args)
+    return syncs[syncs.length - 1]
+  }
+
+  async *findSearchIssues(): AsyncGenerator<DBJiraSearchIssue> {
+    for (const el of await this.db.searchIssues.findMany()) {
+      const dbNames = await this.db.searchNames.findOne({ hash: el.namesHash })
+      if (dbNames === null) throw new Error("...")
+      yield el
+    }
+  }
+
+  async *findSearchNames(): AsyncGenerator<DBJiraSearchNames> {
+    for (const el of await this.db.searchNames.findMany()) {
+      yield el
+    }
+  }
+
+  async findSearchNameByHash(hash: string): Promise<DBJiraSearchNames | undefined> {
+    return await this.db.searchNames.findOne({ hash }) || undefined
   }
 }
 
@@ -83,17 +103,21 @@ export class AloeDBSyncingJiraClient extends AloeDBReadonlyJiraClient implements
           projectKeys: [projectKey],
           ...context,
         }),
-      upsertFn: async (el) => {
-        const names = sortObject(el.names)
-        const namesHash = await hash(JSON.stringify(names))
-        const dbIssue: DBJiraSearchIssue = { issue: el.issue, issueId: el.issue.id, issueKey: el.issue.key, namesHash }
-        await this.db.searchIssues.deleteOne({ issueId: dbIssue.issueId })
-        await this.db.searchIssues.insertOne(dbIssue)
+      upsertFn: async ({ issue, names, ...rest }) => {
+        const sortedNames = sortObject(names)
+        const namesHash = await hash(JSON.stringify(sortedNames))
+
+        await this.db.searchIssues.deleteOne({ issueId: issue.id })
+        await this.db.searchIssues.insertOne({ issueId: issue.id, issueKey: issue.key, issue: issue, namesHash })
 
         const existingNames = await this.db.searchNames.findOne({ hash: namesHash })
         if (!existingNames) {
-          const dbNames: DBJiraSearchNames = { hash: namesHash, names: names }
+          const dbNames: DBJiraSearchNames = { hash: namesHash, names: sortedNames }
           await this.db.searchNames.insertOne(dbNames)
+        }
+
+        if (Object.keys(rest).length > 0) {
+          debug(`not storing: ${JSON.stringify(rest)}`)
         }
       },
       saveFn: async () => {
@@ -189,10 +213,6 @@ export async function getJiraClient(
   opts: GetSyncingJiraClientOpts | GetReadonlyJiraClientOpts,
 ): Promise<JiraClient | ReadonlyJiraClient> {
   const db: AloeJiraClientDb = {
-    syncs: await AloeDatabase.new({
-      path: join(opts.persistenceDir, "syncs.json"),
-      schema: jiraSyncInfoSchema,
-    }),
     searchIssues: await AloeDatabase.new({
       path: join(opts.persistenceDir, "search-issues.json"),
       schema: dbJiraSearchIssueSchema,
@@ -200,6 +220,10 @@ export async function getJiraClient(
     searchNames: await AloeDatabase.new({
       path: join(opts.persistenceDir, "search-names.json"),
       schema: dbJiraSearchNamesSchema,
+    }),
+    syncs: await AloeDatabase.new({
+      path: join(opts.persistenceDir, "syncs.json"),
+      schema: jiraSyncInfoSchema,
     }),
   }
   return opts.type === "ReadonlyJiraClient"

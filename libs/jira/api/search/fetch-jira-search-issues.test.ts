@@ -36,7 +36,10 @@ Deno.test("fetchJiraSearchIssues", async (t) => {
             assertInstanceOf(request, Request)
             assertEquals(request.url, "https://example.com/rest/api/2/search")
             assertEquals(request.method, "POST")
-            assertEquals(await request.json(), { expand: ["names"], jql: "project in (PRD) ORDER BY updated desc" })
+            assertEquals(await request.json(), {
+              expand: ["body", "changelog", "history", "names", "transitions"],
+              jql: "project in (PRD) ORDER BY updated desc",
+            })
             assertEquals(
               Object.fromEntries(request.headers),
               Object.fromEntries(
