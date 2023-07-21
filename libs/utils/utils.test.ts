@@ -13,6 +13,7 @@ import {
   asyncSingle,
   asyncToArray,
   extractZodSchemaKeys,
+  filterObject,
   filterUndefined,
   first,
   firstMaybe,
@@ -25,6 +26,7 @@ import {
   limit,
   mapFilter,
   mapIter,
+  mapObject,
   mergeAsyncGenerators,
   parseRegexLike,
   pluralize,
@@ -752,5 +754,47 @@ Deno.test("sortObject", async (t) => {
       "airplane": 1000,
       "rocket": 28800,
     })
+  })
+})
+
+Deno.test("mapObject", async (t) => {
+  await t.step("maps", () => {
+    const actual = mapObject(
+      { foo: "bar" } as const,
+      ({ key, val }) => ({ key: key.toUpperCase(), val: val.toUpperCase() }),
+    )
+
+    assertEquals(actual, { FOO: "BAR" })
+  })
+
+  await t.step("can change types", () => {
+    const actual = mapObject({ foo: "1" }, ({ val }) => ({ val: Number.parseInt(val) }))
+
+    assertEquals(actual, { foo: 1 })
+  })
+
+  await t.step("can change just the key", () => {
+    const actual = mapObject({ foo: "ham" }, ({ key }) => ({ key: `${key} bar` }))
+
+    assertEquals(actual, { "foo bar": "ham" })
+  })
+
+  await t.step("can noop", () => {
+    assertEquals(mapObject({ foo: "ham" }, () => {}), { foo: "ham" })
+    assertEquals(mapObject({ foo: "ham" }, () => undefined), { foo: "ham" })
+  })
+})
+
+Deno.test("filterObject", async (t) => {
+  await t.step("can filter by key", () => {
+    const actual = filterObject({ foo: "bar", ham: "spam" } as const, ({ key }) => key === "foo")
+
+    assertEquals(actual, { foo: "bar" })
+  })
+
+  await t.step("can filter by value", () => {
+    const actual = filterObject({ foo: "bar", ham: "spam" } as const, ({ val }) => val === "spam")
+
+    assertEquals(actual, { ham: "spam" })
   })
 })

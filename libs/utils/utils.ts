@@ -570,3 +570,45 @@ export function stdFetchExhaustivelyProgressLogging(call: FetchExhaustivelyProgr
 export function sortObject<T = unknown>(obj: Record<string, T>): Record<string, T> {
   return Object.fromEntries(Object.entries(obj).sort(([keyA], [keyB]) => keyA.localeCompare(keyB)))
 }
+
+/**
+ * Takes in an object and a callback,
+ * applies the callback to each key-value pair in the object,
+ * and constructs a new object from the results.
+ *
+ * If the callback returns undefined for the key or value it'll default to the original key or value in those cases.
+ *
+ * This function is a powerful utility that can be used to transform the keys and/or values of an object in a variety of ways.
+ * - ChatGPT
+ */
+export function mapObject<
+  Val,
+  Key extends string | number | symbol,
+  NewVal,
+  NewKey extends string | number | symbol = Key,
+>(
+  obj: Record<Key, Val>,
+  callback: (params: { key: Key; val: Val }) => { key?: NewKey; val?: NewVal } | void,
+): Record<NewKey, NewVal> {
+  const result: Record<NewKey, NewVal> = {} as Record<NewKey, NewVal>
+  for (const [key, val] of Object.entries(obj)) {
+    const transformed = callback({ key: key as Key, val: val as Val })
+    const { key: newKey = key as Key, val: newValue = val as Val } = transformed || {}
+    result[newKey as NewKey] = newValue as NewVal
+  }
+  return result
+}
+
+export function filterObject<Val, Key extends string | number | symbol>(
+  obj: Record<Key, Val>,
+  callback: (params: { key: Key; val: Val }) => boolean,
+): Record<string, Val> {
+  const result: Record<Key, Val> = {} as Record<Key, Val>
+  for (const [key, val] of Object.entries(obj)) {
+    const keep = callback({ key: key as Key, val: val as Val })
+    if (keep) {
+      result[key as Key] = val as Val
+    }
+  }
+  return result
+}
