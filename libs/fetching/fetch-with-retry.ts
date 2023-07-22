@@ -87,10 +87,11 @@ export async function fetchWithRetry(
     }
   }
 
-  const processError = async (error: Error): Promise<void> => {
+  const processError = async (error: Error, response?: Response): Promise<void> => {
     const { delay: backoffDelay, reason } = backoffFn({
       attemptNumber,
       error,
+      response,
     })
     if (backoffDelay === undefined || isAttemptLimitReached()) {
       await progress({ type: "done", retry: attemptNumber, retries, error })
@@ -105,12 +106,13 @@ export async function fetchWithRetry(
 
   let returnResponse: { data: unknown; response: Response } | undefined = undefined
   let attemptNumber = -1
+  let response: Response | undefined
   while (!returnResponse) {
     try {
       attemptNumber++
       await progress({ type: "fetching", retry: attemptNumber, retries, request })
       const requestBody = await request.clone().text()
-      const response = await _fetch(request, { signal })
+      response = await _fetch(request, { signal })
 
       const isJson = response.headers.get("Content-Type")?.includes("application/json") || false
       let data: unknown
@@ -129,7 +131,7 @@ export async function fetchWithRetry(
       if (signal?.aborted) {
         throw new AbortError(error)
       }
-      await processError(error)
+      await processError(error, response)
     }
   }
   return returnResponse

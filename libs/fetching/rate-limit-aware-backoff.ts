@@ -2,7 +2,7 @@ import { calculateExponentialBackoff } from "./backoff.ts"
 
 type BackoffOpts =
   & { attemptNumber: number }
-  & ({ error: Error; response?: never } | { error?: never; response: Response })
+  & ({ error: Error; response?: Response } | { error?: never; response: Response })
 
 export function rateLimitAwareBackoff(
   { attemptNumber, error, response }: BackoffOpts,
