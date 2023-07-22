@@ -162,7 +162,23 @@ export const jiraSearchIssueSchema = z
       .catchall(z.any())
       .optional(),
     fields: z
-      .object({})
+      .object({
+        description: z.string().nullable().optional(),
+        status: z.object({
+          self: z.string().optional(),
+          description: z.string().optional(),
+          iconUrl: z.string().optional(),
+          name: z.string().optional(),
+          id: z.string().optional(),
+          statusCategory: z.object({
+            self: z.string().optional(),
+            id: z.number().optional(),
+            key: z.string().optional(),
+            colorName: z.string().optional(),
+            name: z.string().optional(),
+          }).optional(),
+        }).optional(),
+      })
       .catchall(z.any())
       .optional(),
   })

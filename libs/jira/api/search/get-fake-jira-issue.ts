@@ -365,7 +365,11 @@ export function getFakeJiraIssue(partial: DeepPartial<JiraSearchIssue> = {}): Ji
     delete partial.changelog
   }
   if (partial.fields) {
-    base.fields = partial.fields
+    base.fields = deepMerge(base.fields!, partial.fields)
+    if (partial.fields.status) {
+      base.fields.status = partial.fields.status
+      delete partial.fields.status
+    }
     delete partial.fields
   }
   return deepMerge(base, partial as JiraSearchIssue)
