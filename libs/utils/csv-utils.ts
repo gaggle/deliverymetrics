@@ -1,4 +1,5 @@
 import { CSVWriteCellOptions, CSVWriterOptions, writeCSVObjects } from "csv"
+import { debug } from "std:log"
 import { ensureFile } from "std:fs"
 
 import { arraySubtract, arraySubtractRegEx, mapIter, withFileOpen, withTempFile } from "./mod.ts"
@@ -15,10 +16,16 @@ export async function writeCSVToFile(
         await writeCSVObjects(
           f,
           mapIter((el) => {
+            const elKeys = Object.keys(el)
+            const keysInElNotUsedByHeader = arraySubtract(elKeys, options.header)
+            if (hasIterated === false && keysInElNotUsedByHeader.length > 0) {
+              debug(`${fp} discards these keys: ${keysInElNotUsedByHeader.join(", ")}`)
+            }
+
             hasIterated = true
 
-            const missingKeys = arraySubtract(options.header, Object.keys(el))
-            for (const key of missingKeys) {
+            const keysSpecifiedInHeaderButNotInEl = arraySubtract(options.header, elKeys)
+            for (const key of keysSpecifiedInHeaderButNotInEl) {
               el[key] = ""
             }
             return el
