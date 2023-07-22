@@ -56,7 +56,6 @@ Deno.test("jiraSearchDataIssuesAsCsv", async (t) => {
     const result = await asyncSingle(jiraSearchDataIssuesAsCsv(arrayToAsyncGenerator([fakeJiraIssue])))
 
     const fieldsThatAreTooLongToTest = [
-      "changelog.histories",
       "fields.creator.avatarUrls.16x16",
       "fields.creator.avatarUrls.24x24",
       "fields.creator.avatarUrls.32x32",
@@ -217,7 +216,6 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
     "Changelog Histories",
     "Transitions",
     "Transitions Count",
-    "changelog.histories",
     "changelog.maxResults",
     "changelog.startAt",
     "changelog.total",

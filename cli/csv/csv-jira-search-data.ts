@@ -1,8 +1,9 @@
 import { jiraSearchIssueSchema } from "../../libs/jira/api/search/mod.ts"
 
 import { GetJiraSearchDataYielderReturnType } from "../../libs/metrics/mod.ts"
-import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../libs/utils/mod.ts"
+import { arraySubtract, extractZodSchemaKeys, flattenObject, stringifyObject } from "../../libs/utils/mod.ts"
 
+const ignoreHeaders = ["changelog.histories", "transitions"]
 const extraHeaders = ["Changelog Histories", "Transitions", "Transitions Count"] as const
 const fixedHeaders = [
   ...extraHeaders,
@@ -23,20 +24,16 @@ export async function* jiraSearchDataIssuesAsCsv(
     yield {
       ...stringifyObject(flattenObject(issue), { stringifyUndefined: true }),
       "Changelog Histories": issue.changelog?.histories?.map((history) =>
-        `"${history.created}" "${history.author?.displayName} <${history.author?.emailAddress}>" action: ${
-          history.items?.map((el) => {
-            switch (el.field) {
-              case "description":
-                return `altered "${el.field}"`
-              default:
-                return `altered "${el.field}" to "${el.toString}"`
-            }
-          }).join(" ")
-        }`
+        history.items?.map((item) => {
+          switch (item.field) {
+            case "description":
+              return `altered ${item.field}`
+            default:
+              return `altered ${item.field} to ${item.toString}`
+          }
+        }).join("; ")
       ).join("; ") || "",
-      "Transitions": issue.transitions?.map((t) =>
-        `transitioned to ${t.name}`
-      ).join("; ") || "",
+      "Transitions": issue.transitions?.map((t) => `transitioned to ${t.name}`).join("; ") || "",
       "Transitions Count": issue.changelog?.histories?.length.toString() || "",
       "fields.description": description || "",
     }
@@ -48,5 +45,5 @@ export function jiraSearchDataHeaders(opts: Partial<{
   fieldKeysToNames: Record<string, string>
 }> = {}): Array<string> {
   const fieldKeys = opts.fieldKeys || []
-  return Array.from(new Set([...fixedHeaders, ...fieldKeys]).values())
+  return arraySubtract(Array.from(new Set([...fixedHeaders, ...fieldKeys]).values()), ignoreHeaders)
 }
