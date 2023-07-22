@@ -12,6 +12,7 @@ import {
   arrayToAsyncGenerator,
   asyncSingle,
   asyncToArray,
+  clamp,
   extractZodSchemaKeys,
   filterObject,
   filterUndefined,
@@ -814,5 +815,12 @@ Deno.test("omit", async (t) => {
     const actual = omit({ foo: "bar", ham: "spam" }, "ham")
 
     assertEquals(actual, { foo: "bar" })
+  })
+})
+
+Deno.test("clamp", async (t) => {
+  await t.step("clamps", () => {
+    assertEquals(clamp(1000, 0, 100), 100)
+    assertEquals(clamp(-1000, 0, 100), 0)
   })
 })

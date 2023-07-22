@@ -620,3 +620,7 @@ export function pick<T extends Record<K, unknown>, K extends keyof T>(obj: T, ..
 export function omit<T extends Record<K, unknown>, K extends keyof T>(obj: T, ...keys: K[]) {
   return Object.fromEntries(Object.entries(obj).filter(([key]) => !keys.includes(key as K))) as Omit<T, K>
 }
+
+export function clamp(num: number, min: number, max: number): number {
+  return Math.min(Math.max(num, min), max)
+}
