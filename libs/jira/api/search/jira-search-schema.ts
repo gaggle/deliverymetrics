@@ -37,8 +37,7 @@ const jiraSearchIssueChangelogHistorySchema = z
       })
       .optional(),
     created: z.string().optional(),
-    items: z.array(jiraSearchIssueChangelogHistoryItemSchema)
-      .optional(),
+    items: z.array(jiraSearchIssueChangelogHistoryItemSchema).optional(),
     historyMetadata: z.object({
       type: z.string().optional(),
       description: z.string().optional(),
