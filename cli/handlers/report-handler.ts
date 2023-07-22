@@ -11,6 +11,7 @@ import { sortPullCommitsByKey } from "../../libs/github/github-utils/mod.ts"
 import { getGithubClient } from "../../libs/github/mod.ts"
 import { getJiraClient } from "../../libs/jira/mod.ts"
 import {
+  getJiraSearchDataYielder,
   yieldActionData,
   yieldCommitData,
   yieldPullRequestData,
@@ -58,6 +59,8 @@ import {
   githubStatsParticipationHeaders,
   githubStatsPunchCardAsCsv,
   githubStatsPunchCardHeaders,
+  jiraSearchDataHeaders,
+  jiraSearchDataIssuesAsCsv,
   pullRequestHistogramAsCsv,
   pullRequestHistogramHeaders,
 } from "../csv/mod.ts"
@@ -343,7 +346,15 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
   })
   yield async () => {
     await timeCtx("jira-search-issues", async () => {
-      await asyncToArray(jc.findSearchIssues())
+      const { fieldKeys, fieldKeysToNames, yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
+        maxDays: opts.dataTimeframe,
+        signal: opts.signal,
+      })
+      await writeCSVToFile(
+        join(opts.outputDir, `jira-search-data.csv`),
+        jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues, { maxDescriptionLength: 10 }),
+        { header: jiraSearchDataHeaders({ fieldKeys, fieldKeysToNames }) },
+      )
     })
   }
 }
