@@ -28,7 +28,9 @@ import {
   mapIter,
   mapObject,
   mergeAsyncGenerators,
+  omit,
   parseRegexLike,
+  pick,
   pluralize,
   regexIntersect,
   single,
@@ -796,5 +798,21 @@ Deno.test("filterObject", async (t) => {
     const actual = filterObject({ foo: "bar", ham: "spam" } as const, ({ val }) => val === "spam")
 
     assertEquals(actual, { ham: "spam" })
+  })
+})
+
+Deno.test("pick", async (t) => {
+  await t.step("picks", () => {
+    const actual = pick({ foo: "bar", ham: "spam" }, "foo")
+
+    assertEquals(actual, { foo: "bar" })
+  })
+})
+
+Deno.test("omit", async (t) => {
+  await t.step("omits", () => {
+    const actual = omit({ foo: "bar", ham: "spam" }, "ham")
+
+    assertEquals(actual, { foo: "bar" })
   })
 })
