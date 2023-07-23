@@ -28,6 +28,12 @@ export async function writeCSVToFile(
             for (const key of keysSpecifiedInHeaderButNotInEl) {
               el[key] = ""
             }
+
+            for (const [key, val] of Object.entries(el)) {
+              if (val === null) {
+                delete el[key]
+              }
+            }
             return el
           }, iter),
           options,
