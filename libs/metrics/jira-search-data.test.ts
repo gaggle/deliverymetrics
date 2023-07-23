@@ -2,7 +2,7 @@ import { assertEquals } from "dev:asserts"
 
 import { getFakeDbJiraSearchIssue, getFakeDbJiraSearchNames } from "../jira/api/search/mod.ts"
 
-import { asyncToArray } from "../utils/mod.ts"
+import { asyncSingle, asyncToArray } from "../utils/mod.ts"
 import { createFakeReadonlyJiraClient, getFakeJiraSyncInfo } from "../jira/mod.ts"
 
 import { getJiraSearchDataYielder } from "./jira-search-data.ts"
@@ -251,6 +251,44 @@ Deno.test("getJiraSearchDataYielder", async (t) => {
       const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client, { maxDays: 10 })
 
       assertEquals((await asyncToArray(yieldJiraSearchIssues)).length, 1)
+    })
+
+    await t.step("can include only specified statuses", async () => {
+      const doneDbIssue = getFakeDbJiraSearchIssue({
+        issue: { key: "2", fields: { status: { name: "Done" } } },
+        namesHash: "123",
+      })
+      const client = await createFakeReadonlyJiraClient({
+        syncs: [getFakeJiraSyncInfo({ type: "search" })],
+        searchIssues: [
+          getFakeDbJiraSearchIssue({ issue: { key: "1", fields: { status: { name: "Started" } } }, namesHash: "123" }),
+          doneDbIssue,
+        ],
+        searchNames: [getFakeDbJiraSearchNames({ hash: "123" })],
+      })
+
+      const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client, { includeStatuses: ["Done"] })
+
+      assertEquals(await asyncSingle(yieldJiraSearchIssues), doneDbIssue.issue)
+    })
+
+    await t.step("can include only specified types", async () => {
+      const storyDbIssue = getFakeDbJiraSearchIssue({
+        issue: { key: "2", fields: { issuetype: { name: "Story" } } },
+        namesHash: "123",
+      })
+      const client = await createFakeReadonlyJiraClient({
+        syncs: [getFakeJiraSyncInfo({ type: "search" })],
+        searchIssues: [
+          getFakeDbJiraSearchIssue({ issue: { key: "1", fields: { issuetype: { name: "Bug" } } }, namesHash: "123" }),
+          storyDbIssue,
+        ],
+        searchNames: [getFakeDbJiraSearchNames({ hash: "123" })],
+      })
+
+      const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client, { includeTypes: ["Story"] })
+
+      assertEquals(await asyncSingle(yieldJiraSearchIssues), storyDbIssue.issue)
     })
   })
 })

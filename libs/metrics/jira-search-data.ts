@@ -13,7 +13,7 @@ export interface GetJiraSearchDataYielderReturnType {
 
 export async function getJiraSearchDataYielder(
   client: ReadonlyJiraClient,
-  opts: Partial<{ maxDays: number; signal: AbortSignal }> = {},
+  opts: Partial<{ includeStatuses: Array<string>; includeTypes:Array<string>; maxDays: number; signal: AbortSignal }> = {},
 ): Promise<GetJiraSearchDataYielderReturnType> {
   const latestSync = await client.findLatestSync({ type: "search" })
   if (!latestSync) return { fieldKeys: [], fieldKeysToNames: {}, yieldJiraSearchIssues: arrayToAsyncGenerator([]) }
@@ -66,11 +66,31 @@ async function getAllFieldKeysToNames(
 async function* yieldJiraSearchData(
   client: ReadonlyJiraClient,
   latestSync: JiraSyncInfo,
-  opts: Partial<{ maxDays: number; signal: AbortSignal }>,
+  opts: Partial<{ includeStatuses: Array<string>; includeTypes:Array<string>; maxDays: number; signal: AbortSignal }>,
 ): AsyncGenerator<JiraSearchIssue> {
   for await (const { issue } of client.findSearchIssues()) {
     if (opts.signal?.aborted) {
       throw new AbortError()
+    }
+
+    if (opts.includeStatuses) {
+      if (issue.fields?.status?.name) {
+        if (!opts.includeStatuses.includes(issue.fields?.status?.name)) {
+          continue
+        }
+      } else {
+        continue
+      }
+    }
+
+    if (opts.includeTypes) {
+      if (issue.fields?.issuetype?.name) {
+        if (!opts.includeTypes?.includes(issue.fields?.issuetype?.name)) {
+          continue
+        }
+      } else {
+        continue
+      }
     }
 
     if (
