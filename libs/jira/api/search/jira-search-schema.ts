@@ -164,6 +164,17 @@ export const jiraSearchIssueSchema = z
     fields: z
       .object({
         description: z.string().nullable().optional(),
+        issuetype: z.object({
+          self: z.string().optional(),
+          id: z.string().optional(),
+          description: z.string().optional(),
+          iconUrl: z.string().optional(),
+          name: z.string().optional(),
+          subtask: z.boolean().optional(),
+          avatarId: z.number().optional(),
+          entityId: z.string().optional(),
+          hierarchyLevel: z.number().optional()
+        }).optional(),
         status: z.object({
           self: z.string().optional(),
           description: z.string().optional(),
