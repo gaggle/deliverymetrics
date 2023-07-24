@@ -78,7 +78,29 @@ export async function fullJiraSync(
   if (maxDaysToSync !== undefined) {
     syncNewerThan = Date.now() - maxDaysToSync * dayInMs
   }
-  await jira.syncSearchIssues(projectKey, { syncSubtasks, newerThan: syncNewerThan, signal })
+
+  jira.on("progress", ({ type }) => {
+    switch (type) {
+      case "search":
+        return dot({ char: "s", _stdOutLike })
+    }
+  })
+
+  write(
+    "Legend: s=search",
+    { _stdOutLike },
+  )
+  try {
+    await jira.syncSearchIssues(projectKey, { syncSubtasks, newerThan: syncNewerThan, signal })
+  } catch (err) {
+    if (err instanceof AbortError) {
+      return // Nothing more to do
+    } else {
+      write(`❌  Jira failed to sync, error: ${err}`, { _stdOutLike })
+      throw err
+    }
+  }
+  write("✅ ", { _stdOutLike })
 }
 
 /**
