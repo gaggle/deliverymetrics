@@ -16,7 +16,7 @@ async function getDb(
     searchIssues: Array<DBJiraSearchIssue>
     searchNames: Array<DBJiraSearchNames>
     syncs: Array<JiraSyncInfo>
-  }>,
+  }> = {},
 ): Promise<AloeDBSyncingJiraClient["db"] | AloeDBReadonlyJiraClient["db"]> {
   return {
     searchIssues: await MockAloeDatabase.new({
@@ -40,6 +40,6 @@ export async function createFakeReadonlyJiraClient(
   return new AloeDBReadonlyJiraClient({ db: await getDb(opts) })
 }
 
-export async function createFakeJiraClient(opts: Parameters<typeof getDb>[0]): Promise<JiraClient> {
+export async function createFakeJiraClient(opts: Parameters<typeof getDb>[0] = {}): Promise<JiraClient> {
   return new AloeDBSyncingJiraClient({ host: "host", user: "user", token: "token", db: await getDb(opts) })
 }
