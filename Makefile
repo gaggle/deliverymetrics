@@ -16,7 +16,7 @@ test-libs:
 	cd libs && $(MAKE) test
 
 coverage:
-	rm -rf .coverage && deno coverage .coverage && mkdir -p .coverage/html && deno coverage .coverage --lcov > .coverage/html/coverage.lcov && genhtml -o .coverage/html .coverage/html/coverage.lcov
+	deno coverage .coverage && mkdir -p .coverage/html && deno coverage .coverage --lcov > .coverage/html/coverage.lcov && genhtml -o .coverage/html .coverage/html/coverage.lcov && find .coverage -maxdepth 1 -type f -delete
 
 lint:
 	deno fmt --check && deno check mod.ts dev-fixtures/mod.ts && deno lint
