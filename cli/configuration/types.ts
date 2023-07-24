@@ -61,6 +61,11 @@ const configReportSchema = z.object({
       include_cancelled: z.boolean().optional(),
     }).optional(),
   }).optional(),
+  jira: z.object({
+    custom_completed_date_header: z.string().optional(),
+    custom_start_date_header: z.string().optional(),
+  })
+    .optional(),
   outdir: z.string(),
   type: z.literal("csv"),
 }).strict()
