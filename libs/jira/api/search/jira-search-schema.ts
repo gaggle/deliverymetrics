@@ -173,7 +173,7 @@ export const jiraSearchIssueSchema = z
           subtask: z.boolean().optional(),
           avatarId: z.number().optional(),
           entityId: z.string().optional(),
-          hierarchyLevel: z.number().optional()
+          hierarchyLevel: z.number().optional(),
         }).optional(),
         status: z.object({
           self: z.string().optional(),
