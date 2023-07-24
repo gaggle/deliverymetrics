@@ -100,6 +100,8 @@ type ReportSpecGitHub = {
 type ReportSpecJira = {
   host: string
   apiUser: string
+  customCompletedDateHeader?: string
+  customStartDateHeader?: string
 }
 
 export interface ReportSpec {
@@ -344,14 +346,44 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
     type: "ReadonlyJiraClient",
     persistenceDir: join(opts.cacheRoot, "jira", slugify(jira.host), slugify(jira.apiUser)),
   })
+
+  if (jira.customCompletedDateHeader && jira.customStartDateHeader) {
+    yield async () => {
+      await timeCtx("jira-focusedobjective-team-dashboard-data", async () => {
+        const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
+          includeStatuses: ["Review in Prod", "Finished", "Blocked", "In Progress"],
+          includeTypes: ["Story", "Bug"],
+          maxDays: opts.dataTimeframe,
+          signal: opts.signal,
+          sortBy: { key: "customfield_21123", type: "date" },
+        })
+
+        await writeCSVToFile(
+          join(opts.outputDir, "jira-focusedobjective-team-dashboard-data.csv"),
+          jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues),
+          {
+            header: [
+              jira.customCompletedDateHeader!, // This whole yield only runs when this is present…
+              jira.customStartDateHeader!, // This whole yield only runs when this is present…
+              "fields.issuetype.name",
+              "key",
+              "fields.summary",
+              "fields.status.name",
+            ],
+          },
+        )
+      })
+    }
+  }
+
   yield async () => {
-    await timeCtx("jira-search-issues", async () => {
+    await timeCtx("jira-search-data", async () => {
       const { fieldKeys, fieldKeysToNames, yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
         maxDays: opts.dataTimeframe,
         signal: opts.signal,
       })
       await writeCSVToFile(
-        join(opts.outputDir, `jira-search-data.csv`),
+        join(opts.outputDir, "jira-search-data.csv"),
         jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues, { maxDescriptionLength: 10 }),
         { header: jiraSearchDataHeaders({ fieldKeys, fieldKeysToNames }) },
       )
