@@ -290,5 +290,22 @@ Deno.test("getJiraSearchDataYielder", async (t) => {
 
       assertEquals(await asyncSingle(yieldJiraSearchIssues), storyDbIssue.issue)
     })
+
+    await t.step("can sort by field", async () => {
+      const client = await createFakeReadonlyJiraClient({
+        syncs: [getFakeJiraSyncInfo({ type: "search" })],
+        searchIssues: [
+          getFakeDbJiraSearchIssue({ issue: { key: "1", fields: { foo: null } } }),
+          getFakeDbJiraSearchIssue({ issue: { key: "2", fields: { foo: "2000-01-01" } } }),
+          getFakeDbJiraSearchIssue({ issue: { key: "3", fields: { foo: "1999-01-01" } } }),
+          getFakeDbJiraSearchIssue({ issue: { key: "4", fields: { foo: "2001-01-01" } } }),
+        ],
+        searchNames: [getFakeDbJiraSearchNames()],
+      })
+
+      const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client, { sortBy: { key: "foo", type: "date" } })
+      const results = await asyncToArray(yieldJiraSearchIssues)
+      assertEquals(results.map((el) => el.key), ["3", "2", "4", "1"])
+    })
   })
 })
