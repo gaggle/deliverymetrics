@@ -21,7 +21,7 @@ export async function* jiraSearchDataIssuesAsCsv(
       const remaining = description.slice(opts.maxDescriptionLength).length
       description = `${str}... ${remaining} more characters`
     }
-    yield {
+    const issueRow = {
       ...stringifyObject(flattenObject(issue), { stringifyUndefined: true }),
       "Changelog Histories": issue.changelog?.histories?.map((history) =>
         history.items?.map((item) => {
@@ -37,6 +37,10 @@ export async function* jiraSearchDataIssuesAsCsv(
       "Transitions Count": issue.changelog?.histories?.length.toString() || "",
       "fields.description": description || "",
     }
+    for (const el of ignoreHeaders) {
+      delete (issueRow as Record<string, string>)[el]
+    }
+    yield issueRow
   }
 }
 

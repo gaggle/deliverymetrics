@@ -6,7 +6,7 @@ import { arraySubtract, arrayToAsyncGenerator, asyncSingle, flattenObject, omit 
 import { createFakeReadonlyJiraClient, getFakeJiraSyncInfo } from "../../libs/jira/mod.ts"
 import { getJiraSearchDataYielder } from "../../libs/metrics/mod.ts"
 
-import { jiraSearchDataHeaders, jiraSearchDataIssuesAsCsv } from "./csv-jira-search-data.ts"
+import { ignoreHeaders, jiraSearchDataHeaders, jiraSearchDataIssuesAsCsv } from "./csv-jira-search-data.ts"
 
 Deno.test("jiraSearchDataIssuesAsCsv", async (t) => {
   await t.step("converts Jira issue to a csv row", async () => {
@@ -64,12 +64,10 @@ Deno.test("jiraSearchDataIssuesAsCsv", async (t) => {
       "fields.reporter.avatarUrls.24x24",
       "fields.reporter.avatarUrls.32x32",
       "fields.reporter.avatarUrls.48x48",
-      "transitions",
     ]
     assertArrayIncludes(Object.keys(result), fieldsThatAreTooLongToTest)
     assertEquals(omit(result, ...fieldsThatAreTooLongToTest), {
-      "Changelog Histories":
-        '"2023-07-10T16:00:34.199+0100" "displayName <emailAddress>" action: altered "field" to "toString"',
+      "Changelog Histories": "altered field to toString",
       "Transitions": "transitioned to In Progress; transitioned to Done",
       "Transitions Count": "1",
       "changelog.maxResults": "1",
@@ -221,6 +219,15 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
     "changelog.total",
     "expand",
     "fields.description",
+    "fields.issuetype.avatarId",
+    "fields.issuetype.description",
+    "fields.issuetype.entityId",
+    "fields.issuetype.hierarchyLevel",
+    "fields.issuetype.iconUrl",
+    "fields.issuetype.id",
+    "fields.issuetype.name",
+    "fields.issuetype.self",
+    "fields.issuetype.subtask",
     "fields.status.description",
     "fields.status.iconUrl",
     "fields.status.id",
@@ -235,7 +242,6 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
     "key",
     "operations.linkGroups",
     "self",
-    "transitions",
   ]
 
   await t.step("returns fixed headers by default", () => {
@@ -269,11 +275,12 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
 
     const issue = await asyncSingle(jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues))
     const headers = jiraSearchDataHeaders({ fieldKeys, fieldKeysToNames })
+    const flattenedIssueKeys = Object.keys(flattenObject(issue))
 
-    const issueKeysNotRepresentedInNames = arraySubtract(Object.keys(flattenObject(issue)), headers)
+    const issueKeysNotRepresentedInNames = arraySubtract(arraySubtract(flattenedIssueKeys, headers), ignoreHeaders)
     assertEquals(issueKeysNotRepresentedInNames, [])
 
-    const headersNotRepresentedInIssueKeys = arraySubtract(headers, Object.keys(flattenObject(issue)))
+    const headersNotRepresentedInIssueKeys = arraySubtract(headers, flattenedIssueKeys)
     assertEquals(headersNotRepresentedInIssueKeys, ["operations.linkGroups"])
   })
 })
