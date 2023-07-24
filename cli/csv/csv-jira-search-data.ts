@@ -3,7 +3,7 @@ import { jiraSearchIssueSchema } from "../../libs/jira/api/search/mod.ts"
 import { GetJiraSearchDataYielderReturnType } from "../../libs/metrics/mod.ts"
 import { arraySubtract, extractZodSchemaKeys, flattenObject, stringifyObject } from "../../libs/utils/mod.ts"
 
-const ignoreHeaders = ["changelog.histories", "transitions"]
+export const ignoreHeaders = ["changelog.histories", "transitions"]
 const extraHeaders = ["Changelog Histories", "Transitions", "Transitions Count"] as const
 const fixedHeaders = [
   ...extraHeaders,
