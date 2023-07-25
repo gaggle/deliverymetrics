@@ -1,3 +1,4 @@
+//NOTE we statically replace this file at deployment
 import * as path from "std:path"
 
 import { extractSemVers, single } from "./utils/mod.ts"

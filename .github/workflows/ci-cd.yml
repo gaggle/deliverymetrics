@@ -1,0 +1,161 @@
+name: CI CD
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
+
+      - run: deno task test
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
+
+      - run: deno task lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/cache
+      - uses: teaxyz/setup@v0
+
+      - run: deno task typecheck
+
+  version-check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.tea.outputs.version }}
+      version-exists: ${{ steps.check-version.outputs.version-exists }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
+        id: tea
+
+      - name: Version sanity check
+        run: |
+          test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f1 -d.)"
+          test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f2 -d.)"
+          test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f3 -d.)"
+
+      - name: Did we already publish this version?
+        id: check-version
+        run: |
+          # fetch tags since actions/checkout is a shallow checkout
+          git fetch --prune --unshallow --tags
+
+          if git show-ref --tags v${{ steps.tea.outputs.version }} --quiet; then
+            echo "version-exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "version-exists=false" >> $GITHUB_OUTPUT
+          fi
+          echo Version Exists: cat $GITHUB_OUTPUT
+
+  bundle-source-code:
+    runs-on: ubuntu-latest
+    needs: [ version-check ]
+    env:
+      FILENAME: deliverymetrics-${{ needs.version-check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: ${{ env.FILENAME }}
+
+      - name: Clean
+        run: cd ${{ env.FILENAME }} && rm -rf .github .git .gitignore
+
+      - name: Stamp version
+        run: echo "export async function version() { return '${{ needs.version-check.outputs.version }}' }" > $FILENAME/libs/version.ts
+
+      - name: Tarball source-code
+        run: tar cJf $FILENAME.tar.xz $FILENAME
+
+      - name: Upload source-code
+        uses: actions/upload-artifact@v3
+        with:
+          name: source-code
+          path: ${{ env.FILENAME }}.tar.xz
+          if-no-files-found: error
+
+  compile:
+    needs: [ version-check, bundle-source-code ]
+    permissions:
+      contents: read
+      actions: write
+    strategy:
+      matrix:
+        platform:
+          - target: x86_64-unknown-linux-gnu
+            build-id: linux+x86-64
+            os: ubuntu-latest
+
+          - target: x86_64-pc-windows-msvc
+            suffix: .exe
+            build-id: pc+x86-64
+            os: ubuntu-latest
+
+          - target: x86_64-apple-darwin
+            build-id: mac+x86-64
+            os: macos-latest
+
+          - target: aarch64-apple-darwin
+            build-id: mac+arm64
+            os: macos-latest
+    runs-on: ${{ matrix.platform.os }}
+    name: ${{ matrix.platform.build-id }}
+    steps:
+      - name: Download source-code artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: source-code
+      - name: Unpack downloaded artifact
+        run: tar xJf deliverymetrics-${{ needs.version-check.outputs.version }}.tar.xz --strip-components=1
+      - uses: teaxyz/setup@v0
+      - run: SUFFIX="${{ matrix.platform.suffix }}" EXTRA_ARGS="--target ${{ matrix.platform.target }}" deno task compile
+
+      - name: Create tarball from compiled binary
+        run: tar cJf deliverymetrics-${{ needs.version-check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz deliverymetrics${{ matrix.platform.suffix }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: binaries
+          path: |
+            deliverymetrics-${{ needs.version-check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
+            deliverymetrics-${{ needs.version-check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz.asc
+          if-no-files-found: error
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [ version-check, tests, lint, typecheck, compile ]
+    if: ${{ github.ref == 'refs/heads/main' && needs.version-check.outputs.version-exists == 'false' }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+      - uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.version-check.outputs.version }}
+          files: |
+            binaries/*
+            source-code/*
+          fail_on_unmatched_files: true
+          generate_release_notes: true
