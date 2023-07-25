@@ -36,7 +36,7 @@ export function monthStart(...args: ConstructorParameters<typeof Date>): Date {
 
 export function monthEnd(...args: ConstructorParameters<typeof Date>): Date {
   const d = new Date(...args)
-  return dayEnd(new Date(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))
+  return dayEnd(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)))
 }
 
 /**
