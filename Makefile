@@ -25,15 +25,15 @@ lint-fix:
 	deno fmt && deno check mod.ts dev-fixtures/mod.ts && deno lint
 
 compile-dm-x86-gnu:
-	deno compile -q --output dm-x86-gnu --target=x86_64-unknown-linux-gnu --import-map=import_map.json $(ALLOW) ./mod.ts
+	deno compile -q --output dm-x86-gnu --target=x86_64-unknown-linux-gnu $(ALLOW) ./mod.ts
 
 compile-dm-x86-win:
-	deno compile -q --output dm-x86-win --target=x86_64-pc-windows-msvc   --import-map=import_map.json $(ALLOW) ./mod.ts
+	deno compile -q --output dm-x86-win --target=x86_64-pc-windows-msvc   $(ALLOW) ./mod.ts
 
 compile-dm-x86-mac:
-	deno compile -q --output dm-x86-mac --target=x86_64-apple-darwin      --import-map=import_map.json $(ALLOW) ./mod.ts
+	deno compile -q --output dm-x86-mac --target=x86_64-apple-darwin      $(ALLOW) ./mod.ts
 
 compile-dm-a64-mac:
-	deno compile -q --output dm-a64-mac --target=aarch64-apple-darwin     --import-map=import_map.json $(ALLOW) ./mod.ts
+	deno compile -q --output dm-a64-mac --target=aarch64-apple-darwin     $(ALLOW) ./mod.ts
 
 compile: compile-dm-a64-mac compile-dm-x86-gnu compile-dm-x86-mac compile-dm-x86-win

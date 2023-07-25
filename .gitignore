@@ -3,4 +3,4 @@
 .fixtures/
 .output/
 .vscode/
-dm-*-*
+/deliverymetrics

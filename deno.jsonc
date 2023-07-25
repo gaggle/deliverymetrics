@@ -1,4 +1,24 @@
 {
+  "tasks": {
+    "compile": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --allow-ffi --unstable --output $INIT_CWD/deliverymetrics$SUFFIX $EXTRA_ARGS ./mod.ts",
+    "coverage": "scripts/run-coverage.sh",
+    "dev:cli": "nice -20 deno task test --watch ./cli",
+    "dev:fixtures": "deno run -A dev-fixtures/mod.ts",
+    "dev:libs": "nice -20 deno task test --watch ./libs",
+    "lint": "deno fmt --check && deno check mod.ts dev-fixtures/mod.ts && deno lint",
+    "lint:fix": "deno fmt && deno check mod.ts dev-fixtures/mod.ts && deno lint",
+    "run": "deno run --unstable -A mod.ts",
+    "test": "deno test --allow-read --allow-write --allow-env --allow-run --allow-ffi --unstable --check --parallel",
+    "typecheck": "deno check --unstable mod.ts dev-fixtures/mod.ts"
+  },
+  "lint": {
+    "include": ["cli", "dev-fixtures", "libs"]
+  },
+  "fmt": {
+    "include": ["cli", "dev-fixtures", "libs"],
+    "lineWidth": 120,
+    "semiColons": false
+  },
   "imports": {
     "aloedb": "https://deno.land/x/aloedb@0.9.0/mod.ts",
     "csv": "https://deno.land/x/csv@v0.7.5/mod.ts",
