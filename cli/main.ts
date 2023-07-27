@@ -51,7 +51,7 @@ function interceptSigint() {
  */
 export function main(args: Array<string>) {
   yargs(args)
-    .scriptName("dm")
+    .scriptName("<app>")
     .option("cache", {
       default: join(Deno.cwd(), ".deliverymetrics-data"),
       describe: "Where to store cached sync data",
