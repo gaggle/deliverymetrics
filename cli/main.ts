@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "std:path"
 import { isRegexLike, parseRegexLike } from "../libs/utils/mod.ts"
 import { parseGithubUrl } from "../libs/github/mod.ts"
 
+import { version } from "../libs/version.ts"
 import { yargs, YargsArguments, YargsInstance } from "../cli/yargs.ts"
 
 import { reportHandler, ReportSpec, syncHandler, SyncSpec } from "./handlers/mod.ts"
@@ -12,6 +13,7 @@ import { GithubSync, JiraSync, loadConfiguration } from "./configuration/mod.ts"
 const logLevels = ["DEBUG", "INFO", "WARNING"] as const
 type LogLevel = typeof logLevels[number]
 const defaultLogLevel: LogLevel = "INFO"
+const ver = await version()
 
 function setupLogging(level: LogLevel) {
   logSetup({
@@ -52,6 +54,7 @@ function interceptSigint() {
 export function main(args: Array<string>) {
   yargs(args)
     .scriptName("<app>")
+    .version(ver)
     .option("cache", {
       default: join(Deno.cwd(), ".deliverymetrics-data"),
       describe: "Where to store cached sync data",
