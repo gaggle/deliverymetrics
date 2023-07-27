@@ -1,6 +1,9 @@
+import type SemVer from "tea-semver"
+
 import { brightRed } from "std:color"
 import { debug, getLogger, Logger } from "std:log"
 import { distinct } from "std:distinct"
+import { parse } from "tea-semver"
 import { z } from "zod"
 
 import { GithubPull } from "../github/api/pulls/mod.ts"
@@ -623,4 +626,11 @@ export function omit<T extends Record<K, unknown>, K extends keyof T>(obj: T, ..
 
 export function clamp(num: number, min: number, max: number): number {
   return Math.min(Math.max(num, min), max)
+}
+
+export function extractSemVers(str: string): Array<SemVer> {
+  return str.split(" ")
+    .map((el) => el.trim())
+    .map((el) => parse(el))
+    .filter((el) => !!el) as Array<SemVer>
 }
