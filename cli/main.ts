@@ -54,7 +54,7 @@ export function main(args: Array<string>) {
     .scriptName("dm")
     .option("cache", {
       default: join(Deno.cwd(), ".deliverymetrics-data"),
-      describe: "Where to store cached information from syncing",
+      describe: "Where to store cached sync data",
       type: "string",
     })
     .option("loglevel")
