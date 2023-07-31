@@ -1,4 +1,4 @@
-# gaggle/deliverymetrics 0.1.2
+# gaggle/deliverymetrics 0.1.3
 
 ## Binaries and MacOS Compatibility
 
