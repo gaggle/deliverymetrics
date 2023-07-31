@@ -67,7 +67,7 @@ jobs:
           else
             echo "version-exists=false" >> $GITHUB_OUTPUT
           fi
-          echo Version Exists: $(cat $GITHUB_OUTPUT)
+          echo GitHub Output: $(cat $GITHUB_OUTPUT)
 
   bundle-source-code:
     runs-on: ubuntu-latest
