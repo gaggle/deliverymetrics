@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -eu
+
+version="$1"
+relative_path="$2"
+root=$(realpath "$relative_path")
+version_filename=${root}/libs/version.ts
+
+echo "export async function version() { return '${version}' }" > ${version_filename}

@@ -84,7 +84,7 @@ jobs:
         run: cd ${{ env.FILENAME }} && rm -rf .github .git .gitignore
 
       - name: Stamp version
-        run: echo "export async function version() { return '${{ needs.version-check.outputs.version }}' }" > $FILENAME/libs/version.ts
+        run: ./$FILENAME/bin/stamp-version '${{ needs.version-check.outputs.version }}' $FILENAME
 
       - name: Tarball source-code
         run: tar cJf $FILENAME.tar.xz $FILENAME
