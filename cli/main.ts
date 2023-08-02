@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "std:path"
 import { isRegexLike, parseRegexLike } from "../libs/utils/mod.ts"
 import { parseGithubUrl } from "../libs/github/mod.ts"
 
-import { version } from "../libs/version.ts"
+import { version } from "./version.ts"
 import { yargs, YargsArguments, YargsInstance } from "../cli/yargs.ts"
 
 import { reportHandler, ReportSpec, syncHandler, SyncSpec } from "./handlers/mod.ts"
