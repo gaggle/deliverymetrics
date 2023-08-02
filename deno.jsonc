@@ -5,6 +5,7 @@
     "dev:cli": "nice -20 deno task test --watch ./cli",
     "dev:fixtures": "deno run -A dev-fixtures/mod.ts",
     "dev:libs": "nice -20 deno task test --watch ./libs",
+    "dev:utils": "nice -20 deno task test --watch ./utils",
     "lint": "deno fmt --check && deno check mod.ts dev-fixtures/mod.ts && deno lint",
     "lint:fix": "deno fmt && deno check mod.ts dev-fixtures/mod.ts && deno lint",
     "run": "deno run --unstable -A mod.ts",
@@ -12,10 +13,10 @@
     "typecheck": "deno check --unstable mod.ts dev-fixtures/mod.ts"
   },
   "lint": {
-    "include": ["cli", "dev-fixtures", "libs"]
+    "include": ["cli", "dev-fixtures", "libs", "utils"]
   },
   "fmt": {
-    "include": ["cli", "dev-fixtures", "libs"],
+    "include": ["cli", "dev-fixtures", "libs", "utils"],
     "lineWidth": 120,
     "semiColons": false
   },
