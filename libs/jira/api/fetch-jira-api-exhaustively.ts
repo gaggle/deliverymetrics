@@ -1,7 +1,6 @@
 import { ZodType } from "zod"
 
-import { fetchExhaustively, FetchExhaustivelyOpts } from "../../fetching/mod.ts"
-import { stdFetchExhaustivelyProgressLogging } from "../../../utils/mod.ts"
+import { fetchExhaustively, FetchExhaustivelyOpts, stdFetchExhaustivelyProgressLogging } from "../../fetching/mod.ts"
 
 import { JiraPaginationFields } from "../jira-pagination-fields-schema.ts"
 

@@ -1,14 +1,9 @@
 import type SemVer from "tea-semver"
-
+import { parse } from "tea-semver"
 import { brightRed } from "std:color"
 import { debug, getLogger, Logger } from "std:log"
 import { distinct } from "std:distinct"
-import { parse } from "tea-semver"
 import { z } from "zod"
-
-import { GithubPull } from "../libs/github/api/pulls/mod.ts"
-
-import { FetchExhaustivelyProgress } from "../libs/fetching/mod.ts"
 
 import { AbortError } from "./errors.ts"
 import { Entries } from "./types.ts"
@@ -148,18 +143,6 @@ export const zodCastToString = z.preprocess(
   (val) => val === undefined ? val : String(val),
   z.string(),
 )
-
-export function stringifyPull(pull: GithubPull): string {
-  return `#${pull.number} (${pull.draft ? "draft" : pull.state}) ${pull._links.html.href}`
-}
-
-export function stringifyUpdatedPull(
-  { prev, updated }: { prev: GithubPull; updated: GithubPull },
-): string {
-  return `#${updated.number} (${prev.draft ? "draft" : prev.state} -> ${
-    updated.draft ? "draft" : updated.state
-  }) ${updated._links.html.href}`
-}
 
 /**
  * Use in the default case (or equivalently outside the switch):
@@ -557,17 +540,6 @@ export async function hash(message: string): Promise<string> {
   const hashBuffer = await crypto.subtle.digest("SHA-256", data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
-}
-
-export function stdFetchExhaustivelyProgressLogging(call: FetchExhaustivelyProgress): void {
-  switch (call.type) {
-    case "paging":
-      debug(`${call.type}: ${call.to.url} (${call.pagesConsumed}/${call.maxPages})`)
-      break
-    case "retrying":
-      debug(`${call.type} in ${(call.delay / 1000).toFixed(2)}s: ${call.reason} (${call.retry}/${call.retries})`)
-      break
-  }
 }
 
 export function sortObject<T = unknown>(obj: Record<string, T>): Record<string, T> {

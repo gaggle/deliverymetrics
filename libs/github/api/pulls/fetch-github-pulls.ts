@@ -1,10 +1,8 @@
 import { debug } from "std:log"
 
-import { stringifyPull } from "../../../../utils/mod.ts"
-
 import { Epoch } from "../../../../utils/types.ts"
 
-import { createGithubRequest } from "../../github-utils/mod.ts"
+import { createGithubRequest, stringifyPull } from "../../github-utils/mod.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"

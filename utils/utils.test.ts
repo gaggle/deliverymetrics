@@ -3,8 +3,6 @@ import { Logger } from "std:log"
 import { assertEquals, assertInstanceOf, assertRejects, assertThrows } from "dev:asserts"
 import { z } from "zod"
 
-import { getFakeGithubPull } from "../libs/github/api/pulls/mod.ts"
-
 import { withFakeTime } from "./dev-utils.ts"
 import { AbortError } from "./errors.ts"
 
@@ -40,8 +38,6 @@ import {
   sortObject,
   streamToString,
   stringifyObject,
-  stringifyPull,
-  stringifyUpdatedPull,
   stringToStream,
   throttle,
 } from "./utils.ts"
@@ -297,87 +293,6 @@ Deno.test("pluralize", async (t) => {
   await t.step("chooses empty when collection is empty", () => {
     assertEquals(pluralize([], pluralizationData), "empty")
   })
-})
-
-Deno.test("stringifyPull", async (t) => {
-  await t.step("makes a nice string", () => {
-    assertEquals(
-      stringifyPull(getFakeGithubPull({
-        _links: { html: { href: "https://url" } },
-        number: 1,
-        state: "open",
-      })),
-      "#1 (open) https://url",
-    )
-  })
-
-  await t.step("understands draft mode", () => {
-    assertEquals(
-      stringifyPull(getFakeGithubPull({
-        _links: { html: { href: "https://url" } },
-        draft: true,
-        number: 1,
-        state: "open",
-      })),
-      "#1 (draft) https://url",
-    )
-  })
-})
-
-Deno.test("stringifyUpdatedPull", async (t) => {
-  await t.step("makes a nice string", () => {
-    assertEquals(
-      stringifyUpdatedPull({
-        prev: getFakeGithubPull({
-          _links: { html: { href: "https://url" } },
-          number: 1,
-          state: "open",
-        }),
-        updated: getFakeGithubPull({
-          _links: { html: { href: "https://url" } },
-          number: 1,
-          state: "closed",
-        }),
-      }),
-      "#1 (open -> closed) https://url",
-    )
-  })
-
-  await t.step("understands draft mode", () => {
-    assertEquals(
-      stringifyUpdatedPull({
-        prev: getFakeGithubPull({
-          _links: { html: { href: "https://url" } },
-          draft: true,
-          number: 1,
-          state: "open",
-        }),
-        updated: getFakeGithubPull({
-          _links: { html: { href: "https://url" } },
-          number: 1,
-          state: "closed",
-        }),
-      }),
-      "#1 (draft -> closed) https://url",
-    )
-  })
-
-  assertEquals(
-    stringifyUpdatedPull({
-      prev: getFakeGithubPull({
-        _links: { html: { href: "https://url" } },
-        number: 1,
-        state: "open",
-      }),
-      updated: getFakeGithubPull({
-        _links: { html: { href: "https://url" } },
-        draft: true,
-        number: 1,
-        state: "open",
-      }),
-    }),
-    "#1 (open -> draft) https://url",
-  )
 })
 
 Deno.test("mapIter", async (t) => {

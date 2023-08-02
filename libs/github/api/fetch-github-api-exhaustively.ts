@@ -1,5 +1,4 @@
-import { fetchExhaustively } from "../../fetching/mod.ts"
-import { stdFetchExhaustivelyProgressLogging } from "../../../utils/mod.ts"
+import { fetchExhaustively, stdFetchExhaustivelyProgressLogging } from "../../fetching/mod.ts"
 
 type FetchExhaustivelyLike = (...args: Parameters<typeof fetchExhaustively>) => ReturnType<typeof fetchExhaustively>
 
