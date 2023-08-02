@@ -2,7 +2,7 @@ import { assertArrayIncludes, assertEquals } from "dev:asserts"
 
 import { getFakeDbJiraSearchIssue, getFakeDbJiraSearchNames, getFakeJiraIssue } from "../../libs/jira/api/search/mod.ts"
 
-import { arraySubtract, arrayToAsyncGenerator, asyncSingle, flattenObject, omit } from "../../libs/utils/mod.ts"
+import { arraySubtract, arrayToAsyncGenerator, asyncSingle, flattenObject, omit } from "../../utils/mod.ts"
 import { createFakeReadonlyJiraClient, getFakeJiraSyncInfo } from "../../libs/jira/mod.ts"
 import { getJiraSearchDataYielder } from "../../libs/metrics/mod.ts"
 

@@ -1,4 +1,4 @@
-import { parseWithZodSchema, safeReadFileSync } from "../../libs/utils/mod.ts"
+import { parseWithZodSchema, safeReadFileSync } from "../../utils/mod.ts"
 
 import { Config, configSchema } from "./types.ts"
 

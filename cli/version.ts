@@ -1,7 +1,7 @@
 //NOTE we statically replace this file at deployment
 import * as path from "std:path"
 
-import { extractSemVers, single } from "../libs/utils/mod.ts"
+import { extractSemVers, single } from "../utils/mod.ts"
 
 const dirname = path.dirname(new URL(import.meta.url).pathname)
 

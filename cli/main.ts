@@ -1,7 +1,7 @@
 import { handlers, setup as logSetup } from "std:log"
 import { dirname, join, resolve } from "std:path"
 
-import { isRegexLike, parseRegexLike } from "../libs/utils/mod.ts"
+import { isRegexLike, parseRegexLike } from "../utils/mod.ts"
 import { parseGithubUrl } from "../libs/github/mod.ts"
 
 import { version } from "./version.ts"

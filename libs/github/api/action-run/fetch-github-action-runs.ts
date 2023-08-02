@@ -1,6 +1,6 @@
 import { debug } from "std:log"
 
-import { first } from "../../../utils/mod.ts"
+import { first } from "../../../../utils/mod.ts"
 
 import { Epoch } from "../../../../utils/types.ts"
 

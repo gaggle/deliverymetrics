@@ -15,7 +15,7 @@ import {
   regexIntersect,
   weekEnd,
   weekStart,
-} from "../utils/mod.ts"
+} from "../../utils/mod.ts"
 
 import { AbortError } from "../../utils/errors.ts"
 

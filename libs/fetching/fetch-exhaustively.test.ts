@@ -3,7 +3,7 @@ import { assertEquals, assertRejects } from "dev:asserts"
 
 import { CannedResponses } from "../../utils/dev-utils.ts"
 
-import { asyncToArray } from "../utils/mod.ts"
+import { asyncToArray } from "../../utils/mod.ts"
 
 import { fetchExhaustively, FetchExhaustivelyOpts } from "./fetch-exhaustively.ts"
 

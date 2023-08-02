@@ -1,4 +1,4 @@
-import { assertUnreachable } from "../../utils/mod.ts"
+import { assertUnreachable } from "../../../utils/mod.ts"
 
 import { GithubPull, GithubPullDateKey } from "../api/pulls/mod.ts"
 import { GithubActionRun } from "../api/action-run/mod.ts"

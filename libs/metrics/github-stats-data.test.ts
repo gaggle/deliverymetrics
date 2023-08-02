@@ -5,7 +5,7 @@ import { getFakeGithubStatsContributor } from "../github/api/stats-contributors/
 
 import { createFakeReadonlyGithubClient, getFakeSyncInfo } from "../github/testing/mod.ts"
 
-import { asyncToArray } from "../utils/mod.ts"
+import { asyncToArray } from "../../utils/mod.ts"
 
 import { yieldStatsContributors, yieldStatsParticipation } from "./github-stats-data.ts"
 

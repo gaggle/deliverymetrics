@@ -3,7 +3,7 @@ import { stub } from "dev:mock"
 
 import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../../utils/dev-utils.ts"
 
-import { arrayToAsyncGenerator, asyncToArray } from "../../../utils/mod.ts"
+import { arrayToAsyncGenerator, asyncToArray } from "../../../../utils/mod.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"

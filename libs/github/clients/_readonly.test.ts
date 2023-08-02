@@ -1,6 +1,6 @@
 import { assertEquals } from "dev:asserts"
 
-import { asyncToArray } from "../../utils/mod.ts"
+import { asyncToArray } from "../../../utils/mod.ts"
 
 import { BoundGithubPullCommit } from "../api/pull-commits/mod.ts"
 import { GithubPull } from "../api/pulls/mod.ts"

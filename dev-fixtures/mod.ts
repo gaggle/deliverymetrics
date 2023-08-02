@@ -1,7 +1,7 @@
 import { dirname, fromFileUrl, join } from "std:path"
 import { parse as yamlParse } from "std:yaml-encoding"
 
-import { getEnv } from "../libs/utils/mod.ts"
+import { getEnv } from "../utils/mod.ts"
 
 import { fetchGithubFixtures, fetchJiraFixtures } from "./get-fixtures.ts"
 import { FixtureSpecs, fixtureSpecsSchema } from "./types.ts"

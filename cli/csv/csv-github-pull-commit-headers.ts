@@ -1,6 +1,6 @@
 import { BoundGithubPullCommit, boundGithubPullCommitSchema } from "../../libs/github/api/pull-commits/mod.ts"
 
-import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../libs/utils/mod.ts"
+import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../utils/mod.ts"
 
 const extraHeaders = [] as const
 

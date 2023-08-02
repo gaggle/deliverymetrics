@@ -3,7 +3,7 @@ import { AssertionError } from "dev:asserts"
 import { Spy, spy, Stub } from "dev:mock"
 import { install as mockFetchInstall, mock as mockFetch, uninstall as mockFetchUninstall } from "dev:mock-fetch"
 
-import { sleep } from "../libs/utils/mod.ts"
+import { sleep } from "./mod.ts"
 
 export async function withMockedFetch(
   callback: (mf: typeof mockFetch) => Promise<void> | void,

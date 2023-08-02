@@ -3,10 +3,10 @@ import { Logger } from "std:log"
 import { assertEquals, assertInstanceOf, assertRejects, assertThrows } from "dev:asserts"
 import { z } from "zod"
 
-import { getFakeGithubPull } from "../github/api/pulls/mod.ts"
+import { getFakeGithubPull } from "../libs/github/api/pulls/mod.ts"
 
-import { withFakeTime } from "../../utils/dev-utils.ts"
-import { AbortError } from "../../utils/errors.ts"
+import { withFakeTime } from "./dev-utils.ts"
+import { AbortError } from "./errors.ts"
 
 import {
   arrayToAsyncGenerator,

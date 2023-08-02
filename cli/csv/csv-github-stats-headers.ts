@@ -3,7 +3,7 @@ import { dbPunchCardSchema } from "../../libs/github/api/stats-punch-card/mod.ts
 import { githubStatsCommitActivitySchema } from "../../libs/github/api/stats-commit-activity/mod.ts"
 import { githubStatsContributorSchema } from "../../libs/github/api/stats-contributors/mod.ts"
 
-import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../libs/utils/mod.ts"
+import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../utils/mod.ts"
 import {
   yieldStatsCodeFrequency,
   yieldStatsCommitActivity,

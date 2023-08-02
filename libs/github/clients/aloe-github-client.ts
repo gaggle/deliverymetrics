@@ -3,7 +3,7 @@ import { debug } from "std:log"
 import { Acceptable, exists, Query } from "aloedb"
 
 import { AloeDatabase } from "../../db/mod.ts"
-import { arrayToAsyncGenerator, asyncToArray, firstMaybe } from "../../utils/mod.ts"
+import { arrayToAsyncGenerator, asyncToArray, firstMaybe } from "../../../utils/mod.ts"
 
 import { AbortError } from "../../../utils/errors.ts"
 import { Epoch } from "../../../utils/types.ts"

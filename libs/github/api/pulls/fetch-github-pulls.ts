@@ -1,6 +1,6 @@
 import { debug } from "std:log"
 
-import { stringifyPull } from "../../../utils/mod.ts"
+import { stringifyPull } from "../../../../utils/mod.ts"
 
 import { Epoch } from "../../../../utils/types.ts"
 

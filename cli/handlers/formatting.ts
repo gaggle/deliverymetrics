@@ -2,7 +2,7 @@ import { writeAllSync as streamWriteAllSync } from "std:streams"
 
 import { ReadonlyGithubClient } from "../../libs/github/mod.ts"
 
-import { asyncToArray, pluralize, stringifyPull } from "../../libs/utils/mod.ts"
+import { asyncToArray, pluralize, stringifyPull } from "../../utils/mod.ts"
 
 export async function formatGithubClientStatus(
   github: ReadonlyGithubClient,

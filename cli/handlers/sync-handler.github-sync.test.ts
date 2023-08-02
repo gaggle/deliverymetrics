@@ -10,7 +10,7 @@ import { githubRestSpec } from "../../libs/github/api/github-rest-api-spec.ts"
 import { GithubClient } from "../../libs/github/types/mod.ts"
 import { createFakeGithubClient } from "../../libs/github/testing/mod.ts"
 
-import { parseWithZodSchemaFromRequest, stringToStream } from "../../libs/utils/mod.ts"
+import { parseWithZodSchemaFromRequest, stringToStream } from "../../utils/mod.ts"
 
 import { withStubs } from "../../utils/dev-utils.ts"
 

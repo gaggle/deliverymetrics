@@ -1,7 +1,7 @@
 import { join } from "std:path"
 
 import { AloeDatabase } from "../../db/mod.ts"
-import { assertUnreachable } from "../../utils/mod.ts"
+import { assertUnreachable } from "../../../utils/mod.ts"
 
 import { githubActionRunSchema } from "../api/action-run/mod.ts"
 import { githubActionWorkflowSchema } from "../api/action-workflows/mod.ts"

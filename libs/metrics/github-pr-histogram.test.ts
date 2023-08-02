@@ -5,7 +5,7 @@ import { getFakeGithubPullCommit } from "../github/api/pull-commits/mod.ts"
 
 import { createFakeReadonlyGithubClient, getFakeSyncInfo } from "../github/testing/mod.ts"
 
-import { asyncSingle, asyncToArray } from "../utils/mod.ts"
+import { asyncSingle, asyncToArray } from "../../utils/mod.ts"
 
 import { yieldPullRequestHistogram } from "./github-pr-histogram.ts"
 

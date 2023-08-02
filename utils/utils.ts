@@ -6,12 +6,12 @@ import { distinct } from "std:distinct"
 import { parse } from "tea-semver"
 import { z } from "zod"
 
-import { GithubPull } from "../github/api/pulls/mod.ts"
+import { GithubPull } from "../libs/github/api/pulls/mod.ts"
 
-import { FetchExhaustivelyProgress } from "../fetching/mod.ts"
+import { FetchExhaustivelyProgress } from "../libs/fetching/mod.ts"
 
-import { AbortError } from "../../utils/errors.ts"
-import { Entries } from "../../utils/types.ts"
+import { AbortError } from "./errors.ts"
+import { Entries } from "./types.ts"
 
 export async function asyncToArray<T>(
   iter: AsyncIterable<T>,

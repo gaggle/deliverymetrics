@@ -1,7 +1,7 @@
 import { JiraSearchIssue, JiraSearchNames } from "../jira/api/search/mod.ts"
 
 import { JiraSyncInfo, ReadonlyJiraClient } from "../jira/mod.ts"
-import { arrayToAsyncGenerator, asyncToArray, daysBetween, flattenObject } from "../utils/mod.ts"
+import { arrayToAsyncGenerator, asyncToArray, daysBetween, flattenObject } from "../../utils/mod.ts"
 
 import { AbortError } from "../../utils/errors.ts"
 

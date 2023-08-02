@@ -1,5 +1,5 @@
 import { githubCommitsAsCsv } from "./csv-github-commit-headers.ts"
-import { arrayToAsyncGenerator, asyncToArray } from "../../libs/utils/utils.ts"
+import { arrayToAsyncGenerator, asyncToArray } from "../../utils/utils.ts"
 import { getFakeGithubCommit } from "../../libs/github/api/commits/get-fake-github-commit.ts"
 import { assertEquals } from "dev:asserts"
 

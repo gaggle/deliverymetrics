@@ -1,7 +1,7 @@
 import { BoundGithubPullCommit } from "../github/api/pull-commits/mod.ts"
 import { GithubPull, MergedGithubPull } from "../github/api/pulls/mod.ts"
 
-import { dayStart, nextDayStart } from "../utils/mod.ts"
+import { dayStart, nextDayStart } from "../../utils/mod.ts"
 
 import { Epoch } from "../../utils/types.ts"
 

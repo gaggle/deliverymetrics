@@ -1,7 +1,7 @@
 import { githubActionWorkflowSchema } from "../../libs/github/api/action-workflows/mod.ts"
 
 import { yieldActionData } from "../../libs/metrics/mod.ts"
-import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../libs/utils/mod.ts"
+import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../utils/mod.ts"
 
 const extraHeaders = [] as const
 

@@ -4,7 +4,7 @@ import { createFakeReadonlyGithubClient, getFakeSyncInfo } from "../github/testi
 
 import { yieldCommitData } from "./github-commit-data.ts"
 import { assertEquals } from "dev:asserts"
-import { asyncToArray, first } from "../utils/utils.ts"
+import { asyncToArray, first } from "../../utils/utils.ts"
 
 Deno.test("yieldCommitData", async (t) => {
   await t.step("yields commit and calculated fields", async () => {

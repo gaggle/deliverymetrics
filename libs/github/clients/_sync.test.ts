@@ -2,7 +2,7 @@ import { assertEquals, assertObjectMatch, assertRejects } from "dev:asserts"
 import { assertSpyCalls, returnsNext, Stub, stub } from "dev:mock"
 import { FakeTime } from "dev:time"
 
-import { arrayToAsyncGenerator, asyncToArray, sleep } from "../../utils/mod.ts"
+import { arrayToAsyncGenerator, asyncToArray, sleep } from "../../../utils/mod.ts"
 
 import { withFakeTime, withStubs } from "../../../utils/dev-utils.ts"
 import { AbortError } from "../../../utils/errors.ts"
