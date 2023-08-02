@@ -1,6 +1,6 @@
 import { deepMerge } from "std:deep-merge"
 
-import { DeepPartial } from "../../../types.ts"
+import { DeepPartial } from "../../../../utils/types.ts"
 
 import { GithubRelease } from "./github-release-schema.ts"
 

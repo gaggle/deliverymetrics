@@ -1,6 +1,6 @@
 import { EventEmitter } from "event"
 
-import { Epoch } from "../types.ts"
+import { Epoch } from "../../utils/types.ts"
 
 import { DBJiraSearchIssue, DBJiraSearchNames } from "./api/search/mod.ts"
 

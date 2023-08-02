@@ -1,7 +1,7 @@
 import { assertEquals, assertRejects } from "dev:asserts"
 import { assertSpyCalls, Spy, spy } from "dev:mock"
 
-import { CannedResponses, withMockedFetch } from "../dev-utils.ts"
+import { CannedResponses, withMockedFetch } from "../../utils/dev-utils.ts"
 
 import { fetchWithRetry, FetchWithRetryProgress } from "./fetch-with-retry.ts"
 

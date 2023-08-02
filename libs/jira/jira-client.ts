@@ -5,8 +5,8 @@ import { join } from "std:path"
 import { AloeDatabase } from "../db/mod.ts"
 import { hash, sortObject } from "../utils/mod.ts"
 
-import { AbortError } from "../errors.ts"
-import { Epoch } from "../types.ts"
+import { AbortError } from "../../utils/errors.ts"
+import { Epoch } from "../../utils/types.ts"
 
 import {
   DBJiraSearchIssue,

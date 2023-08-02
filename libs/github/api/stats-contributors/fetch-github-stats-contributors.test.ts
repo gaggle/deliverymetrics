@@ -1,7 +1,7 @@
 import { assertEquals, assertInstanceOf } from "dev:asserts"
 import { stub } from "dev:mock"
 
-import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../dev-utils.ts"
+import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../../utils/dev-utils.ts"
 
 import { arrayToAsyncGenerator, asyncToArray } from "../../../utils/mod.ts"
 

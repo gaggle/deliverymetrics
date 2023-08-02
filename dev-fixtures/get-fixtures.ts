@@ -1,7 +1,7 @@
 import { dirname, join, relative } from "std:path"
 import { ensureDir } from "std:fs"
 
-import { JSONValue, RequestMethod } from "../libs/types.ts"
+import { JSONValue, RequestMethod } from "../utils/types.ts"
 
 import { FixtureSpec, FixtureSpecs } from "./types.ts"
 

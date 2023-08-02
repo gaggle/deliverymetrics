@@ -3,7 +3,7 @@ import { stub } from "dev:mock"
 
 import { arrayToAsyncGenerator, asyncToArray } from "../../../utils/mod.ts"
 
-import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../dev-utils.ts"
+import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../../utils/dev-utils.ts"
 
 import { getFakeGithubPull } from "../pulls/mod.ts"
 

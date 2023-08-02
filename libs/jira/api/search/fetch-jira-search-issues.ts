@@ -1,7 +1,7 @@
 import { debug } from "std:log"
 
-import { AbortError } from "../../../errors.ts"
-import { Epoch } from "../../../types.ts"
+import { AbortError } from "../../../../utils/errors.ts"
+import { Epoch } from "../../../../utils/types.ts"
 
 import { fetchJiraApiExhaustively } from "../fetch-jira-api-exhaustively.ts"
 import { jiraRestSpec } from "../jira-rest-api-spec.ts"

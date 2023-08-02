@@ -1,7 +1,7 @@
 import { assertEquals } from "dev:asserts"
 import { FakeTime } from "dev:time"
 
-import { withFakeTime } from "../dev-utils.ts"
+import { withFakeTime } from "../../utils/dev-utils.ts"
 
 import { githubBackoff, rateLimitAwareBackoff } from "./rate-limit-aware-backoff.ts"
 

@@ -12,7 +12,7 @@ import { createFakeGithubClient } from "../../libs/github/testing/mod.ts"
 
 import { parseWithZodSchemaFromRequest, stringToStream } from "../../libs/utils/mod.ts"
 
-import { withStubs } from "../../libs/dev-utils.ts"
+import { withStubs } from "../../utils/dev-utils.ts"
 
 import { fullGithubSync } from "./sync-handler.ts"
 

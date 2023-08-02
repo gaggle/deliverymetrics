@@ -8,7 +8,7 @@ import { getFakeGithubPull } from "../../libs/github/api/pulls/mod.ts"
 import { createFakeReadonlyGithubClient, getFakeSyncInfo } from "../../libs/github/testing/mod.ts"
 import { asyncToArray, single, withFileOpen, withTempDir, yieldDir } from "../../libs/utils/mod.ts"
 
-import { withStubs } from "../../libs/dev-utils.ts"
+import { withStubs } from "../../utils/dev-utils.ts"
 
 import { _internals, reportHandler } from "./report-handler.ts"
 

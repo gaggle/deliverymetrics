@@ -4,7 +4,7 @@ import { assertSpyCalls, Stub, stub } from "dev:mock"
 
 import { createFakeJiraClient, JiraClient } from "../../libs/jira/mod.ts"
 
-import { withStubs } from "../../libs/dev-utils.ts"
+import { withStubs } from "../../utils/dev-utils.ts"
 
 import { fullJiraSync } from "./sync-handler.ts"
 

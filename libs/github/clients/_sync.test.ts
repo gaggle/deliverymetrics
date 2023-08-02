@@ -4,8 +4,8 @@ import { FakeTime } from "dev:time"
 
 import { arrayToAsyncGenerator, asyncToArray, sleep } from "../../utils/mod.ts"
 
-import { withFakeTime, withStubs } from "../../dev-utils.ts"
-import { AbortError } from "../../errors.ts"
+import { withFakeTime, withStubs } from "../../../utils/dev-utils.ts"
+import { AbortError } from "../../../utils/errors.ts"
 
 import { BoundGithubPullCommit, getFakeGithubPullCommit } from "../api/pull-commits/mod.ts"
 import { GithubRelease } from "../api/releases/mod.ts"

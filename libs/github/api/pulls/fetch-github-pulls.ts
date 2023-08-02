@@ -2,7 +2,7 @@ import { debug } from "std:log"
 
 import { stringifyPull } from "../../../utils/mod.ts"
 
-import { Epoch } from "../../../types.ts"
+import { Epoch } from "../../../../utils/types.ts"
 
 import { createGithubRequest } from "../../github-utils/mod.ts"
 

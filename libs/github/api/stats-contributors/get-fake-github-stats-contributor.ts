@@ -1,6 +1,6 @@
 import { deepMerge } from "std:deep-merge"
 
-import { DeepPartial } from "../../../types.ts"
+import { DeepPartial } from "../../../../utils/types.ts"
 
 import { GithubStatsContributor } from "./github-stats-contributor-schema.ts"
 

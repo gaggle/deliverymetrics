@@ -14,7 +14,7 @@ import { GithubActionWorkflow } from "../github/api/action-workflows/mod.ts"
 import { assertUnreachable, dayEnd, dayStart, monthEnd, monthStart, weekEnd, weekStart } from "../utils/mod.ts"
 import { ReadonlyGithubClient } from "../github/mod.ts"
 
-import { AbortError } from "../errors.ts"
+import { AbortError } from "../../utils/errors.ts"
 
 type ActionRunHistogram = {
   start: Date

@@ -10,8 +10,8 @@ import { GithubPull } from "../github/api/pulls/mod.ts"
 
 import { FetchExhaustivelyProgress } from "../fetching/mod.ts"
 
-import { AbortError } from "../errors.ts"
-import { Entries } from "../types.ts"
+import { AbortError } from "../../utils/errors.ts"
+import { Entries } from "../../utils/types.ts"
 
 export async function asyncToArray<T>(
   iter: AsyncIterable<T>,

@@ -3,7 +3,7 @@ import { z } from "zod"
 
 import { asyncToArray } from "../../utils/mod.ts"
 
-import { CannedResponses } from "../../dev-utils.ts"
+import { CannedResponses } from "../../../utils/dev-utils.ts"
 
 import { fetchGithubApiExhaustively } from "./fetch-github-api-exhaustively.ts"
 

@@ -1,4 +1,4 @@
-import { RequestMethod } from "../../types.ts"
+import { RequestMethod } from "../../../utils/types.ts"
 
 export function createGithubRequest(
   {

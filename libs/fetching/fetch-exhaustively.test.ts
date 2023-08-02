@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { assertEquals, assertRejects } from "dev:asserts"
 
-import { CannedResponses } from "../dev-utils.ts"
+import { CannedResponses } from "../../utils/dev-utils.ts"
 
 import { asyncToArray } from "../utils/mod.ts"
 

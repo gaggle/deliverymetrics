@@ -1,6 +1,6 @@
 import { deepMerge } from "std:deep-merge"
 
-import { DeepPartial } from "../../types.ts"
+import { DeepPartial } from "../../../utils/types.ts"
 
 import { SyncInfo } from "../types/sync-info-schema.ts"
 

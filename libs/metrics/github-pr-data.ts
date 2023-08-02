@@ -5,7 +5,7 @@ import { BoundGithubPullCommit } from "../github/api/pull-commits/mod.ts"
 
 import { asyncToArray, daysBetween, filterIter, regexIntersect } from "../utils/mod.ts"
 
-import { AbortError } from "../errors.ts"
+import { AbortError } from "../../utils/errors.ts"
 
 import {
   calculatePullRequestLeadTime,

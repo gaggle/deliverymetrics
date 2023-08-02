@@ -34,7 +34,7 @@ import {
   writeCSVToFile,
 } from "../../libs/utils/mod.ts"
 
-import { AbortError } from "../../libs/errors.ts"
+import { AbortError } from "../../utils/errors.ts"
 
 import {
   githubActionRunAsCsv,

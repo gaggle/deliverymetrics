@@ -3,7 +3,7 @@ import { JiraSearchIssue, JiraSearchNames } from "../jira/api/search/mod.ts"
 import { JiraSyncInfo, ReadonlyJiraClient } from "../jira/mod.ts"
 import { arrayToAsyncGenerator, asyncToArray, daysBetween, flattenObject } from "../utils/mod.ts"
 
-import { AbortError } from "../errors.ts"
+import { AbortError } from "../../utils/errors.ts"
 
 export interface GetJiraSearchDataYielderReturnType {
   fieldKeys: Array<string>

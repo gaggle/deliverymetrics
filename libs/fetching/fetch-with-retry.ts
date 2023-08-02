@@ -2,7 +2,7 @@ import { z } from "zod"
 
 import { filterUndefined, parseWithZodSchemaFromRequest, sleep } from "../utils/mod.ts"
 
-import { AbortError } from "../errors.ts"
+import { AbortError } from "../../utils/errors.ts"
 
 import { githubBackoff, rateLimitAwareBackoff } from "./rate-limit-aware-backoff.ts"
 

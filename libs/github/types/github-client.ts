@@ -1,6 +1,6 @@
 import { EventEmitter } from "event"
 
-import { Epoch } from "../../types.ts"
+import { Epoch } from "../../../utils/types.ts"
 
 import { BoundGithubPullCommit, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
 import { DBCodeFrequency } from "../api/stats-code-frequency/mod.ts"

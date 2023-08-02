@@ -1,4 +1,4 @@
-import { DeepPartial } from "../../../types.ts"
+import { DeepPartial } from "../../../../utils/types.ts"
 
 import { GithubStatsParticipation } from "./github-stats-participation-schema.ts"
 

@@ -4,7 +4,7 @@ import { slugify } from "slugify"
 import { getGithubClient, GithubClient, SyncInfo, syncInfoTypes } from "../../libs/github/mod.ts"
 import { getJiraClient, JiraClient } from "../../libs/jira/mod.ts"
 
-import { AbortError } from "../../libs/errors.ts"
+import { AbortError } from "../../utils/errors.ts"
 
 import { dot, write } from "./formatting.ts"
 

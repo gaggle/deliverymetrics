@@ -2,7 +2,7 @@ import { z } from "zod"
 import { dirname, join, relative, resolve } from "std:path"
 import { ensureDir, ensureFile, walk } from "std:fs"
 
-import { JSONValue } from "../types.ts"
+import { JSONValue } from "../../utils/types.ts"
 
 import { parseWithZodSchema } from "./mod.ts"
 

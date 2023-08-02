@@ -5,7 +5,7 @@ import { debug } from "std:log"
 import { dirname } from "std:path"
 import { ensureDir } from "std:fs"
 
-import type { Filepath } from "../types.ts"
+import type { Filepath } from "../../utils/types.ts"
 
 type DatabaseDocument = Document & { _id?: never }
 

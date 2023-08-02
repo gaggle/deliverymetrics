@@ -3,7 +3,7 @@ import { assertSpyCallArgs, assertSpyCalls, stub } from "dev:mock"
 import { createFakeGithubClient } from "../../libs/github/testing/mod.ts"
 import { createFakeJiraClient } from "../../libs/jira/mod.ts"
 
-import { withStubs } from "../../libs/dev-utils.ts"
+import { withStubs } from "../../utils/dev-utils.ts"
 
 import { _internals, syncHandler } from "./sync-handler.ts"
 

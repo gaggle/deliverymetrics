@@ -5,8 +5,8 @@ import { z } from "zod"
 
 import { getFakeGithubPull } from "../github/api/pulls/mod.ts"
 
-import { withFakeTime } from "../dev-utils.ts"
-import { AbortError } from "../errors.ts"
+import { withFakeTime } from "../../utils/dev-utils.ts"
+import { AbortError } from "../../utils/errors.ts"
 
 import {
   arrayToAsyncGenerator,
