@@ -2,10 +2,10 @@
   "tasks": {
     "compile": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --allow-ffi --unstable --output $INIT_CWD/deliverymetrics$SUFFIX $EXTRA_ARGS ./mod.ts",
     "coverage": "scripts/run-coverage.sh",
-    "dev:cli": "nice -20 deno task test --watch ./cli",
+    "dev:cli": "nice -20 deno task test --watch --no-clear-screen ./cli",
     "dev:fixtures": "deno run -A dev-fixtures/mod.ts",
-    "dev:libs": "nice -20 deno task test --watch ./libs",
-    "dev:utils": "nice -20 deno task test --watch ./utils",
+    "dev:libs": "nice -20 deno task test --watch --no-clear-screen ./libs",
+    "dev:utils": "nice -20 deno task test --watch --no-clear-screen ./utils",
     "lint": "deno fmt --check && deno check mod.ts dev-fixtures/mod.ts && deno lint",
     "lint:fix": "deno fmt && deno check mod.ts dev-fixtures/mod.ts && deno lint",
     "run": "deno run --unstable -A mod.ts",
