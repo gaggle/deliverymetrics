@@ -1,4 +1,3 @@
-import { handlers, setup as logSetup } from "std:log"
 import { dirname, join, resolve } from "std:path"
 
 import { isRegexLike, parseRegexLike } from "../utils/mod.ts"
@@ -9,25 +8,9 @@ import { yargs, YargsArguments, YargsInstance } from "../cli/yargs.ts"
 
 import { reportHandler, ReportSpec, syncHandler, SyncSpec } from "./handlers/mod.ts"
 import { GithubSync, JiraSync, loadConfiguration } from "./configuration/mod.ts"
+import { defaultLogLevel, LogLevel, logLevels, setupLogging } from "../utils/logging.ts"
 
-const logLevels = ["DEBUG", "INFO", "WARNING"] as const
-type LogLevel = typeof logLevels[number]
-const defaultLogLevel: LogLevel = "INFO"
 const ver = await version()
-
-function setupLogging(level: LogLevel) {
-  logSetup({
-    handlers: {
-      console: new handlers.ConsoleHandler("DEBUG"),
-    },
-    loggers: {
-      default: {
-        level,
-        handlers: ["console"],
-      },
-    },
-  })
-}
 
 /**
  * Global counter of SIGINT attempts
