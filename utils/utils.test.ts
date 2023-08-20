@@ -623,8 +623,27 @@ Deno.test("parseRegexLike", async (t) => {
 })
 
 Deno.test("filterUndefined", async (t) => {
-  await t.step("removes undefined fields", () => {
-    assertEquals(filterUndefined({ foo: "bar", ham: undefined } as const), { foo: "bar" } as const)
+  await t.step("removes undefined fields from obj", () => {
+    assertEquals(filterUndefined({ foo: "bar", ham: undefined }), { foo: "bar" })
+  })
+
+  await t.step("removes undefined fields from const obj", () => {
+    const actual = filterUndefined({ foo: "bar", ham: undefined } as const)
+    assertEquals(actual, { foo: "bar" } as const)
+  })
+
+  await t.step("can be used where merging in default values", () => {
+    const actual = filterUndefined({
+      foo: "foo",
+      ...filterUndefined({} as {
+        foo?: string
+      }),
+    })
+    assertEquals(actual, { foo: "foo" })
+  })
+
+  await t.step("removes undefined elements in array", () => {
+    assertEquals(filterUndefined(["foo", undefined]), ["foo"])
   })
 })
 

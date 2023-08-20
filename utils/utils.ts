@@ -489,15 +489,22 @@ export function parseRegexLike(regexLike: string): RegExp {
   return new RegExp(regexLike.slice(1, -1))
 }
 
-type FilterUndefined<T> = Omit<T, { [K in keyof T]: T[K] extends undefined ? K : never }[keyof T]>
+type NonUndefinedKeys<T> = Omit<T, { [K in keyof T]: T[K] extends undefined ? K : never }[keyof T]>
 
-export function filterUndefined<T extends { [key: string]: unknown }>(obj: T): FilterUndefined<T> {
-  for (const key of Object.keys(obj)) {
-    if (obj[key] === undefined) {
-      delete obj[key]
+export function filterUndefined<T>(obj: T): NonUndefinedKeys<T>
+export function filterUndefined<T>(arr: T[]): T[]
+export function filterUndefined<T>(input: T | T[]): NonUndefinedKeys<T> | T[] {
+  if (Array.isArray(input)) {
+    return input.filter((el) => el !== undefined) as T[]
+  } else {
+    const output: Partial<T> = {}
+    for (const [key, value] of Object.entries(input as Record<keyof T, T[keyof T]>)) {
+      if (value !== undefined && value !== null) {
+        output[key as keyof T] = value as T[keyof T]
+      }
     }
+    return output as NonUndefinedKeys<T>
   }
-  return obj
 }
 
 export function stringToStream(content: string): ReadableStream<Uint8Array> {
