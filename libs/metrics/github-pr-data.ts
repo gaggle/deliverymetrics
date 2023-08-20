@@ -1,11 +1,9 @@
-import { ReadonlyGithubClient } from "../github/mod.ts"
-
-import { GithubPull, isMergedGithubPull } from "../github/api/pulls/mod.ts"
-import { BoundGithubPullCommit } from "../github/api/pull-commits/mod.ts"
-
+import { AbortError } from "../../utils/mod.ts"
 import { asyncToArray, daysBetween, filterIter, regexIntersect } from "../../utils/mod.ts"
 
-import { AbortError } from "../../utils/errors.ts"
+import { BoundGithubPullCommit } from "../github/api/pull-commits/mod.ts"
+import { GithubPull, isMergedGithubPull } from "../github/api/pulls/mod.ts"
+import { ReadonlyGithubClient } from "../github/mod.ts"
 
 import {
   calculatePullRequestLeadTime,

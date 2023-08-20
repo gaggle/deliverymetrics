@@ -1,9 +1,9 @@
 import { Acceptable, Database, Document } from "aloedb"
 import { Mutex } from "semaphore"
-import { Schema as ZodSchema } from "zod"
+import { ensureDir } from "std:fs"
 import { debug } from "std:log"
 import { dirname } from "std:path"
-import { ensureDir } from "std:fs"
+import { Schema as ZodSchema } from "zod"
 
 import type { Filepath } from "../../utils/types.ts"
 

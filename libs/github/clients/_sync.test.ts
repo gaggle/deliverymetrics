@@ -3,25 +3,24 @@ import { assertSpyCalls, returnsNext, Stub, stub } from "dev:mock"
 import { FakeTime } from "dev:time"
 
 import { arrayToAsyncGenerator, asyncToArray, sleep } from "../../../utils/mod.ts"
-
 import { withFakeTime, withStubs } from "../../../utils/dev-utils.ts"
 import { AbortError } from "../../../utils/errors.ts"
 
+import { getFakeGithubActionRun, GithubActionRun } from "../api/action-run/mod.ts"
+import { getFakeGithubActionWorkflow, GithubActionWorkflow } from "../api/action-workflows/mod.ts"
+import { getFakeGithubCommit, GithubCommit } from "../api/commits/mod.ts"
 import { BoundGithubPullCommit, getFakeGithubPullCommit } from "../api/pull-commits/mod.ts"
+import { getFakeGithubPull, GithubPull } from "../api/pulls/mod.ts"
 import { GithubRelease } from "../api/releases/mod.ts"
 import { GithubStatsCodeFrequency } from "../api/stats-code-frequency/mod.ts"
 import { GithubStatsCommitActivity } from "../api/stats-commit-activity/mod.ts"
 import { GithubStatsContributor } from "../api/stats-contributors/mod.ts"
 import { GithubStatsParticipation } from "../api/stats-participation/mod.ts"
 import { GithubStatsPunchCard } from "../api/stats-punch-card/mod.ts"
-import { getFakeGithubActionRun, GithubActionRun } from "../api/action-run/mod.ts"
-import { getFakeGithubActionWorkflow, GithubActionWorkflow } from "../api/action-workflows/mod.ts"
-import { getFakeGithubCommit, GithubCommit } from "../api/commits/mod.ts"
-import { getFakeGithubPull, GithubPull } from "../api/pulls/mod.ts"
-
-import { GithubClient, SyncInfo } from "../types/mod.ts"
 
 import { createFakeGithubClient, getFakeSyncInfo } from "../testing/mod.ts"
+
+import { GithubClient, SyncInfo } from "../types/mod.ts"
 
 import { _internals } from "./aloe-github-client.ts"
 

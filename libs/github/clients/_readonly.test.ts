@@ -3,8 +3,7 @@ import { assertEquals } from "dev:asserts"
 import { asyncToArray } from "../../../utils/mod.ts"
 
 import { BoundGithubPullCommit } from "../api/pull-commits/mod.ts"
-import { GithubPull } from "../api/pulls/mod.ts"
-import { getFakeGithubPull } from "../api/pulls/mod.ts"
+import { getFakeGithubPull, GithubPull } from "../api/pulls/mod.ts"
 
 import { createFakeGithubClient, createFakeReadonlyGithubClient } from "../testing/mod.ts"
 

@@ -1,5 +1,5 @@
-import { GithubActionWorkflow } from "../../libs/github/api/action-workflows/mod.ts"
 import { GithubActionRun, githubActionRunSchema } from "../../libs/github/api/action-run/mod.ts"
+import { GithubActionWorkflow } from "../../libs/github/api/action-workflows/mod.ts"
 
 import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../utils/mod.ts"
 

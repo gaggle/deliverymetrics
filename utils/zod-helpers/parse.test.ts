@@ -1,8 +1,8 @@
-import { z } from "zod"
 import { assertThrows } from "dev:asserts"
+import { z } from "zod"
 
-import { parseWithZodSchemaFromRequest } from "./parse.ts"
 import { EnrichedZodError } from "./errors.ts"
+import { parseWithZodSchemaFromRequest } from "./parse.ts"
 
 Deno.test("parseWithZodSchemaFromRequest", async (t) => {
   await t.step("contains curl command", async () => {

@@ -1,8 +1,8 @@
+import { brightRed } from "std:color"
+import { distinct } from "std:distinct"
+import { debug, getLogger, Logger } from "std:log"
 import type SemVer from "tea-semver"
 import { parse } from "tea-semver"
-import { brightRed } from "std:color"
-import { debug, getLogger, Logger } from "std:log"
-import { distinct } from "std:distinct"
 import { z } from "zod"
 
 import { AbortError } from "./errors.ts"

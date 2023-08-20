@@ -1,7 +1,6 @@
-import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
-
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
+import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
 import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { GithubStatsCodeFrequency } from "./github-stats-code-frequency-schema.ts"

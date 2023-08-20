@@ -1,6 +1,6 @@
 import { CSVWriteCellOptions, CSVWriterOptions, writeCSVObjects } from "csv"
-import { debug } from "std:log"
 import { ensureFile } from "std:fs"
+import { debug } from "std:log"
 
 import { arraySubtract, arraySubtractRegEx, mapIter, withFileOpen, withTempFile } from "./mod.ts"
 

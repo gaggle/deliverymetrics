@@ -1,13 +1,12 @@
-import { assertEquals, assertObjectMatch } from "dev:asserts"
-import { join } from "std:path"
 import { readCSVObjects } from "csv"
+import { assertEquals, assertObjectMatch } from "dev:asserts"
 import { stub } from "dev:mock"
+import { join } from "std:path"
 
 import { getFakeGithubPull } from "../../libs/github/api/pulls/mod.ts"
-
 import { createFakeReadonlyGithubClient, getFakeSyncInfo } from "../../libs/github/testing/mod.ts"
-import { asyncToArray, single, withFileOpen, withTempDir, yieldDir } from "../../utils/mod.ts"
 
+import { asyncToArray, single, withFileOpen, withTempDir, yieldDir } from "../../utils/mod.ts"
 import { withStubs } from "../../utils/dev-utils.ts"
 
 import { _internals, reportHandler } from "./report-handler.ts"

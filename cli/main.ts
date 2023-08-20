@@ -1,14 +1,18 @@
 import { dirname, join, resolve } from "std:path"
 
-import { isRegexLike, parseRegexLike } from "../utils/mod.ts"
 import { parseGithubUrl } from "../libs/github/mod.ts"
 
-import { version } from "./version.ts"
+import { isRegexLike, parseRegexLike } from "../utils/mod.ts"
+
 import { yargs, YargsArguments, YargsInstance } from "../cli/yargs.ts"
 
-import { reportHandler, ReportSpec, syncHandler, SyncSpec } from "./handlers/mod.ts"
-import { GithubSync, JiraSync, loadConfiguration } from "./configuration/mod.ts"
 import { defaultLogLevel, LogLevel, logLevels, setupLogging } from "../utils/logging.ts"
+
+import { GithubSync, JiraSync, loadConfiguration } from "./configuration/mod.ts"
+
+import { reportHandler, ReportSpec, syncHandler, SyncSpec } from "./handlers/mod.ts"
+
+import { version } from "./version.ts"
 
 const ver = await version()
 

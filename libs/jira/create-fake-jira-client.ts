@@ -8,8 +8,8 @@ import {
 } from "./api/search/mod.ts"
 
 import { AloeDBReadonlyJiraClient, AloeDBSyncingJiraClient } from "./jira-client.ts"
-import { JiraClient, ReadonlyJiraClient } from "./types.ts"
 import { JiraSyncInfo, jiraSyncInfoSchema } from "./jira-sync-info-schema.ts"
+import { JiraClient, ReadonlyJiraClient } from "./types.ts"
 
 async function getDb(
   opts: Partial<{

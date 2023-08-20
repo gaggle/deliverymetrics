@@ -1,7 +1,7 @@
 import { githubPullSchema } from "../../libs/github/api/pulls/mod.ts"
+import { yieldPullRequestData } from "../../libs/metrics/mod.ts"
 
 import { extractZodSchemaKeys, flattenObject, stringifyObject, toDays } from "../../utils/mod.ts"
-import { yieldPullRequestData } from "../../libs/metrics/mod.ts"
 
 const extraHeaders = [
   "Lead Time (in days)",

@@ -1,5 +1,6 @@
-import { toDays } from "../../utils/mod.ts"
 import { yieldPullRequestHistogram } from "../../libs/metrics/mod.ts"
+
+import { toDays } from "../../utils/mod.ts"
 
 export const pullRequestHistogramHeaders = [
   "Period Start",

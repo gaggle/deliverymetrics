@@ -1,7 +1,7 @@
 import { assertEquals } from "dev:asserts"
 
-import { getFakeGithubPull } from "../api/pulls/mod.ts"
 import { getFakeGithubPullCommit } from "../api/pull-commits/mod.ts"
+import { getFakeGithubPull } from "../api/pulls/mod.ts"
 
 import { sortPullCommitsByKey, sortPullsByKey } from "./sorting.ts"
 

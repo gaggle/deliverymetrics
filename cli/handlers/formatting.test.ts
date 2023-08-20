@@ -1,5 +1,5 @@
-import { StringWriter } from "std:io"
 import { assertEquals } from "dev:asserts"
+import { StringWriter } from "std:io"
 
 import { dot, write } from "./formatting.ts"
 

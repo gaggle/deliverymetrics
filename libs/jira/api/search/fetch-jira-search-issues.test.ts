@@ -2,12 +2,11 @@ import { assertEquals, assertInstanceOf } from "dev:asserts"
 import { stub } from "dev:mock"
 
 import { arrayToAsyncGenerator, asyncToArray } from "../../../../utils/mod.ts"
-
 import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../../utils/dev-utils.ts"
 
 import { fetchJiraApiExhaustively } from "../fetch-jira-api-exhaustively.ts"
-import { jiraRestSpec } from "../jira-rest-api-spec.ts"
 import { getFakeJiraRestSearchResponse } from "../get-fake-rest-api-response.ts"
+import { jiraRestSpec } from "../jira-rest-api-spec.ts"
 
 import { _internals, fetchJiraSearchIssues } from "./fetch-jira-search-issues.ts"
 import { getFakeJiraIssue } from "./get-fake-jira-issue.ts"

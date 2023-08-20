@@ -1,17 +1,14 @@
-import { STATUS_TEXT } from "std:http-status"
-import { StringWriter } from "std:io"
 import { assertEquals } from "dev:asserts"
 import { assertSpyCalls, Stub, stub } from "dev:mock"
+import { STATUS_TEXT } from "std:http-status"
+import { StringWriter } from "std:io"
 
 import { getFakeGithubPull } from "../../libs/github/api/pulls/mod.ts"
-
+import { createFakeGithubClient } from "../../libs/github/testing/mod.ts"
+import { GithubClient } from "../../libs/github/types/mod.ts"
 import { githubRestSpec } from "../../libs/github/api/github-rest-api-spec.ts"
 
-import { GithubClient } from "../../libs/github/types/mod.ts"
-import { createFakeGithubClient } from "../../libs/github/testing/mod.ts"
-
 import { parseWithZodSchemaFromRequest, stringToStream } from "../../utils/mod.ts"
-
 import { withStubs } from "../../utils/dev-utils.ts"
 
 import { fullGithubSync } from "./sync-handler.ts"

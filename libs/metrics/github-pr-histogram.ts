@@ -1,10 +1,7 @@
 import { debug } from "std:log"
 
-import { GithubPull, MergedGithubPull } from "../github/api/pulls/mod.ts"
-
-import { ReadonlyGithubClient } from "../github/mod.ts"
-
 import {
+  AbortError,
   assertUnreachable,
   dayEnd,
   daysBetween,
@@ -17,7 +14,8 @@ import {
   weekStart,
 } from "../../utils/mod.ts"
 
-import { AbortError } from "../../utils/errors.ts"
+import { GithubPull, MergedGithubPull } from "../github/api/pulls/mod.ts"
+import { ReadonlyGithubClient } from "../github/mod.ts"
 
 import { calculatePullRequestLeadTime, calculatePullRequestTimeToMerge } from "./github-pr-engineering-metrics.ts"
 

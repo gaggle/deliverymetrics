@@ -1,7 +1,8 @@
-import { z } from "zod"
 import { assertEquals, assertMatch, assertRejects } from "dev:asserts"
 import { dirname, fromFileUrl, join, resolve } from "std:path"
+import { z } from "zod"
 
+import { asyncToArray, EnrichedZodError } from "./mod.ts"
 import {
   dirExists,
   ensureFiles,
@@ -14,8 +15,6 @@ import {
   withTempFile,
   yieldDir,
 } from "./path-and-file-utils.ts"
-
-import { asyncToArray, EnrichedZodError } from "./mod.ts"
 
 const modulePath = fromFileUrl(import.meta.url)
 

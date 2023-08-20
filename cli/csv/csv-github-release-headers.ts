@@ -1,6 +1,6 @@
 import { githubReleaseSchema } from "../../libs/github/api/releases/mod.ts"
-
 import { yieldReleaseData } from "../../libs/metrics/mod.ts"
+
 import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../utils/mod.ts"
 
 const extraHeaders = [] as const

@@ -1,6 +1,6 @@
 import { jiraSearchIssueSchema } from "../../libs/jira/api/search/mod.ts"
-
 import { GetJiraSearchDataYielderReturnType } from "../../libs/metrics/mod.ts"
+
 import { arraySubtract, extractZodSchemaKeys, flattenObject, stringifyObject } from "../../utils/mod.ts"
 
 export const ignoreHeaders = ["changelog.histories", "transitions"]

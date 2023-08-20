@@ -1,11 +1,10 @@
 import { assertEquals } from "dev:asserts"
 
-import { getFakeGithubStatsParticipation } from "../github/api/stats-participation/mod.ts"
-import { getFakeGithubStatsContributor } from "../github/api/stats-contributors/mod.ts"
-
-import { createFakeReadonlyGithubClient, getFakeSyncInfo } from "../github/testing/mod.ts"
-
 import { asyncToArray } from "../../utils/mod.ts"
+
+import { getFakeGithubStatsContributor } from "../github/api/stats-contributors/mod.ts"
+import { getFakeGithubStatsParticipation } from "../github/api/stats-participation/mod.ts"
+import { createFakeReadonlyGithubClient, getFakeSyncInfo } from "../github/testing/mod.ts"
 
 import { yieldStatsContributors, yieldStatsParticipation } from "./github-stats-data.ts"
 

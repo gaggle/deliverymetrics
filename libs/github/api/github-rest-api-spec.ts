@@ -1,16 +1,27 @@
 import { z } from "zod"
 
-import { GithubPull, githubPullSchema } from "./pulls/mod.ts"
 import { githubActionRunSchema } from "./action-run/mod.ts"
+
 import { githubActionWorkflowSchema } from "./action-workflows/mod.ts"
+
 import { githubCommitSchema } from "./commits/mod.ts"
+
 import { githubPullCommitSchema } from "./pull-commits/mod.ts"
+
+import { GithubPull, githubPullSchema } from "./pulls/mod.ts"
+
 import { githubReleaseSchema } from "./releases/mod.ts"
+
 import { githubRepositorySchema } from "./repository/mod.ts"
+
 import { githubStatsCodeFrequencySchema } from "./stats-code-frequency/mod.ts"
+
 import { githubStatsCommitActivitySchema } from "./stats-commit-activity/mod.ts"
+
 import { githubStatsContributorSchema } from "./stats-contributors/mod.ts"
+
 import { githubStatsParticipationSchema } from "./stats-participation/mod.ts"
+
 import { githubStatsPunchCardSchema } from "./stats-punch-card/mod.ts"
 
 export const githubRestSpec = {

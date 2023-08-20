@@ -1,8 +1,8 @@
 import { deepMerge } from "std:deep-merge"
 
-import { GithubActionWorkflow } from "./github-action-workflow-schema.ts"
-
 import { DeepPartial } from "../../../../utils/types.ts"
+
+import { GithubActionWorkflow } from "./github-action-workflow-schema.ts"
 
 export function getFakeGithubActionWorkflow(partial: DeepPartial<GithubActionWorkflow> = {}): GithubActionWorkflow {
   const base: GithubActionWorkflow = {

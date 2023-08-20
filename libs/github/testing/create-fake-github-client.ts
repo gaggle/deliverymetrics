@@ -8,9 +8,9 @@ import { GithubPull, githubPullSchema } from "../api/pulls/mod.ts"
 import { GithubRelease, githubReleaseSchema } from "../api/releases/mod.ts"
 import { DBCodeFrequency, dbCodeFrequencySchema } from "../api/stats-code-frequency/mod.ts"
 import { GithubStatsCommitActivity, githubStatsCommitActivitySchema } from "../api/stats-commit-activity/mod.ts"
+import { GithubStatsContributor, githubStatsContributorSchema } from "../api/stats-contributors/mod.ts"
 import { GithubStatsParticipation, githubStatsParticipationSchema } from "../api/stats-participation/mod.ts"
 import { DBPunchCard, dbPunchCardSchema } from "../api/stats-punch-card/mod.ts"
-import { GithubStatsContributor, githubStatsContributorSchema } from "../api/stats-contributors/mod.ts"
 
 import { AloeGithubClient, ReadonlyAloeGithubClient } from "../clients/aloe-github-client.ts"
 

@@ -1,10 +1,9 @@
-import { z } from "zod"
-import { dirname, join, relative, resolve } from "std:path"
 import { ensureDir, ensureFile, walk } from "std:fs"
-
-import { JSONValue } from "./types.ts"
+import { dirname, join, relative, resolve } from "std:path"
+import { z } from "zod"
 
 import { parseWithZodSchema } from "./mod.ts"
+import { JSONValue } from "./types.ts"
 
 export async function pathExists(p: string): Promise<boolean> {
   try {

@@ -1,10 +1,9 @@
 import { assertEquals } from "dev:asserts"
 
-import { getFakeGithubActionRun } from "../github/api/action-run/mod.ts"
-
-import { createFakeReadonlyGithubClient } from "../github/testing/mod.ts"
-
 import { asyncToArray } from "../../utils/mod.ts"
+
+import { getFakeGithubActionRun } from "../github/api/action-run/mod.ts"
+import { createFakeReadonlyGithubClient } from "../github/testing/mod.ts"
 
 import { yieldActionRunHistogram } from "./github-action-run-histogram.ts"
 

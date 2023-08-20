@@ -1,12 +1,13 @@
 import { Acceptable, exists, Query } from "aloedb"
 import { EventEmitter } from "event"
+import { debug } from "std:log"
 import { join } from "std:path"
 
-import { AloeDatabase } from "../db/mod.ts"
+import { AbortError } from "../../utils/mod.ts"
 import { hash, sortObject } from "../../utils/mod.ts"
-
-import { AbortError } from "../../utils/errors.ts"
 import { Epoch } from "../../utils/types.ts"
+
+import { AloeDatabase } from "../db/mod.ts"
 
 import {
   DBJiraSearchIssue,
@@ -16,9 +17,8 @@ import {
   fetchJiraSearchIssues,
 } from "./api/search/mod.ts"
 
-import { JiraClient, JiraClientEvents, ReadonlyJiraClient } from "./types.ts"
 import { JiraSyncInfo, jiraSyncInfoSchema } from "./jira-sync-info-schema.ts"
-import { debug } from "std:log"
+import { JiraClient, JiraClientEvents, ReadonlyJiraClient } from "./types.ts"
 
 interface AloeJiraClientDb {
   searchIssues: AloeDatabase<DBJiraSearchIssue>

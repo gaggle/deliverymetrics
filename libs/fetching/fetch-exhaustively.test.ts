@@ -1,9 +1,8 @@
-import { z } from "zod"
 import { assertEquals, assertRejects } from "dev:asserts"
-
-import { CannedResponses } from "../../utils/dev-utils.ts"
+import { z } from "zod"
 
 import { asyncToArray } from "../../utils/mod.ts"
+import { CannedResponses } from "../../utils/dev-utils.ts"
 
 import { fetchExhaustively, FetchExhaustivelyOpts } from "./fetch-exhaustively.ts"
 

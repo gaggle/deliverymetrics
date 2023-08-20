@@ -1,6 +1,6 @@
-import { StringWriter } from "std:io"
 import { assertEquals } from "dev:asserts"
 import { assertSpyCalls, Stub, stub } from "dev:mock"
+import { StringWriter } from "std:io"
 
 import { createFakeJiraClient, JiraClient } from "../../libs/jira/mod.ts"
 

@@ -1,10 +1,10 @@
-import { join } from "std:path"
 import { slugify } from "slugify"
+import { join } from "std:path"
 
 import { getGithubClient, GithubClient, SyncInfo, syncInfoTypes } from "../../libs/github/mod.ts"
 import { getJiraClient, JiraClient } from "../../libs/jira/mod.ts"
 
-import { AbortError } from "../../utils/errors.ts"
+import { AbortError } from "../../utils/mod.ts"
 
 import { dot, write } from "./formatting.ts"
 

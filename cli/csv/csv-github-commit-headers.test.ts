@@ -1,7 +1,10 @@
-import { githubCommitsAsCsv } from "./csv-github-commit-headers.ts"
-import { arrayToAsyncGenerator, asyncToArray } from "../../utils/utils.ts"
-import { getFakeGithubCommit } from "../../libs/github/api/commits/get-fake-github-commit.ts"
 import { assertEquals } from "dev:asserts"
+
+import { getFakeGithubCommit } from "../../libs/github/api/commits/get-fake-github-commit.ts"
+
+import { arrayToAsyncGenerator, asyncToArray } from "../../utils/utils.ts"
+
+import { githubCommitsAsCsv } from "./csv-github-commit-headers.ts"
 
 Deno.test("githubCommitsAsCsv", async (t) => {
   await t.step("converts commit data to a csv commit row", async () => {

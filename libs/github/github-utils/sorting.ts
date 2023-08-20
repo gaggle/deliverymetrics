@@ -1,8 +1,8 @@
 import { assertUnreachable } from "../../../utils/mod.ts"
 
-import { GithubPull, GithubPullDateKey } from "../api/pulls/mod.ts"
 import { GithubActionRun } from "../api/action-run/mod.ts"
 import { BoundGithubPullCommit, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
+import { GithubPull, GithubPullDateKey } from "../api/pulls/mod.ts"
 
 export function sortPullsByKey(
   pulls: Array<GithubPull>,

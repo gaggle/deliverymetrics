@@ -1,10 +1,11 @@
-import { getFakeGithubCommit } from "../github/api/commits/mod.ts"
+import { assertEquals } from "dev:asserts"
 
+import { asyncToArray, first } from "../../utils/utils.ts"
+
+import { getFakeGithubCommit } from "../github/api/commits/mod.ts"
 import { createFakeReadonlyGithubClient, getFakeSyncInfo } from "../github/testing/mod.ts"
 
 import { yieldCommitData } from "./github-commit-data.ts"
-import { assertEquals } from "dev:asserts"
-import { asyncToArray, first } from "../../utils/utils.ts"
 
 Deno.test("yieldCommitData", async (t) => {
   await t.step("yields commit and calculated fields", async () => {

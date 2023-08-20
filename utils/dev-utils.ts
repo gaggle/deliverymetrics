@@ -1,7 +1,7 @@
-import { FakeTime } from "dev:time"
 import { AssertionError } from "dev:asserts"
 import { Spy, spy, Stub } from "dev:mock"
 import { install as mockFetchInstall, mock as mockFetch, uninstall as mockFetchUninstall } from "dev:mock-fetch"
+import { FakeTime } from "dev:time"
 
 import { sleep } from "./mod.ts"
 

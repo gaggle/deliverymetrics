@@ -1,5 +1,6 @@
-import { FetchExhaustivelyProgress } from "./fetch-exhaustively.ts"
 import { debug } from "std:log"
+
+import { FetchExhaustivelyProgress } from "./fetch-exhaustively.ts"
 
 export function stdFetchExhaustivelyProgressLogging(call: FetchExhaustivelyProgress): void {
   switch (call.type) {

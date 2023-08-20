@@ -1,9 +1,8 @@
-import { GithubCommit } from "../github/api/commits/mod.ts"
-
-import { ReadonlyGithubClient } from "../github/mod.ts"
+import { AbortError } from "../../utils/mod.ts"
 import { daysBetween } from "../../utils/mod.ts"
 
-import { AbortError } from "../../utils/errors.ts"
+import { GithubCommit } from "../github/api/commits/mod.ts"
+import { ReadonlyGithubClient } from "../github/mod.ts"
 
 type YieldCommitData = {
   coauthors: string[]
