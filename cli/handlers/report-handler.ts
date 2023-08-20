@@ -26,6 +26,7 @@ import {
   AbortError,
   arrayToAsyncGenerator,
   asyncToArray,
+  filterUndefined,
   inspectIter,
   mapIter,
   mergeAsyncGenerators,
@@ -96,10 +97,12 @@ type ReportSpecGitHub = {
 }
 
 type ReportSpecJira = {
-  host: string
   apiUser: string
   customCompletedDateHeader?: string
   customStartDateHeader?: string
+  devLeadTimeStatuses?: string[]
+  devLeadTimeTypes?: string[]
+  host: string
 }
 
 export interface ReportSpec {
@@ -345,15 +348,17 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
     persistenceDir: join(opts.cacheRoot, "jira", slugify(jira.host), slugify(jira.apiUser)),
   })
 
-  if (jira.customCompletedDateHeader && jira.customStartDateHeader) {
+  const customCompletedDateHeader = jira.customCompletedDateHeader
+  const customStartDateHeader = jira.customStartDateHeader
+  if (customCompletedDateHeader && customStartDateHeader) {
     yield async () => {
       await timeCtx("jira-focusedobjective-team-dashboard-data", async () => {
         const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
-          includeStatuses: ["Review in Prod", "Finished", "Blocked", "In Progress"],
-          includeTypes: ["Story", "Bug"],
+          includeStatuses: jira.devLeadTimeStatuses,
+          includeTypes: jira.devLeadTimeTypes,
           maxDays: opts.dataTimeframe,
           signal: opts.signal,
-          sortBy: { key: "customfield_21123", type: "date" },
+          sortBy: { key: customCompletedDateHeader, type: "date" },
         })
 
         await writeCSVToFile(
@@ -361,8 +366,8 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
           jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues),
           {
             header: [
-              jira.customCompletedDateHeader!, // This whole yield only runs when this is present…
-              jira.customStartDateHeader!, // This whole yield only runs when this is present…
+              customCompletedDateHeader,
+              customStartDateHeader,
               "fields.issuetype.name",
               "key",
               "fields.summary",
@@ -383,7 +388,13 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
       await writeCSVToFile(
         join(opts.outputDir, "jira-search-data.csv"),
         jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues, { maxDescriptionLength: 10 }),
-        { header: jiraSearchDataHeaders({ fieldKeys, fieldKeysToNames }) },
+        {
+          header: jiraSearchDataHeaders({
+            fieldKeys,
+            fieldKeysToNames,
+            includeCustomFields: [...filterUndefined([customCompletedDateHeader, customStartDateHeader])],
+          }),
+        },
       )
     })
   }
