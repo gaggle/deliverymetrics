@@ -303,7 +303,9 @@ Deno.test("getJiraSearchDataYielder", async (t) => {
         searchNames: [getFakeDbJiraSearchNames()],
       })
 
-      const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client, { sortBy: { key: "foo", type: "date" } })
+      const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client, {
+        sortBy: { key: "fields.foo", type: "date" },
+      })
       const results = await asyncToArray(yieldJiraSearchIssues)
       assertEquals(results.map((el) => el.key), ["3", "2", "4", "1"])
     })

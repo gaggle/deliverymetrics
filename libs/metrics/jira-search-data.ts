@@ -1,5 +1,12 @@
-import { AbortError } from "../../utils/mod.ts"
-import { arrayToAsyncGenerator, asyncToArray, daysBetween, flattenObject } from "../../utils/mod.ts"
+import {
+  AbortError,
+  arrayToAsyncGenerator,
+  assertUnreachable,
+  asyncToArray,
+  daysBetween,
+  flattenObject,
+  getValueByPath,
+} from "../../utils/mod.ts"
 
 import { JiraSearchIssue, JiraSearchNames } from "../jira/api/search/mod.ts"
 import { JiraSyncInfo, ReadonlyJiraClient } from "../jira/mod.ts"
@@ -79,12 +86,13 @@ async function* yieldJiraSearchData(
     sortBy: { key: string; type: "date" }
   }>,
 ): AsyncGenerator<JiraSearchIssue> {
-  const issues = opts.sortBy
+  const sortBy = opts.sortBy
+  const issues = sortBy
     ? arrayToAsyncGenerator((await asyncToArray(client.findSearchIssues())).sort((a, b) => {
-      const aVal = a.issue?.fields?.[opts.sortBy!.key]
-      const bVal = b.issue?.fields?.[opts.sortBy!.key]
+      const aVal = getValueByPath(a.issue, sortBy.key)
+      const bVal = getValueByPath(b.issue, sortBy.key)
 
-      switch (opts.sortBy!.type) {
+      switch (sortBy.type) {
         case "date": {
           const aT = newEpochMaybe(aVal)
           const bT = newEpochMaybe(bVal)
@@ -95,6 +103,8 @@ async function* yieldJiraSearchData(
           if (aT > bT) return 1
           return 0
         }
+        default:
+          assertUnreachable(sortBy.type)
       }
     }))
     : client.findSearchIssues()
