@@ -645,6 +645,20 @@ Deno.test("filterUndefined", async (t) => {
   await t.step("removes undefined elements in array", () => {
     assertEquals(filterUndefined(["foo", undefined]), ["foo"])
   })
+
+  await t.step("removes undefined from the passed-in type", () => {
+    const input: Array<string | undefined> = ["foo", undefined]
+    const result: string[] = filterUndefined(input)
+    const expected: string[] = ["foo"]
+    assertEquals(result, expected)
+  })
+
+  await t.step("also handles `as const` types", () => {
+    const input = ["foo", undefined] as const
+    const result = filterUndefined(input)
+    const expected = ["foo"]
+    assertEquals(result, expected)
+  })
 })
 
 Deno.test("stringToStream & streamToString", async (t) => {

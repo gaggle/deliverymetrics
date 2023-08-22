@@ -489,10 +489,12 @@ export function parseRegexLike(regexLike: string): RegExp {
   return new RegExp(regexLike.slice(1, -1))
 }
 
+type WithoutUndefined<T> = T extends readonly (infer U)[] ? U extends undefined ? never : U : never
 type NonUndefinedKeys<T> = Omit<T, { [K in keyof T]: T[K] extends undefined ? K : never }[keyof T]>
 
+export function filterUndefined<T extends readonly (unknown | undefined)[]>(input: T): WithoutUndefined<T>[]
+export function filterUndefined<T>(arr: Array<T | undefined>): T[]
 export function filterUndefined<T>(obj: T): NonUndefinedKeys<T>
-export function filterUndefined<T>(arr: T[]): T[]
 export function filterUndefined<T>(input: T | T[]): NonUndefinedKeys<T> | T[] {
   if (Array.isArray(input)) {
     return input.filter((el) => el !== undefined) as T[]
