@@ -1,4 +1,4 @@
-import { assertEquals, assertObjectMatch } from "dev:asserts"
+import { assertEquals } from "dev:asserts"
 
 import { asyncSingle, asyncToArray } from "../../utils/mod.ts"
 
@@ -32,22 +32,14 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
 
       const result = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily" }))
 
-      await t.step("calculates a the start and end period of a single merged PR", () =>
-        assertObjectMatch(result, {
-          start: new Date("2022-01-05T00:00:00.000Z"),
-          end: new Date("2022-01-05T23:59:59.999Z"),
-        }))
+      await t.step("calculates a the start and end period of a single merged PR", () => {
+        assertEquals(result.start, new Date("2022-01-15T00:00:00.000Z"))
+        assertEquals(result.end, new Date("2022-01-15T23:59:59.999Z"))
+      })
 
-      await t.step("calculates that one PR got merged", () => assertObjectMatch(result, { mergedPRs: [1] }))
-
-      await t.step(
-        "calculates Lead Time",
-        () => assertObjectMatch(result, { leadTime: 518_400_000 }),
-      )
-      await t.step(
-        "calculates Time to Merge",
-        () => assertObjectMatch(result, { timeToMerge: 1_296_000_000 }),
-      )
+      await t.step("calculates that one PR got merged", () => assertEquals(result.mergedPRs, [1]))
+      await t.step("calculates Lead Time", () => assertEquals(result.leadTime, 518_400_000))
+      await t.step("calculates Time to Merge", () => assertEquals(result.timeToMerge, 1_296_000_000))
     })
 
     await t.step(
@@ -93,25 +85,17 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           })],
         })
 
-        assertObjectMatch(
-          await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", excludeLabels: ["Bar 😎"] })),
-          {
-            start: new Date("2022-09-30T00:00:00.000Z"),
-            end: new Date("2022-09-30T23:59:59.999Z"),
-            leadTime: 864_000_000,
-            mergedPRs: [2],
-          },
-        )
+        const actualExclude = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", excludeLabels: ["Bar 😎"] }));
+        assertEquals(actualExclude.start, new Date("2022-09-30T00:00:00.000Z"))
+        assertEquals(actualExclude.end, new Date("2022-09-30T23:59:59.999Z"))
+        assertEquals(actualExclude.leadTime, 864_000_000)
+        assertEquals(actualExclude.mergedPRs, [2])
 
-        assertObjectMatch(
-          await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", includeLabels: ["Bar 😎"] })),
-          {
-            start: new Date("2022-01-05T00:00:00.000Z"),
-            end: new Date("2022-01-05T23:59:59.999Z"),
-            leadTime: 432_000_000,
-            mergedPRs: [1],
-          },
-        )
+        const actualInclude = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", includeLabels: ["Bar 😎"] }));
+        assertEquals(actualInclude.start, new Date("2022-01-05T00:00:00.000Z"))
+        assertEquals(actualInclude.end, new Date("2022-01-05T23:59:59.999Z"))
+        assertEquals(actualInclude.leadTime, 432_000_000)
+        assertEquals(actualInclude.mergedPRs, [1])
       },
     )
 
@@ -148,44 +132,30 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           })],
         })
 
-        assertObjectMatch(
-          await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", excludeBranches: ["branch-name"] })),
-          {
-            start: new Date("2022-09-30T00:00:00.000Z"),
-            end: new Date("2022-09-30T23:59:59.999Z"),
-            leadTime: 864_000_000,
-            mergedPRs: [2],
-          },
-        )
+        const actualExclude = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", excludeBranches: ["branch-name"] }));
+        assertEquals(actualExclude.start, new Date("2022-09-30T00:00:00.000Z"))
+        assertEquals(actualExclude.end, new Date("2022-09-30T23:59:59.999Z"))
+        assertEquals(actualExclude.leadTime, 864_000_000)
+        assertEquals(actualExclude.mergedPRs, [2])
 
         assertEquals(
           await asyncToArray(yieldPullRequestHistogram(github, { mode: "daily", excludeBranches: [/.*branch.*/] })),
           [],
         )
 
-        assertObjectMatch(
-          await asyncSingle(
-            yieldPullRequestHistogram(github, { mode: "daily", includeBranches: ["branch-name"] }),
-          ),
-          {
-            start: new Date("2022-01-05T00:00:00.000Z"),
-            end: new Date("2022-01-05T23:59:59.999Z"),
-            leadTime: 432_000_000,
-            mergedPRs: [1],
-          },
-        )
+        const actualInclude = await asyncSingle(
+          yieldPullRequestHistogram(github, { mode: "daily", includeBranches: ["branch-name"] }),
+        );
+        assertEquals(actualInclude.start, new Date("2022-01-05T00:00:00.000Z"))
+        assertEquals(actualInclude.end, new Date("2022-01-05T23:59:59.999Z"))
+        assertEquals(actualInclude.leadTime, 432_000_000)
+        assertEquals(actualInclude.mergedPRs, [1])
 
-        assertObjectMatch(
-          await asyncSingle(
-            yieldPullRequestHistogram(github, { mode: "daily", includeBranches: [/^branch.*/] }),
-          ),
-          {
-            start: new Date("2022-01-05T00:00:00.000Z"),
-            end: new Date("2022-01-05T23:59:59.999Z"),
-            leadTime: 432_000_000,
-            mergedPRs: [1],
-          },
-        )
+        const actualIncludeRegex = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", includeBranches: [/^branch.*/] }),);
+        assertEquals(actualIncludeRegex.start, new Date("2022-01-05T00:00:00.000Z"))
+        assertEquals(actualIncludeRegex.end, new Date("2022-01-05T23:59:59.999Z"))
+        assertEquals(actualIncludeRegex.leadTime, 432_000_000)
+        assertEquals(actualIncludeRegex.mergedPRs, [1])
       },
     )
 
@@ -278,15 +248,11 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         })],
       })
 
-      assertObjectMatch(
-        await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily" })),
-        {
-          start: new Date("2022-01-20T00:00:00.000Z"),
-          end: new Date("2022-01-20T23:59:59.999Z"),
-          leadTime: 950_400_000,
-          mergedPRs: [1, 2, 3],
-        },
-      )
+      const actual = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily" }));
+      assertEquals(actual.start, new Date("2022-01-20T00:00:00.000Z"))
+      assertEquals(actual.end, new Date("2022-01-20T23:59:59.999Z"))
+      assertEquals(actual.leadTime, 950_400_000)
+      assertEquals(actual.mergedPRs, [1, 2, 3])
     })
   })
 
