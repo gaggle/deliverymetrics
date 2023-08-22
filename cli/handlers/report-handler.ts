@@ -254,6 +254,28 @@ async function* queueGitHubReportJobs(spec: ReportSpecGitHub, { cacheRoot, dataT
     })
   }
 
+  for (const { mode, maxDays } of yieldHistogramTimeframes()) {
+    yield async () => {
+      await timeCtx(`pull-request-lead-times ${mode} histogram`, async () => {
+        await writeCSVToFile(
+          join(outputDir, `pull-request-lead-times-${mode}.csv`),
+          pullRequestHistogramAsCsv(
+            inspectIter(
+              () => dot(),
+              yieldPullRequestHistogram(gh, {
+                mode,
+                maxDays,
+                excludeLabels: spec.pulls?.ignoreLabels,
+                signal,
+              }),
+            ),
+          ),
+          { header: pullRequestHistogramHeaders.slice() },
+        )
+      })
+    }
+  }
+
   yield async () => {
     await timeCtx("releases", async () => {
       await writeCSVToFile(
@@ -312,28 +334,6 @@ async function* queueGitHubReportJobs(spec: ReportSpecGitHub, { cacheRoot, dataT
         { header: githubStatsPunchCardHeaders },
       )
     })
-  }
-
-  for (const { mode, maxDays } of yieldHistogramTimeframes()) {
-    yield async () => {
-      await timeCtx(`${mode} histograms`, async () => {
-        await writeCSVToFile(
-          join(outputDir, `pull-request-lead-times-${mode}.csv`),
-          pullRequestHistogramAsCsv(
-            inspectIter(
-              () => dot(),
-              yieldPullRequestHistogram(gh, {
-                mode,
-                maxDays,
-                excludeLabels: spec.pulls?.ignoreLabels,
-                signal,
-              }),
-            ),
-          ),
-          { header: pullRequestHistogramHeaders.slice() },
-        )
-      })
-    }
   }
 }
 
