@@ -1,5 +1,5 @@
 import { dirname, fromFileUrl, join } from "std:path"
-import { parse as yamlParse } from "std:yaml-encoding"
+import { parse as yamlParse } from "std:yaml"
 
 import { getEnv } from "../utils/mod.ts"
 
