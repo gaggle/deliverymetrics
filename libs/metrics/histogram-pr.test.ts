@@ -6,7 +6,7 @@ import { getFakeGithubPullCommit } from "../github/api/pull-commits/mod.ts"
 import { getFakeGithubPull } from "../github/api/pulls/mod.ts"
 import { createFakeReadonlyGithubClient, getFakeSyncInfo } from "../github/testing/mod.ts"
 
-import { yieldPullRequestHistogram } from "./github-pr-histogram.ts"
+import { yieldPullRequestHistogram } from "./histogram-pr.ts"
 
 Deno.test("yieldPullRequestLeadTime", async (t) => {
   await t.step("for daily lead times", async (t) => {
@@ -85,13 +85,17 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           })],
         })
 
-        const actualExclude = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", excludeLabels: ["Bar 😎"] }));
+        const actualExclude = await asyncSingle(
+          yieldPullRequestHistogram(github, { mode: "daily", excludeLabels: ["Bar 😎"] }),
+        )
         assertEquals(actualExclude.start, new Date("2022-09-30T00:00:00.000Z"))
         assertEquals(actualExclude.end, new Date("2022-09-30T23:59:59.999Z"))
         assertEquals(actualExclude.leadTime, 864_000_000)
         assertEquals(actualExclude.mergedPRs, [2])
 
-        const actualInclude = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", includeLabels: ["Bar 😎"] }));
+        const actualInclude = await asyncSingle(
+          yieldPullRequestHistogram(github, { mode: "daily", includeLabels: ["Bar 😎"] }),
+        )
         assertEquals(actualInclude.start, new Date("2022-01-05T00:00:00.000Z"))
         assertEquals(actualInclude.end, new Date("2022-01-05T23:59:59.999Z"))
         assertEquals(actualInclude.leadTime, 432_000_000)
@@ -132,7 +136,9 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
           })],
         })
 
-        const actualExclude = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", excludeBranches: ["branch-name"] }));
+        const actualExclude = await asyncSingle(
+          yieldPullRequestHistogram(github, { mode: "daily", excludeBranches: ["branch-name"] }),
+        )
         assertEquals(actualExclude.start, new Date("2022-09-30T00:00:00.000Z"))
         assertEquals(actualExclude.end, new Date("2022-09-30T23:59:59.999Z"))
         assertEquals(actualExclude.leadTime, 864_000_000)
@@ -145,13 +151,15 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
 
         const actualInclude = await asyncSingle(
           yieldPullRequestHistogram(github, { mode: "daily", includeBranches: ["branch-name"] }),
-        );
+        )
         assertEquals(actualInclude.start, new Date("2022-01-05T00:00:00.000Z"))
         assertEquals(actualInclude.end, new Date("2022-01-05T23:59:59.999Z"))
         assertEquals(actualInclude.leadTime, 432_000_000)
         assertEquals(actualInclude.mergedPRs, [1])
 
-        const actualIncludeRegex = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily", includeBranches: [/^branch.*/] }),);
+        const actualIncludeRegex = await asyncSingle(
+          yieldPullRequestHistogram(github, { mode: "daily", includeBranches: [/^branch.*/] }),
+        )
         assertEquals(actualIncludeRegex.start, new Date("2022-01-05T00:00:00.000Z"))
         assertEquals(actualIncludeRegex.end, new Date("2022-01-05T23:59:59.999Z"))
         assertEquals(actualIncludeRegex.leadTime, 432_000_000)
@@ -248,7 +256,7 @@ Deno.test("yieldPullRequestLeadTime", async (t) => {
         })],
       })
 
-      const actual = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily" }));
+      const actual = await asyncSingle(yieldPullRequestHistogram(github, { mode: "daily" }))
       assertEquals(actual.start, new Date("2022-01-20T00:00:00.000Z"))
       assertEquals(actual.end, new Date("2022-01-20T23:59:59.999Z"))
       assertEquals(actual.leadTime, 950_400_000)

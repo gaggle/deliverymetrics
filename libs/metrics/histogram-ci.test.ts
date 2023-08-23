@@ -5,7 +5,7 @@ import { asyncToArray } from "../../utils/mod.ts"
 import { getFakeGithubActionRun } from "../github/api/action-run/mod.ts"
 import { createFakeReadonlyGithubClient } from "../github/testing/mod.ts"
 
-import { yieldActionRunHistogram } from "./github-action-run-histogram.ts"
+import { yieldContinuousIntegrationHistogram } from "./histogram-ci.ts"
 
 Deno.test("yieldActionRunHistogram", async (t) => {
   await t.step("for daily histogram", async (t) => {
@@ -34,7 +34,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
       })
 
       assertEquals(
-        await asyncToArray(yieldActionRunHistogram(github, {
+        await asyncToArray(yieldContinuousIntegrationHistogram(github, {
           mode: "daily",
           branch: "main",
           conclusion: /failure|success/,
@@ -76,7 +76,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
       })
 
       assertEquals(
-        await asyncToArray(yieldActionRunHistogram(github, {
+        await asyncToArray(yieldContinuousIntegrationHistogram(github, {
           mode: "daily",
           branch: "main",
           conclusion: "success",
@@ -130,7 +130,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
       })
 
       assertEquals(
-        await asyncToArray(yieldActionRunHistogram(github, {
+        await asyncToArray(yieldContinuousIntegrationHistogram(github, {
           mode: "weekly",
           branch: "main",
           conclusion: "success",
@@ -174,7 +174,7 @@ Deno.test("yieldActionRunHistogram", async (t) => {
       })
 
       assertEquals(
-        await asyncToArray(yieldActionRunHistogram(github, {
+        await asyncToArray(yieldContinuousIntegrationHistogram(github, {
           mode: "monthly",
           branch: "main",
           conclusion: "success",

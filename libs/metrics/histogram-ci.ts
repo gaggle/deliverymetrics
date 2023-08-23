@@ -24,7 +24,7 @@ type ActionRunHistogram = {
   conclusions: Array<string>
 }
 
-export async function* yieldActionRunHistogram(
+export async function* yieldContinuousIntegrationHistogram(
   gh: ReadonlyGithubClient,
   { branch, conclusion, mode, workflow, signal }: {
     branch: string
