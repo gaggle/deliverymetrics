@@ -12,6 +12,7 @@ import {
   getJiraSearchDataYielder,
   yieldActionData,
   yieldCommitData,
+  yieldContinuousIntegrationHistogram,
   yieldPullRequestData,
   yieldPullRequestHistogram,
   yieldReleaseData,
@@ -36,6 +37,8 @@ import {
 } from "../../utils/mod.ts"
 
 import {
+  ciHistogramAsCsv,
+  ciHistogramHeaders,
   githubActionRunAsCsv,
   githubActionRunHeaders,
   githubActionWorkflowAsCsv,
@@ -197,6 +200,30 @@ async function* queueGitHubReportJobs(spec: ReportSpecGitHub, { cacheRoot, dataT
         },
       )
     })
+  }
+
+  for (const { mode, maxDays } of yieldHistogramTimeframes()) {
+    const fileName = `continuous-integration-${mode}.csv`
+    yield async () => {
+      await timeCtx(fileName, async () => {
+        const ciHistogramYielder = yieldContinuousIntegrationHistogram(gh, {
+          mode,
+          maxDays,
+          branch: spec.actionRuns?.branch,
+          signal,
+        })
+        await writeCSVToFile(
+          join(outputDir, fileName),
+          ciHistogramAsCsv(
+            inspectIter(
+              () => dot(),
+              ciHistogramYielder,
+            ),
+          ),
+          { header: ciHistogramHeaders.slice() },
+        )
+      })
+    }
   }
 
   yield async () => {
