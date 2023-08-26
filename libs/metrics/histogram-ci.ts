@@ -8,7 +8,7 @@
  * This metric is useful to answer how often deployments are made (by looking at the workflow that handles deploying),
  * or finding instabilities or bad work-practices that cause a workflow to fail.
  */
-import { AbortError } from "../../utils/mod.ts"
+import { AbortError, daysBetween, filterIter } from "../../utils/mod.ts"
 import { assertUnreachable, dayEnd, dayStart, monthEnd, monthStart, weekEnd, weekStart } from "../../utils/mod.ts"
 
 import { GithubActionRun } from "../github/api/action-run/mod.ts"
@@ -16,21 +16,24 @@ import { GithubActionWorkflow } from "../github/api/action-workflows/mod.ts"
 import { ReadonlyGithubClient } from "../github/mod.ts"
 
 type ActionRunHistogram = {
-  start: Date
-  end: Date
-  count: number
-  ids: Array<number>
-  htmlUrls: Array<string>
+  branches: Array<string>
   conclusions: Array<string>
+  count: number
+  end: Date
+  htmlUrls: Array<string>
+  ids: Array<number>
+  paths: Array<string>
+  start: Date
 }
 
 export async function* yieldContinuousIntegrationHistogram(
   gh: ReadonlyGithubClient,
-  { branch, conclusion, mode, workflow, signal }: {
-    branch: string
-    conclusion: string | RegExp
+  { branch, conclusion, maxDays, mode, workflow, signal }: {
     mode: "daily" | "weekly" | "monthly"
-    workflow: { path: GithubActionWorkflow["path"] }
+    maxDays?: number
+    branch?: string
+    conclusion?: string | RegExp
+    workflow?: { path: GithubActionWorkflow["path"] }
     signal?: AbortSignal
   },
 ): AsyncGenerator<ActionRunHistogram> {
@@ -66,26 +69,45 @@ export async function* yieldContinuousIntegrationHistogram(
 
   function getYieldValue(): ActionRunHistogram {
     return {
-      start: prevPeriod!,
-      end: periodConf.ceil(prevPeriod!),
-      count: accumulator.length,
-      ids: accumulator.map((el) => el.id),
-      htmlUrls: accumulator.map((el) => el.html_url),
+      branches: accumulator
+        .map((el) => el.head_branch)
+        .filter((v, i, a) => a.indexOf(v) === i) // Make unique
+        .sort() as Array<string>,
       conclusions: accumulator
         .map((el) => el.conclusion)
         .filter((el) => !!el) // Remove nulls
         .filter((v, i, a) => a.indexOf(v) === i) // Make unique
         .sort() as Array<string>,
+      count: accumulator.length,
+      end: periodConf.ceil(prevPeriod!),
+      htmlUrls: accumulator.map((el) => el.html_url),
+      ids: accumulator.map((el) => el.id),
+      paths: accumulator
+        .map((el) => el.path)
+        .filter((v, i, a) => a.indexOf(v) === i) // Make unique
+        .sort() as Array<string>,
+      start: prevPeriod!,
     }
   }
 
+  const latestSync = await gh.findLatestSync({ type: "action-run" })
+  if (!latestSync) return
   for await (
-    const run of gh.findActionRuns({
-      branch,
-      conclusion,
-      path: workflow.path,
-      sort: { key: "updated_at", order: "asc" },
-    })
+    const run of filterIter(
+      (run) => {
+        if (daysBetween(new Date(run.created_at), new Date(latestSync.updatedAt!)) > (maxDays || Infinity)) {
+          return false
+        }
+
+        return true
+      },
+      gh.findActionRuns({
+        branch,
+        conclusion,
+        path: workflow?.path,
+        sort: { key: "updated_at", order: "asc" },
+      }),
+    )
   ) {
     if (signal?.aborted) {
       throw new AbortError()
