@@ -82,6 +82,12 @@ Deno.test("regarding the shape of an entry", async (t) => {
       "it finds and dedupes paths",
       () => assertObjectMatch(entry, { paths: ["bar.yml", "foo.yml"] }),
     )
+
+    await t.step("it finds and counts IDs for each status", () => assertObjectMatch(entry, {
+        failureCount: 1, failureIds: [2],
+        successCount: 1, successIds: [1],
+      })
+    )
   })
 })
 

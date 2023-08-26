@@ -19,6 +19,10 @@ Deno.test("convert a CI histogram to a csv row", async () => {
     conclusions: ["failure", "success"],
     paths: ["bar.yml", "foo.yml"],
     htmlUrls: ["https://example.com/1", "https://example.com/2"],
+    successCount: 1,
+    successIds: [1],
+    failureCount: 1,
+    failureIds: [2],
   }])
 
   const result = await asyncSingle(ciHistogramAsCsv(input))
@@ -27,10 +31,16 @@ Deno.test("convert a CI histogram to a csv row", async () => {
     "Period Start": "2022-01-01T00:00:00.000Z",
     "Period End": "2022-01-01T23:59:59.000Z",
     "Branches": "a; b",
-    "# of Runs": "2",
-    "Run IDs": "1; 2",
-    "Conclusions": "failure; success",
     "Paths": "bar.yml; foo.yml",
+    "# of Runs": "2",
+    "# of Success": "1",
+    "# of Failure": "1",
+    "# of Cancelled": "0",
+    "Conclusions": "failure; success",
+    "Run IDs": "1; 2",
+    "Success IDs": "1",
+    "Failure IDs": "2",
+    "Cancelled IDs": "",
   })
 })
 
