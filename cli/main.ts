@@ -156,6 +156,7 @@ export function main(args: Array<string>) {
               branch: configReport.github?.actionRuns?.branch,
               headerOrder: parseRegexLikeStringArray(configReport.github?.actionRuns?.header_order || []),
               ignoreHeaders: parseRegexLikeStringArray(configReport.github?.actionRuns?.ignore_headers || []),
+              workflow: configReport.github?.actionRuns?.workflow,
             },
             actionWorkflows: {
               headerOrder: parseRegexLikeStringArray(configReport.github?.actionWorkflows?.header_order || []),

@@ -53,6 +53,7 @@ const configReportSchema = z.object({
   github: z.object({
     actionRuns: headerOptions(githubActionRunHeaders).extend({
       branch: z.string().optional(),
+      workflow: z.string().optional(),
     }).optional(),
     actionWorkflows: headerOptions(githubActionWorkflowHeaders).optional(),
     pullCommits: headerOptions(githubPullCommitHeaders).optional(),

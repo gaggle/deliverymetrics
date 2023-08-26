@@ -80,6 +80,7 @@ type ReportSpecGitHub = {
     headerOrder: Array<typeof githubActionRunHeaders[number] | RegExp>
     ignoreHeaders: Array<typeof githubActionRunHeaders[number] | RegExp>
     branch?: string
+    workflow?: string
   }
   actionWorkflows?: {
     headerOrder: Array<typeof githubActionWorkflowHeaders[number] | RegExp>
@@ -210,6 +211,7 @@ async function* queueGitHubReportJobs(spec: ReportSpecGitHub, { cacheRoot, dataT
           mode,
           maxDays,
           branch: spec.actionRuns?.branch,
+          workflow: spec.actionRuns?.workflow ? { path: spec.actionRuns?.workflow } : undefined,
           signal,
         })
         await writeCSVToFile(
