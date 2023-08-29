@@ -8,7 +8,7 @@
     "fixtures": "deno run -A --unstable dev-fixtures/mod.ts",
     "format-imports": "deno run -A --unstable bin/fmt-imports.ts .",
     "lint": "deno task format-imports --check && deno fmt --check && deno lint --unstable",
-    "lint:fix": "deno task format-imports && deno fmt --check && deno lint --unstable",
+    "lint:fix": "deno task format-imports && deno fmt && deno lint --unstable",
     "run": "deno run -A --unstable mod.ts",
     "test": "deno test --allow-read --allow-write --allow-env --allow-run --allow-ffi --unstable --parallel"
   },
