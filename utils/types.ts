@@ -30,8 +30,8 @@ type ToTupleRec<Union, Result extends unknown[]> = SpliceOne<Union> extends neve
  * e.g.:
  * ```ts
  * type Obj = { foo: string, bar: number }
- * type Keys:["foo", "bar"] = ToTuple<keyof Obj>
- *
+ * type Keys = ToTuple<keyof Obj>
+ * ToTuple<keyof Obj> === ["foo", "bar"]
  * ```
  */
 export type ToTuple<Union> = ToTupleRec<Union, []>
