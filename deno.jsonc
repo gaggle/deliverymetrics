@@ -2,9 +2,9 @@
   "tasks": {
     "compile": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --allow-ffi --unstable --output $INIT_CWD/deliverymetrics$SUFFIX $EXTRA_ARGS ./mod.ts",
     "deps": "deno cache --reload --lock-write mod.ts dev-fixtures/mod.ts bin/*.ts **/*.test.ts",
-    "dev:cli": "nice -20 deno task test --fail-fast --watch --no-clear-screen ./cli",
-    "dev:libs": "nice -20 deno task test --fail-fast --watch --no-clear-screen ./libs",
-    "dev:utils": "nice -20 deno task test --fail-fast --watch --no-clear-screen ./utils",
+    "dev:cli": "nice -20 deno task test --cached-only --fail-fast --watch --no-clear-screen ./cli",
+    "dev:libs": "nice -20 deno task test --cached-only --fail-fast --watch --no-clear-screen ./libs",
+    "dev:utils": "nice -20 deno task test --cached-only --fail-fast --watch --no-clear-screen ./utils",
     "fixtures": "deno run -A --unstable dev-fixtures/mod.ts",
     "format-imports": "deno run -A --unstable bin/fmt-imports.ts .",
     "lint": "deno task format-imports --check && deno fmt --check && deno lint --unstable",
