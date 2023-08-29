@@ -59,12 +59,12 @@ jobs:
 
       - name: Build & push image
         run: |
-          for x in $(echo "${{ steps.meta.outputs.tags}}" | tr '\n' ' ');
-            do tags="$tags --tag $x";
-          done
+          for x in $(echo "${{ steps.meta.outputs.tags}}" | tr '\n' ' '); do tags="$tags --tag $x"; done && echo "tags: $tags"
+          for x in $(echo "${{ steps.meta.outputs.labels}}" | tr '\n' ' '); do labels="$labels --label $x"; done && echo "labels: $labels"
           docker buildx build \
             --push \
             $tags \
+            $labels \
             --platform linux/amd64,linux/arm64 \
             --file Dockerfile \
             .
