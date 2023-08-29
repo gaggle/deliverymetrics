@@ -40,7 +40,7 @@ function interceptSigint() {
  */
 export function main(args: Array<string>) {
   yargs(args)
-    .scriptName("<app>")
+    .scriptName("deliverymetrics")
     .version(ver)
     .option("cache", {
       default: join(Deno.cwd(), ".deliverymetrics-data"),
