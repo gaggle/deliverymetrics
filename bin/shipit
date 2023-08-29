@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -eu
+
+deno task deps
+deno task test
+deno task lint
+
+# Check if there are any changed files
+if [[ -n $(git status --porcelain) ]]; then
+  echo "There are changed files in the Git repository."
+  exit 1
+fi
+
+git push
