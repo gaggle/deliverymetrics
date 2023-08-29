@@ -1,0 +1,181 @@
+{
+  "$ref": "#/definitions/configuration-schema",
+  "definitions": {
+    "configuration-schema": {
+      "type": "object",
+      "properties": {
+        "sync": {
+          "type": "object",
+          "properties": {
+            "github": {
+              "type": "object",
+              "properties": {
+                "repo": {
+                  "type": "string",
+                  "pattern": ".*\\/.*"
+                },
+                "token": {
+                  "type": "string",
+                  "pattern": "^ghp"
+                },
+                "max_days": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "string",
+                      "const": "Infinity"
+                    }
+                  ],
+                  "default": 90
+                }
+              },
+              "required": [
+                "repo"
+              ],
+              "additionalProperties": false
+            },
+            "jira": {
+              "type": "object",
+              "properties": {
+                "project_key": {
+                  "type": "string"
+                },
+                "host": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "api_user": {
+                  "type": "string"
+                },
+                "api_token": {
+                  "type": "string"
+                },
+                "sync_subtasks": {
+                  "type": "boolean"
+                },
+                "max_days": {
+                  "$ref": "#/definitions/configuration-schema/properties/sync/properties/github/properties/max_days"
+                }
+              },
+              "required": [
+                "project_key",
+                "host",
+                "api_user",
+                "api_token"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "report": {
+          "type": "object",
+          "properties": {
+            "github": {
+              "type": "object",
+              "properties": {
+                "actionRuns": {
+                  "type": "object",
+                  "properties": {
+                    "header_order": {},
+                    "ignore_headers": {},
+                    "branch": {
+                      "type": "string"
+                    },
+                    "workflow": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "actionWorkflows": {
+                  "type": "object",
+                  "properties": {
+                    "header_order": {},
+                    "ignore_headers": {}
+                  },
+                  "additionalProperties": false
+                },
+                "pullCommits": {
+                  "type": "object",
+                  "properties": {
+                    "header_order": {},
+                    "ignore_headers": {}
+                  },
+                  "additionalProperties": false
+                },
+                "pulls": {
+                  "type": "object",
+                  "properties": {
+                    "header_order": {},
+                    "ignore_headers": {},
+                    "ignore_labels": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {}
+                        ]
+                      }
+                    },
+                    "include_cancelled": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "jira": {
+              "type": "object",
+              "properties": {
+                "custom_completed_date_header": {
+                  "type": "string"
+                },
+                "custom_start_date_header": {
+                  "type": "string"
+                },
+                "dev_lead_time_statuses": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "dev_lead_time_types": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "outdir": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "csv"
+            }
+          },
+          "required": [
+            "outdir",
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "sync"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
