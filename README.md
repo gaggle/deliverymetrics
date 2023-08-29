@@ -3,19 +3,22 @@
 ## Installation
 
 ### Download
+
 Binaries are available in the releases, select the one for your operating system:
 
 https://github.com/gaggle/deliverymetrics/releases/latest
 
 ### Container
+
 E.g. using Docker:
+
   ```shell
   $ docker run --rm -it ghcr.io/gaggle/deliverymetrics:latest --help
   ```
 
-Note though, 
+Note though,
 that you'll have to map local files into the container
-and then manipulate the CLI from within the container. 
+and then manipulate the CLI from within the container.
 E.g. this command will drop you into the container's shell:
 
 ```shell
