@@ -12,10 +12,10 @@
     "typecheck": "deno check --unstable mod.ts dev-fixtures/mod.ts bin/fmt-imports.ts"
   },
   "lint": {
-    "include": ["bin","cli", "dev-fixtures", "libs", "utils"]
+    "include": ["bin", "cli", "dev-fixtures", "libs", "utils"]
   },
   "fmt": {
-    "include": ["bin","cli", "dev-fixtures", "libs", "utils"],
+    "include": ["bin", "cli", "dev-fixtures", "libs", "utils"],
     "lineWidth": 120,
     "semiColons": false
   },
