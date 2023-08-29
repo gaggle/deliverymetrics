@@ -7,8 +7,9 @@
     "dev:utils": "nice -20 deno task test --cached-only --fail-fast --watch --no-clear-screen ./utils",
     "fixtures": "deno run -A --unstable dev-fixtures/mod.ts",
     "format-imports": "deno run -A --unstable bin/fmt-imports.ts .",
-    "lint": "deno task format-imports --check && deno fmt --check && deno lint --unstable",
-    "lint:fix": "deno task format-imports && deno fmt && deno lint --unstable",
+    "update-generated-files": "deno run -A --unstable bin/update-generated-files.ts",
+    "lint": "deno task format-imports --check && deno fmt --check && deno lint --unstable && deno task update-generated-files --check",
+    "lint:fix": "deno task format-imports && deno fmt && deno lint --unstable && deno task update-generated-files",
     "run": "deno run -A --unstable mod.ts",
     "test": "deno test --allow-read --allow-write --allow-env --allow-run --allow-ffi --unstable --parallel"
   },
