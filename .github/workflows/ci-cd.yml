@@ -37,10 +37,7 @@ jobs:
         id: cache
         with:
           path: ${{ env.DENO_DIR }}
-          key: ${{ runner.os }}-deno-tests-${{ hashFiles('deno.lock') }}
-      - name: Install Dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: deno task deps **/*.test.ts
+          key: ${{ runner.os }}-${{ matrix.entry.cmd }}-${{ hashFiles('deno.lock') }}
 
       - run: ${{ matrix.entry.cmd }}
 
@@ -151,9 +148,6 @@ jobs:
         with:
           path: ${{ env.DENO_DIR }}
           key: ${{ runner.os }}-deno-compile-${{ hashFiles('deno.lock') }}
-      - name: Install Dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: deno task deps mod.ts
 
       - run: SUFFIX="${{ matrix.platform.suffix }}" EXTRA_ARGS="--target ${{ matrix.platform.target }}" deno task compile
 
