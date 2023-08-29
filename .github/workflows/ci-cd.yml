@@ -2,7 +2,7 @@ name: CI CD
 
 on:
   push:
-    branches: [ '**' ]
+    branches: [ '**' ] # this triggers only on branch commits, which prevents triggering off of tag-only commits
   workflow_dispatch:
 
 concurrency:
