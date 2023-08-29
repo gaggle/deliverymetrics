@@ -8,6 +8,8 @@
  * This metric is useful to answer how often deployments are made (by looking at the workflow that handles deploying),
  * or finding instabilities or bad work-practices that cause a workflow to fail.
  */
+import { groupBy } from "std:group-by"
+
 import {
   AbortError,
   assertUnreachable,
@@ -18,24 +20,25 @@ import {
   monthEnd,
   monthStart,
   weekEnd,
-  weekStart
+  weekStart,
 } from "../../utils/mod.ts"
 
 import { GithubActionRun } from "../github/api/action-run/mod.ts"
 import { GithubActionWorkflow } from "../github/api/action-workflows/mod.ts"
 import { ReadonlyGithubClient } from "../github/mod.ts"
-import { groupBy } from "https://deno.land/std@0.181.0/collections/group_by.ts";
 
-type ActionRunHistogram = {
-  branches: Array<string>
-  conclusions: Array<string>
-  count: number
-  end: Date
-  htmlUrls: Array<string>
-  ids: Array<number>
-  paths: Array<string>
-  start: Date
-} & Record<`${string}Count`, number>
+type ActionRunHistogram =
+  & {
+    branches: Array<string>
+    conclusions: Array<string>
+    count: number
+    end: Date
+    htmlUrls: Array<string>
+    ids: Array<number>
+    paths: Array<string>
+    start: Date
+  }
+  & Record<`${string}Count`, number>
   & Record<`${string}Ids`, Array<number>>
 
 export async function* yieldContinuousIntegrationHistogram(
@@ -80,7 +83,7 @@ export async function* yieldContinuousIntegrationHistogram(
   let prevPeriod: Date | undefined
 
   function getYieldValue(): ActionRunHistogram {
-    const perConclusion = groupBy(accumulator, el => el.conclusion!)
+    const perConclusion = groupBy(accumulator, (el) => el.conclusion!)
     return {
       branches: accumulator
         .map((el) => el.head_branch)
@@ -101,11 +104,13 @@ export async function* yieldContinuousIntegrationHistogram(
         .sort() as Array<string>,
       start: prevPeriod!,
       ...Object.entries(perConclusion).reduce((acc, [conclusion, histograms]) =>
-        histograms ? {
-          ...acc,
-          [`${conclusion}Count`]: histograms.length,
-          [`${conclusion}Ids`]: histograms.map(el => el.id)
-        } : acc, {})
+        histograms
+          ? {
+            ...acc,
+            [`${conclusion}Count`]: histograms.length,
+            [`${conclusion}Ids`]: histograms.map((el) => el.id),
+          }
+          : acc, {}),
     }
   }
 
@@ -113,21 +118,21 @@ export async function* yieldContinuousIntegrationHistogram(
   if (!latestSync) return
   for await (
     const run of filterIter(
-    (run) => {
-      if (daysBetween(new Date(run.created_at), new Date(latestSync.updatedAt!)) > (maxDays || Infinity)) {
-        return false
-      }
+      (run) => {
+        if (daysBetween(new Date(run.created_at), new Date(latestSync.updatedAt!)) > (maxDays || Infinity)) {
+          return false
+        }
 
-      return true
-    },
-    gh.findActionRuns({
-      branch,
-      conclusion,
-      path: workflow?.path,
-      sort: { key: "updated_at", order: "asc" },
-    }),
-  )
-    ) {
+        return true
+      },
+      gh.findActionRuns({
+        branch,
+        conclusion,
+        path: workflow?.path,
+        sort: { key: "updated_at", order: "asc" },
+      }),
+    )
+  ) {
     if (signal?.aborted) {
       throw new AbortError()
     }
