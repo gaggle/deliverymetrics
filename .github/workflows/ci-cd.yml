@@ -117,7 +117,7 @@ jobs:
         run: ./$FILENAME/bin/stamp-version '${{ needs.version-check.outputs.version }}' $FILENAME
 
       - name: Tarball source-code
-        run: tar cJf $FILENAME.tar.xz $FILENAME
+        run: XZ_DEFAULTS="-T 0 " tar cJf $FILENAME.tar.xz $FILENAME
 
       - name: Upload source-code
         uses: actions/upload-artifact@v3
@@ -160,16 +160,11 @@ jobs:
       - name: Unpack downloaded artifact
         run: tar xJf deliverymetrics-v${{ needs.version-check.outputs.version }}.tar.xz --strip-components=1
       - uses: teaxyz/setup@v0
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.DENO_DIR }}
-          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}
 
-      - run: SUFFIX="${{ matrix.platform.suffix }}" EXTRA_ARGS="--target ${{ matrix.platform.target }}" deno task compile --cached-only
+      - run: SUFFIX="${{ matrix.platform.suffix }}" EXTRA_ARGS="--target ${{ matrix.platform.target }}" deno task compile
 
       - name: Create tarball from compiled binary
-        run: tar cJf deliverymetrics-v${{ needs.version-check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz deliverymetrics${{ matrix.platform.suffix }}
+        run: XZ_DEFAULTS="-T 0 " tar cJf deliverymetrics-v${{ needs.version-check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz deliverymetrics${{ matrix.platform.suffix }}
 
       - uses: actions/upload-artifact@v3
         with:
