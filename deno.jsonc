@@ -10,7 +10,7 @@
     "lint:fix": "deno task format-imports && deno fmt --check && deno lint --unstable",
     "run": "deno run -A --unstable mod.ts",
     "test": "deno test --allow-read --allow-write --allow-env --allow-run --allow-ffi --unstable --check --parallel",
-    "typecheck": "deno check --unstable mod.ts dev-fixtures/mod.ts bin/fmt-imports.ts"
+    "deps": "deno cache --reload --lock=deno.lock --lock-write mod.ts dev-fixtures/mod.ts bin/*.ts **/*.test.ts"
   },
   "lint": {
     "include": ["bin", "cli", "dev-fixtures", "libs", "utils"]
