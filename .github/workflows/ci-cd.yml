@@ -7,6 +7,8 @@ on:
 
 env:
   DENO_DIR: .deno_cache
+  XZ_DEFAULTS: "-T0 "
+  # -T0 tells tar's xz to use as many threads as there are CPUs
 
 concurrency:
   group: ${{ github.ref }}
@@ -98,7 +100,7 @@ jobs:
         run: ./$FILENAME/bin/stamp-version '${{ needs.version-check.outputs.version }}' $FILENAME
 
       - name: Tarball source-code
-        run: XZ_DEFAULTS="-T 0 " tar cJf $FILENAME.tar.xz $FILENAME
+        run: tar cJf $FILENAME.tar.xz $FILENAME
 
       - name: Upload source-code
         uses: actions/upload-artifact@v3
@@ -155,7 +157,7 @@ jobs:
       - run: SUFFIX="${{ matrix.platform.suffix }}" EXTRA_ARGS="--target ${{ matrix.platform.target }}" deno task compile
 
       - name: Create tarball from compiled binary
-        run: XZ_DEFAULTS="-T 0 " tar cJf deliverymetrics-v${{ needs.version-check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz deliverymetrics${{ matrix.platform.suffix }}
+        run: tar cJf deliverymetrics-v${{ needs.version-check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz deliverymetrics${{ matrix.platform.suffix }}
 
       - uses: actions/upload-artifact@v3
         with:
