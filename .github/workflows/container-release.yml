@@ -3,9 +3,14 @@ name: CD container
 on:
   release:
     types: [ created ]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        required: true
+        description: E.g. "v0.3.0"
 
 concurrency:
-  group: container/${{ github.event.release.tag_name }}
+  group: container/${{ github.event.inputs.tag_name || github.event.release.tag_name }}
   cancel-in-progress: true
 
 permissions:
@@ -16,15 +21,19 @@ jobs:
   build-and-push-container:
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve variables
+        id: variables
+        run: echo "tag_name=${{ github.event.inputs.tag_name || github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v3
 
       - name: Download artifact
-        run: gh release download ${{ github.event.release.tag_name }} --pattern "*+linux+x86-64.tar.xz" && ls
+        run: gh release download ${{ steps.variables.outputs.tag_name }} --pattern "*+linux+x86-64.tar.xz" && ls -lha
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Unpack downloaded artifact
-        run: tar xJf deliverymetrics-${{ github.event.release.tag_name }}+linux+x86-64.tar.xz && ls
+        run: tar xJf deliverymetrics-${{ steps.variables.outputs.tag_name }}+linux+x86-64.tar.xz && ls -lha
 
       - name: log in to github pkgs
         uses: docker/login-action@v2
