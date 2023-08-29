@@ -13,14 +13,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deps:
+  tests:
     strategy:
       fail-fast: false
       matrix:
         os:
           - ubuntu-latest
           - macos-latest
+        cmd:
+          - deno task test
+          - deno task lint
     runs-on: ${{ matrix.os }}
+    name: ${{ matrix.cmd }} (on ${{ matrix.os }})
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
@@ -31,32 +35,9 @@ jobs:
         with:
           path: ${{ env.DENO_DIR }}
           key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}
-
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: deno task deps
-
-  test-automation:
-    needs: deps
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-        cmd:
-          - deno task test --cached-only
-          - deno task lint
-    runs-on: ${{ matrix.os }}
-    name: ${{ matrix.cmd }} (on ${{ matrix.os }})
-    steps:
-      - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.DENO_DIR }}
-          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}
+        run: deno task deps:all
 
       - run: ${{ matrix.cmd }}
 
@@ -127,7 +108,7 @@ jobs:
           if-no-files-found: error
 
   compile:
-    needs: [ version-check, bundle-source-code, deps ]
+    needs: [ version-check, bundle-source-code ]
     permissions:
       contents: read
       actions: write
@@ -161,6 +142,16 @@ jobs:
         run: tar xJf deliverymetrics-v${{ needs.version-check.outputs.version }}.tar.xz --strip-components=1
       - uses: teaxyz/setup@v0
 
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: ${{ env.DENO_DIR }}
+          key: ${{ runner.os }}-deno-compile-${{ hashFiles('deno.lock') }}
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: deno task deps mod.ts
+
       - run: SUFFIX="${{ matrix.platform.suffix }}" EXTRA_ARGS="--target ${{ matrix.platform.target }}" deno task compile
 
       - name: Create tarball from compiled binary
@@ -176,7 +167,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    needs: [ version-check, test-automation, compile ]
+    needs: [ version-check, tests, compile ]
     if: ${{ github.ref == 'refs/heads/main' && needs.version-check.outputs.version-exists == 'false' }}
     permissions:
       contents: write
