@@ -1,15 +1,15 @@
 {
   "tasks": {
-    "compile": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --allow-ffi --unstable --output $INIT_CWD/deliverymetrics$SUFFIX $EXTRA_ARGS ./mod.ts",
+    "compile": "deno compile --cached-only --allow-net --allow-read --allow-write --allow-env --allow-run --allow-ffi --unstable --output $INIT_CWD/deliverymetrics$SUFFIX $EXTRA_ARGS ./mod.ts",
     "dev:cli": "nice -20 deno task test --fail-fast --watch --no-clear-screen ./cli",
     "dev:libs": "nice -20 deno task test --fail-fast --watch --no-clear-screen ./libs",
     "dev:utils": "nice -20 deno task test --fail-fast --watch --no-clear-screen ./utils",
-    "fixtures": "deno run -A --unstable dev-fixtures/mod.ts",
-    "format-imports": "deno run -A --unstable bin/fmt-imports.ts .",
+    "fixtures": "deno run --cached-only -A --unstable dev-fixtures/mod.ts",
+    "format-imports": "deno run --cached-only -A --unstable bin/fmt-imports.ts .",
     "lint": "deno task format-imports --check && deno fmt --check && deno lint --unstable",
     "lint:fix": "deno task format-imports && deno fmt --check && deno lint --unstable",
-    "run": "deno run -A --unstable mod.ts",
-    "test": "deno test --allow-read --allow-write --allow-env --allow-run --allow-ffi --unstable --check --parallel",
+    "run": "deno run --cached-only -A --unstable mod.ts",
+    "test": "deno test --cached-only --allow-read --allow-write --allow-env --allow-run --allow-ffi --unstable --parallel --doc",
     "deps": "deno cache --reload --lock=deno.lock --lock-write mod.ts dev-fixtures/mod.ts bin/*.ts **/*.test.ts"
   },
   "lint": {
