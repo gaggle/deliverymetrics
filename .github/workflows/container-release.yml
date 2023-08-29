@@ -69,6 +69,7 @@ jobs:
             --file Dockerfile \
             .
 
-      - run: |
+      - name: Smoke test container
+        run: |
           docker pull ghcr.io/${{ github.repository }}:${{ steps.variables.outputs.tag_name }}
           docker run --rm -i ghcr.io/${{ github.repository }}:${{ steps.variables.outputs.tag_name }} --help

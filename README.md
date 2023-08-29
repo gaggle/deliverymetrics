@@ -5,7 +5,7 @@
 Deliverymetrics binaries are available for download in the releases section of this project. 
 However, please note these binaries are not signed, 
 because Deliverymetrics is not a commercial product 
-and so the costs associated with obtaining a signing certificate can't be justified at this time.
+and so the costs associated with obtaining a signed certificate can't be justified at this time.
 
 For MacOS users, 
 this means you will need to follow a slightly different process
