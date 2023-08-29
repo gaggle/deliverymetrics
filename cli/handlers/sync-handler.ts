@@ -158,6 +158,13 @@ export async function fullGithubSync(
     }
   }
 
+  if (syncNewerThan) {
+    const deleted = await github.pruneActionRuns(syncNewerThan)
+    if (deleted.prunedCount > 0) {
+      write(`Pruned ${deleted.prunedCount} action-runs`, { _stdOutLike })
+    }
+  }
+
   write(
     "Legend: r=action-run, w=action-workflow, c=commit, p=pull|pull-commit, R=release, s=stats",
     { _stdOutLike },
