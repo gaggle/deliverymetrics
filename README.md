@@ -4,17 +4,15 @@
 
 Deliverymetrics binaries are available for download in the releases section of this project. 
 However, please note these binaries are not signed, 
-because Deliverymetrics is not a commercial product 
-and so the costs associated with obtaining a signed certificate can't be justified at this time.
+because the costs of obtaining a signed certificate can't be justified at this time.
 
 For MacOS users, 
-this means you will need to follow a slightly different process
-to open the application for the first time:
+this means you will need to follow this process once before you can use the application:
 
 * Download the Deliverymetrics binary from the [releases] page.
 * Locate the downloaded file in Finder.
 * **Right-click on file and choose "Open"** from the context menu.
-* A dialogue box will appear, warning you that the app is not signed. Click "Open" to proceed.
+* A dialogue box will appear, warning you that the app is not signed. Click "**Open**" to proceed.
 * The app will run in Terminal, 
   and because it's run without arguments, it'll just print its help. 
   You can close this window.
