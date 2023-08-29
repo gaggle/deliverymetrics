@@ -28,6 +28,7 @@
     "dev:mock": "https://deno.land/std@0.199.0/testing/mock.ts",
     "dev:mock-fetch": "https://deno.land/x/mock_fetch@0.3.0/mod.ts",
     "dev:time": "https://deno.land/std@0.199.0/testing/time.ts",
+    "diff-kit": "https://deno.land/x/diff_kit@v2.0.4/mod.ts",
     "equal": "https://deno.land/x/equal@v1.5.0/mod.ts",
     "event": "https://deno.land/x/event@2.0.1/mod.ts",
     "kia": "https://deno.land/x/kia@0.4.1/kia.ts",
@@ -51,6 +52,7 @@
     "std:yaml": "https://deno.land/std@0.199.0/yaml/mod.ts",
     "tea-semver": "https://deno.land/x/libtea@v0.10.3/src/utils/semver.ts",
     "yargs": "./yargs.ts",
-    "zod": "https://deno.land/x/zod@v3.17.10/mod.ts"
+    "zod": "https://deno.land/x/zod@v3.17.10/mod.ts",
+    "zod-to-json-schema": "npm:zod-to-json-schema"
   }
 }
