@@ -278,6 +278,9 @@
     "https://deno.land/x/csv@v0.7.5/reader.ts": "cf2fa88ef7e1a7c10d73f1f7118e0bb7eed329332b7dfdff948dcc5d04e60287",
     "https://deno.land/x/csv@v0.7.5/utils.ts": "c12632d89129e115a6cdebec536349f74906b2cac2dae80838b8bc2c659ef9c8",
     "https://deno.land/x/csv@v0.7.5/writer.ts": "3d2ec86683f0ac64bc51df90dbd59bf896695d69861a6ad0d669aef477e3f2dc",
+    "https://deno.land/x/diff_kit@v2.0.4/mod.ts": "3d88f6b8132feabe4c0863a5c65fdad05d44d52488de91205fc76abcbfd2eadd",
+    "https://deno.land/x/diff_kit@v2.0.4/private/diff.ts": "bc270998702ba73c8d2b1810feb54d3973615ce56a33d2ec64432e698f2f2613",
+    "https://deno.land/x/diff_kit@v2.0.4/private/diff_handler.ts": "2f96831bde217d6a84691abfe7d4580057aee4e9fe1cf753101a2eb703cef9aa",
     "https://deno.land/x/escalade@v3.0.3/sync.ts": "493bc66563292c5c10c4a75a467a5933f24dad67d74b0f5a87e7b988fe97c104",
     "https://deno.land/x/event@2.0.1/mod.ts": "5b36cd679785638b59228ac42876c628e54efc50ae0015ba1589b9e8f12969b4",
     "https://deno.land/x/is_what@v4.1.15/src/index.ts": "e55b975d532b71a0e32501ada85ae3c67993b75dc1047c6d1a2e00368b789af0",
@@ -327,5 +330,22 @@
     "https://deno.land/x/zod@v3.17.10/mod.ts": "64e55237cb4410e17d968cd08975566059f27638ebb0b86048031b987ba251c4",
     "https://deno.land/x/zod@v3.17.10/types.ts": "e365eed55953d0deaa40b29e3003247c866ccf58bbd8fc2f87c42d3cd620d075",
     "https://denopkg.com/alextes/run-with-limit@master/mod.ts": "105c2331312e18c76c4a18c7733b9c23bebedf5ea5fd328915e5537fe54c4d60"
+  },
+  "npm": {
+    "specifiers": {
+      "zod-to-json-schema": "zod-to-json-schema@3.21.4_zod@3.22.2"
+    },
+    "packages": {
+      "zod-to-json-schema@3.21.4_zod@3.22.2": {
+        "integrity": "sha512-fjUZh4nQ1s6HMccgIeE0VP4QG/YRGPmyjO9sAh890aQKPEk3nqbfUXhMFaC+Dr5KvYBm8BCyvfpZf2jY9aGSsw==",
+        "dependencies": {
+          "zod": "zod@3.22.2"
+        }
+      },
+      "zod@3.22.2": {
+        "integrity": "sha512-wvWkphh5WQsJbVk1tbx1l1Ly4yg+XecD+Mq280uBGt9wa5BKSWf4Mhp6GmrkPixhMxmabYY7RbzlwVP32pbGCg==",
+        "dependencies": {}
+      }
+    }
   }
 }
