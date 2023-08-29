@@ -19,14 +19,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-        cmd:
-          - deno task test
-          - deno task lint
-    runs-on: ${{ matrix.os }}
-    name: ${{ matrix.cmd }} (on ${{ matrix.os }})
+        entry:
+          - os: ubuntu-latest
+            cmd: deno task test
+          - os: ubuntu-latest
+            cmd: deno task lint
+          - os: macos-latest
+            cmd: deno task test
+    runs-on: ${{ matrix.entry.os }}
+    name: ${{ matrix.entry.cmd }} (on ${{ matrix.entry.os }})
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
@@ -41,7 +42,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: deno task deps **/*.test.ts
 
-      - run: ${{ matrix.cmd }}
+      - run: ${{ matrix.entry.cmd }}
 
   version-check:
     runs-on: ubuntu-latest
