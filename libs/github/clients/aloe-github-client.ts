@@ -228,6 +228,12 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     return { syncedAt: result.syncInfo.createdAt }
   }
 
+  async pruneActionRuns(newerThan: Epoch): Promise<{ prunedCount: number }> {
+    const deleted = await this.db.actionRuns.deleteMany((doc) => new Date(doc.updated_at).getTime() < newerThan)
+    await this.db.actionRuns.save()
+    return { prunedCount: deleted.length }
+  }
+
   async syncActionWorkflows(opts: { signal?: AbortSignal } = {}): Promise<{ syncedAt: Epoch }> {
     const result = await this.internalFetch({
       type: "action-workflow",

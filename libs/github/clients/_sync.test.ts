@@ -82,6 +82,7 @@ function withInternalsStubs(
 
     return [data()]
   }
+
   const stubs = {
     fetchActionRunsStub: stub(
       _internals,
@@ -471,6 +472,7 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
       const pull1 = getFakeGithubPull({ number: 1 })
       const pullCommit1 = getFakeGithubPullCommit({ pr: pull1.number, node_id: "1a" })
       const pullCommit2 = getFakeGithubPullCommit({ pr: pull1.number, node_id: "1b" })
+
       async function* fetchPullCommits1() {
         await sleep(5)
         yield pullCommit1
@@ -479,6 +481,7 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
       }
 
       const pull2 = getFakeGithubPull({ number: 2 })
+
       async function* fetchPullCommits2() {
         await sleep(5)
         yield getFakeGithubPullCommit({ pr: pull2.number, node_id: "2a" })
@@ -910,6 +913,43 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
           }, {
             fetchActionRuns: [[getFakeGithubActionRun()]],
           })
+        })
+      }
+    })
+  })
+
+  await t.step("#pruneActionRuns", async (t) => {
+    await t.step("should prune documents older than specified", async (t) => {
+      for await (
+        const client of yieldGithubClient({
+          actionRuns: [
+            getFakeGithubActionRun({ id: 2, updated_at: new Date(900).toISOString() }),
+            getFakeGithubActionRun({ id: 1, updated_at: new Date(800).toISOString() }),
+          ],
+          syncInfos: [getFakeSyncInfo({ type: "action-run", createdAt: 1000, updatedAt: 1000 })],
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await client.pruneActionRuns(900)
+          const result = await asyncToArray(client.findActionRuns())
+          assertEquals(result.map((el) => el.id), [2])
+        })
+      }
+    })
+
+    await t.step("should return how many documents got deleted", async (t) => {
+      for await (
+        const client of yieldGithubClient({
+          actionRuns: [
+            getFakeGithubActionRun({ id: 2, updated_at: new Date(900).toISOString() }),
+            getFakeGithubActionRun({ id: 1, updated_at: new Date(800).toISOString() }),
+          ],
+          syncInfos: [getFakeSyncInfo({ type: "action-run", createdAt: 1000, updatedAt: 1000 })],
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          const result = await client.pruneActionRuns(900)
+          assertEquals(result, { prunedCount: 1 })
         })
       }
     })

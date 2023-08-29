@@ -70,6 +70,8 @@ export interface ReadonlyGithubClient extends EventEmitter<GithubClientEvents> {
 export interface GithubClient extends ReadonlyGithubClient {
   syncActionRuns(opts?: { signal?: AbortSignal; newerThan?: Epoch }): Promise<{ syncedAt: Epoch }>
 
+  pruneActionRuns(newerThan: Epoch): Promise<{ prunedCount: number }>
+
   syncActionWorkflows(opts?: { signal?: AbortSignal }): Promise<{ syncedAt: Epoch }>
 
   syncCommits(opts?: { signal?: AbortSignal; newerThan?: Epoch }): Promise<{ syncedAt: Epoch }>
