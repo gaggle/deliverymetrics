@@ -36,10 +36,10 @@ jobs:
         id: cache
         with:
           path: ${{ env.DENO_DIR }}
-          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}
+          key: ${{ runner.os }}-deno-tests-${{ hashFiles('deno.lock') }}
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: deno task deps:all
+        run: deno task deps **/*.test.ts
 
       - run: ${{ matrix.cmd }}
 
