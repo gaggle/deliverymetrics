@@ -5,6 +5,7 @@ set -eu
 version="$1"
 relative_path="$2"
 root=$(realpath "$relative_path")
-version_filename=${root}/libs/version.ts
+version_file=${root}/cli/version.ts
+[ ! -f "$version_file" ] && echo "$version_file not found" && exit 1
 
-echo "export async function version() { return '${version}' }" > ${version_filename}
+echo "export async function version() { return '${version}' }" > ${version_file}
