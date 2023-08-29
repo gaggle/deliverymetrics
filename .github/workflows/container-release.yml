@@ -68,3 +68,7 @@ jobs:
             --platform linux/amd64,linux/arm64 \
             --file Dockerfile \
             .
+
+      - run: |
+          docker pull ghcr.io/${{ github.repository }}:${{ steps.variables.outputs.tag_name }}
+          docker run --rm -i ghcr.io/${{ github.repository }}:${{ steps.variables.outputs.tag_name }} --help
