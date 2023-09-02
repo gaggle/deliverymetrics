@@ -1,5 +1,6 @@
-import { GithubActionRun, githubActionRunSchema } from "../../libs/github/api/action-run/mod.ts"
+import { githubActionRunSchema } from "../../libs/github/api/action-run/mod.ts"
 import { GithubActionWorkflow } from "../../libs/github/api/action-workflows/mod.ts"
+import { ActionRunData } from "../../libs/metrics/types.ts"
 
 import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../utils/mod.ts"
 
@@ -13,11 +14,11 @@ export const githubActionRunHeaders = [
 export type GithubActionRunRow = Record<typeof githubActionRunHeaders[number], string>
 
 export async function* githubActionRunAsCsv(
-  iter: AsyncGenerator<{ actionRun: GithubActionRun; workflow: GithubActionWorkflow }>,
+  iter: AsyncGenerator<{ actionRunData: ActionRunData; workflow: GithubActionWorkflow }>,
 ): AsyncGenerator<GithubActionRunRow> {
-  for await (const { actionRun } of iter) {
+  for await (const { actionRunData } of iter) {
     yield {
-      ...stringifyObject(flattenObject(actionRun), { stringifyUndefined: true }),
+      ...stringifyObject(flattenObject(actionRunData.run), { stringifyUndefined: true }),
     }
   }
 }

@@ -1,14 +1,9 @@
-import { AbortError } from "../../utils/mod.ts"
-import { daysBetween, filterIter } from "../../utils/mod.ts"
+import { AbortError, daysBetween, filterIter, mapIter } from "../../utils/mod.ts"
 
 import { GithubActionRun } from "../github/api/action-run/mod.ts"
-import { GithubActionWorkflow } from "../github/api/action-workflows/mod.ts"
 import { ReadonlyGithubClient } from "../github/mod.ts"
 
-type YieldActionWorkflowData = {
-  actionWorkflow: GithubActionWorkflow
-  actionRunGenerator: AsyncGenerator<GithubActionRun>
-}
+import { ActionRunData, YieldActionWorkflowData } from "./types.ts"
 
 export async function* yieldActionData(
   gh: ReadonlyGithubClient,
@@ -22,20 +17,25 @@ export async function* yieldActionData(
       throw new AbortError()
     }
 
-    const actionRunGenerator = await filterIter((el: GithubActionRun) => {
-      if (signal?.aborted) {
-        throw new AbortError()
-      }
+    yield {
+      actionWorkflow,
+      actionRunDataGenerator: mapIter(
+        (el) => ({ run: el } as ActionRunData),
+        filterIter((el: GithubActionRun) => {
+          if (signal?.aborted) {
+            throw new AbortError()
+          }
 
-      if (
-        daysBetween(new Date(el.created_at), new Date(latestWorkflowSync.updatedAt!)) > (actionRun?.maxDays || Infinity)
-      ) {
-        return false
-      }
+          if (
+            daysBetween(new Date(el.created_at), new Date(latestWorkflowSync.updatedAt!)) >
+              (actionRun?.maxDays || Infinity)
+          ) {
+            return false
+          }
 
-      return true
-    }, gh.findActionRuns({ path: actionWorkflow.path, branch: actionRun?.branch }))
-
-    yield { actionWorkflow, actionRunGenerator }
+          return true
+        }, gh.findActionRuns({ path: actionWorkflow.path, branch: actionRun?.branch })),
+      ),
+    }
   }
 }

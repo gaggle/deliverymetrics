@@ -2,7 +2,6 @@ import { makeRunWithLimit as makeLimit } from "run-with-limit"
 import { slugify } from "slugify"
 import { join } from "std:path"
 
-import { GithubActionRun } from "../../libs/github/api/action-run/mod.ts"
 import { GithubActionWorkflow } from "../../libs/github/api/action-workflows/mod.ts"
 import { BoundGithubPullCommit } from "../../libs/github/api/pull-commits/mod.ts"
 import { sortPullCommitsByKey } from "../../libs/github/github-utils/mod.ts"
@@ -22,6 +21,7 @@ import {
   yieldStatsParticipation,
   yieldStatsPunchCard,
 } from "../../libs/metrics/mod.ts"
+import type { ActionRunData } from "../../libs/metrics/types.ts"
 
 import {
   AbortError,
@@ -167,16 +167,16 @@ async function* queueGitHubReportJobs(spec: ReportSpecGitHub, { cacheRoot, dataT
 
   yield async () => {
     await timeCtx("action-run, action-workflows", async () => {
-      const actionRunGens: Array<AsyncGenerator<{ actionRun: GithubActionRun; workflow: GithubActionWorkflow }>> = []
+      const actionRunGens: Array<AsyncGenerator<{ actionRunData: ActionRunData; workflow: GithubActionWorkflow }>> = []
       await writeCSVToFile(
-        join(outputDir, `github-action-workflows-data.csv`),
+        join(outputDir, "github-action-workflows-data.csv"),
         githubActionWorkflowAsCsv(
           inspectIter(
             (el) => {
-              actionRunGens.push(mapIter((actionRun) => ({
-                actionRun: actionRun,
+              actionRunGens.push(mapIter((run) => ({
+                actionRunData: run,
                 workflow: el.actionWorkflow,
-              }), el.actionRunGenerator))
+              }), el.actionRunDataGenerator))
               dot()
             },
             yieldActionData(gh, { actionRun: { maxDays: dataTimeframe, branch: spec.actionRuns?.branch }, signal }),
