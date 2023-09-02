@@ -3,7 +3,7 @@ import { AbortError, daysBetween, filterIter, mapIter } from "../../utils/mod.ts
 import { GithubActionRun } from "../github/api/action-run/mod.ts"
 import { ReadonlyGithubClient } from "../github/mod.ts"
 
-import { ActionRunData, YieldActionWorkflowData } from "./types.ts"
+import { YieldActionWorkflowData } from "./types.ts"
 
 export async function* yieldActionData(
   gh: ReadonlyGithubClient,
@@ -32,17 +32,13 @@ export async function* yieldActionData(
       return true
     }
 
-    const transformer: (el: GithubActionRun) => ActionRunData = (el) => ({
-      run: el,
-      duration: el.run_started_at
-        ? new Date(el.updated_at).getTime() - new Date(el.run_started_at).getTime()
-        : undefined,
-    })
-
     yield {
       actionWorkflow,
       actionRunDataGenerator: mapIter(
-        transformer,
+        (el) => ({
+          run: el,
+          duration: getActionRunDuration(el),
+        }),
         filterIter(
           filter_run_is_recent,
           gh.findActionRuns({ path: actionWorkflow.path, branch: actionRun?.branch }),
@@ -50,4 +46,9 @@ export async function* yieldActionData(
       ),
     }
   }
+}
+
+export function getActionRunDuration(el: GithubActionRun): number | undefined {
+  if (!el.run_started_at) return
+  return new Date(el.updated_at).getTime() - new Date(el.run_started_at).getTime()
 }
