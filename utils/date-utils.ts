@@ -53,6 +53,10 @@ export function toDays(duration: number): number {
   //                           hour min  sec  ms;
 }
 
+export function toMins(duration: number): number {
+  return duration / 1000 / 60
+}
+
 export function daysBetween(then: Date, now: Date): number {
   const msBetweenDates = Math.abs(then.getTime() - now.getTime())
   return msBetweenDates / (24 * 60 * 60 * 1000)

@@ -1,6 +1,6 @@
 import { assertEquals } from "dev:asserts"
 
-import { monthEnd } from "./date-utils.ts"
+import { monthEnd, toMins } from "./date-utils.ts"
 
 Deno.test("monthEnd", async (t) => {
   for (
@@ -13,6 +13,20 @@ Deno.test("monthEnd", async (t) => {
     await t.step(`calculates end of month from ${date}`, () => {
       const actual = monthEnd(new Date(date))
       assertEquals(actual, new Date(expected))
+    })
+  }
+})
+
+Deno.test("toMins", async (t) => {
+  for (
+    const [input, expected] of [
+      [60_000, 1],
+      [90_000, 1.5],
+      [30_000, 0.5],
+    ]
+  ) {
+    await t.step(`turns ${input} to ${expected} minutes`, () => {
+      assertEquals(toMins(input), expected)
     })
   }
 })
