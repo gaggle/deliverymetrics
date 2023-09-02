@@ -16,7 +16,8 @@ Deno.test("regarding the shape of an entry", async (t) => {
           html_url: "example.org/1",
           path: "foo.yml",
           created_at: "2022-01-01T09:00:00Z",
-          updated_at: "2022-01-01T10:00:00Z",
+          run_started_at: "2022-01-01T09:00:00Z",
+          updated_at: "2022-01-01T10:00:00Z", // 1 hr duration
           head_branch: "foo",
           conclusion: "success",
         }),
@@ -25,7 +26,8 @@ Deno.test("regarding the shape of an entry", async (t) => {
           html_url: "example.org/2",
           path: "foo.yml",
           created_at: "2022-01-01T19:00:00Z",
-          updated_at: "2022-01-01T20:00:00Z",
+          run_started_at: "2022-01-01T19:00:00Z",
+          updated_at: "2022-01-01T20:00:00Z", // 1 hr duration
           head_branch: "master",
           conclusion: "failure",
         }),
@@ -34,7 +36,8 @@ Deno.test("regarding the shape of an entry", async (t) => {
           html_url: "example.org/2",
           path: "bar.yml",
           created_at: "2022-01-01T23:00:00Z",
-          updated_at: "2022-01-01T23:00:00Z",
+          run_started_at: "2022-01-01T23:00:00Z",
+          updated_at: "2022-01-01T23:30:00Z", // 30 min duration
           head_branch: "main",
           conclusion: "cancelled",
         }),
@@ -89,6 +92,21 @@ Deno.test("regarding the shape of an entry", async (t) => {
         failureIds: [2],
         successCount: 1,
         successIds: [1],
+      }))
+
+    await t.step("it calculates duration for each status", () =>
+      assertObjectMatch(entry, {
+        durations: [
+          3_600_000, // 1 hr
+          3_600_000, // 1 hr
+          1_800_000, // 30 mins
+        ],
+        failureDurations: [
+          3_600_000, // 1 hr
+        ],
+        successDurations: [
+          3_600_000, // 1 hr
+        ],
       }))
   })
 })

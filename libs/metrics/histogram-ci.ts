@@ -17,6 +17,7 @@ import {
   daysBetween,
   dayStart,
   filterIter,
+  filterUnique,
   monthEnd,
   monthStart,
   weekEnd,
@@ -27,11 +28,14 @@ import { GithubActionRun } from "../github/api/action-run/mod.ts"
 import { GithubActionWorkflow } from "../github/api/action-workflows/mod.ts"
 import { ReadonlyGithubClient } from "../github/mod.ts"
 
+import { getActionRunDuration } from "./github-action-data.ts"
+
 type ActionRunHistogram =
   & {
     branches: Array<string>
     conclusions: Array<string>
     count: number
+    durations: Array<number | undefined>
     end: Date
     htmlUrls: Array<string>
     ids: Array<number>
@@ -39,6 +43,7 @@ type ActionRunHistogram =
     start: Date
   }
   & Record<`${string}Count`, number>
+  & Record<`${string}Durations`, Array<number | undefined>>
   & Record<`${string}Ids`, Array<number>>
 
 export async function* yieldContinuousIntegrationHistogram(
@@ -87,20 +92,21 @@ export async function* yieldContinuousIntegrationHistogram(
     return {
       branches: accumulator
         .map((el) => el.head_branch)
-        .filter((v, i, a) => a.indexOf(v) === i) // Make unique
+        .filter(filterUnique)
         .sort() as Array<string>,
       conclusions: accumulator
         .map((el) => el.conclusion)
         .filter((el) => !!el) // Remove nulls
-        .filter((v, i, a) => a.indexOf(v) === i) // Make unique
+        .filter(filterUnique)
         .sort() as Array<string>,
       count: accumulator.length,
+      durations: accumulator.map((el) => getActionRunDuration(el)),
       end: periodConf.ceil(prevPeriod!),
       htmlUrls: accumulator.map((el) => el.html_url),
       ids: accumulator.map((el) => el.id),
       paths: accumulator
         .map((el) => el.path)
-        .filter((v, i, a) => a.indexOf(v) === i) // Make unique
+        .filter(filterUnique)
         .sort() as Array<string>,
       start: prevPeriod!,
       ...Object.entries(perConclusion).reduce((acc, [conclusion, histograms]) =>
@@ -108,6 +114,7 @@ export async function* yieldContinuousIntegrationHistogram(
           ? {
             ...acc,
             [`${conclusion}Count`]: histograms.length,
+            [`${conclusion}Durations`]: histograms.map((el) => getActionRunDuration(el)),
             [`${conclusion}Ids`]: histograms.map((el) => el.id),
           }
           : acc, {}),
