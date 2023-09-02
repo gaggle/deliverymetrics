@@ -21,3 +21,7 @@ export function arraySubtractRegEx(arr: Array<string>, toSubtract: Array<string 
     return true
   })
 }
+
+export function average(nums: number[]): number {
+  return nums.reduce((a, b) => (a + b)) / nums.length
+}
