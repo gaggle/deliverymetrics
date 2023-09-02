@@ -11,36 +11,42 @@ import { ciHistogramAsCsv } from "./csv-ci-histogram.ts"
 
 Deno.test("convert a CI histogram to a csv row", async () => {
   const input: ReturnType<typeof yieldContinuousIntegrationHistogram> = arrayToAsyncGenerator([{
-    ids: [1, 2],
     branches: ["a", "b"],
-    count: 2,
-    start: new Date("2022-01-01T00:00:00Z"),
-    end: new Date("2022-01-01T23:59:59Z"),
     conclusions: ["failure", "success"],
-    paths: ["bar.yml", "foo.yml"],
-    htmlUrls: ["https://example.com/1", "https://example.com/2"],
-    successCount: 1,
-    successIds: [1],
+    count: 2,
+    durations: [1000 * 60, 1000 * 60 * 2],
+    end: new Date("2022-01-01T23:59:59Z"),
     failureCount: 1,
     failureIds: [2],
+    htmlUrls: ["https://example.com/1", "https://example.com/2"],
+    ids: [1, 2],
+    paths: ["bar.yml", "foo.yml"],
+    start: new Date("2022-01-01T00:00:00Z"),
+    successCount: 1,
+    successDurations: [undefined, 1000 * 60],
+    successIds: [1],
   }])
 
   const result = await asyncSingle(ciHistogramAsCsv(input))
 
   assertEquals(result, {
-    "Period Start": "2022-01-01T00:00:00.000Z",
-    "Period End": "2022-01-01T23:59:59.000Z",
-    "Branches": "a; b",
-    "Paths": "bar.yml; foo.yml",
+    "# of Cancelled": "0",
+    "# of Failure": "1",
     "# of Runs": "2",
     "# of Success": "1",
-    "# of Failure": "1",
-    "# of Cancelled": "0",
+    "Avg. Cancelled Durations (in minutes)": "",
+    "Avg. Durations (in minutes)": "1.50",
+    "Avg. Failure Durations (in minutes)": "",
+    "Avg. Success Durations (in minutes)": "1.00",
+    "Branches": "a; b",
+    "Cancelled IDs": "",
     "Conclusions": "failure; success",
+    "Failure IDs": "2",
+    "Paths": "bar.yml; foo.yml",
+    "Period End": "2022-01-01T23:59:59.000Z",
+    "Period Start": "2022-01-01T00:00:00.000Z",
     "Run IDs": "1; 2",
     "Success IDs": "1",
-    "Failure IDs": "2",
-    "Cancelled IDs": "",
   })
 })
 
