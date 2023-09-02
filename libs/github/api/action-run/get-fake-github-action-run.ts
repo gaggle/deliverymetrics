@@ -46,23 +46,25 @@ export function getFakeGithubActionRun(partial: DeepPartial<GithubActionRun> = {
       "site_admin": false,
     },
     "run_attempt": 1,
-    "referenced_workflows": [
-      {
-        "path": "owner/repo/.github/workflows/foo.yml@ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
-        "sha": "ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
-        "ref": "refs/heads/main",
-      },
-      {
-        "path": "owner/repo/.github/workflows/bar.yml@ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
-        "sha": "ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
-        "ref": "refs/heads/main",
-      },
-      {
-        "path": "owner/repo/.github/workflows/baz.yml@ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
-        "sha": "ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
-        "ref": "refs/heads/main",
-      },
-    ],
+    "referenced_workflows": partial.referenced_workflows === undefined
+      ? [
+        {
+          "path": "owner/repo/.github/workflows/foo.yml@ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
+          "sha": "ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
+          "ref": "refs/heads/main",
+        },
+        {
+          "path": "owner/repo/.github/workflows/bar.yml@ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
+          "sha": "ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
+          "ref": "refs/heads/main",
+        },
+        {
+          "path": "owner/repo/.github/workflows/baz.yml@ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
+          "sha": "ab1c2d3ef45g6h7ijkl8m90n1op23q4r567st8u9",
+          "ref": "refs/heads/main",
+        },
+      ]
+      : partial.referenced_workflows,
     "run_started_at": "2022-12-08T13:48:03Z",
     "triggering_actor": {
       "login": "author-name",
