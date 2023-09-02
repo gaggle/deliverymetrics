@@ -9,7 +9,7 @@ export function getFakeGithubActionWorkflow(partial: DeepPartial<GithubActionWor
     "id": 161335,
     "node_id": "MDg6V29ya2Zsb3cxNjEzMzU=",
     "name": "CI",
-    "path": ".github/workflows/blank.yaml",
+    "path": ".github/workflows/name.yml",
     "state": "active",
     "created_at": "2020-01-08T23:48:37.000-08:00",
     "updated_at": "2020-01-08T23:50:21.000-08:00",
