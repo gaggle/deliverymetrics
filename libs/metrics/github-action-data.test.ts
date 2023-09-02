@@ -9,22 +9,46 @@ import { createFakeReadonlyGithubClient, getFakeSyncInfo } from "../github/testi
 import { yieldActionData } from "./github-action-data.ts"
 
 Deno.test("groups workflow with a generator for its runs", async () => {
-  const workflow = getFakeGithubActionWorkflow({ path: "foo.yml" })
-  const run = getFakeGithubActionRun({ path: "foo.yml" })
-
   const gh = await createFakeReadonlyGithubClient({
     syncInfos: [
       getFakeSyncInfo({ type: "action-workflow", createdAt: 0, updatedAt: 0 }),
       getFakeSyncInfo({ type: "action-run", createdAt: 0, updatedAt: 0 }),
     ],
-    actionWorkflows: [workflow],
-    actionRuns: [run],
+    actionWorkflows: [getFakeGithubActionWorkflow({ path: "foo.yml" })],
+    actionRuns: [
+      getFakeGithubActionRun({ run_number: 1, path: "foo.yml", head_branch: "main" }),
+      getFakeGithubActionRun({ run_number: 2, path: "foo.yml", head_branch: "main" }),
+      getFakeGithubActionRun({ run_number: 3, path: "foo.yml", head_branch: "branch" }),
+      getFakeGithubActionRun({ run_number: 4, path: "bar.yml", head_branch: "main" }),
+    ],
   })
 
-  const { actionWorkflow, actionRunDataGenerator } = await asyncSingle(yieldActionData(gh))
+  const {
+    actionWorkflow,
+    actionRunDataGenerator,
+  } = await asyncSingle(yieldActionData(gh, { actionRun: { branch: "main" } }))
 
-  assertEquals(actionWorkflow.path, workflow.path)
+  assertEquals(actionWorkflow.path, "foo.yml")
 
-  const runs = await asyncToArray(mapIter((el) => el.run.path, actionRunDataGenerator))
-  assertEquals(runs, ["foo.yml"])
+  const runs = await asyncToArray(mapIter((el) => el.run.run_number, actionRunDataGenerator))
+  assertEquals(runs, [1, 2])
+})
+
+Deno.test("calculates duration for runs", async () => {
+  const gh = await createFakeReadonlyGithubClient({
+    syncInfos: [
+      getFakeSyncInfo({ type: "action-workflow", createdAt: 0, updatedAt: 0 }),
+      getFakeSyncInfo({ type: "action-run", createdAt: 0, updatedAt: 0 }),
+    ],
+    actionWorkflows: [getFakeGithubActionWorkflow()],
+    actionRuns: [getFakeGithubActionRun({
+      run_started_at: new Date(0).toISOString(),
+      updated_at: new Date(1000).toISOString(),
+    })],
+  })
+
+  const { actionRunDataGenerator } = await asyncSingle(yieldActionData(gh))
+
+  const runs = await asyncToArray(mapIter((el) => el.duration, actionRunDataGenerator))
+  assertEquals(runs, [1000])
 })

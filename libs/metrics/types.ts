@@ -3,6 +3,8 @@ import { GithubActionWorkflow } from "../github/api/action-workflows/github-acti
 
 export type ActionRunData = {
   run: GithubActionRun
+  /** Duration in ms */
+  duration?: number
 }
 
 export type YieldActionWorkflowData = {
