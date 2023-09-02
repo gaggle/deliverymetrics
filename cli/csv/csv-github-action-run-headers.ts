@@ -2,9 +2,9 @@ import { githubActionRunSchema } from "../../libs/github/api/action-run/mod.ts"
 import { GithubActionWorkflow } from "../../libs/github/api/action-workflows/mod.ts"
 import { ActionRunData } from "../../libs/metrics/types.ts"
 
-import { extractZodSchemaKeys, flattenObject, stringifyObject } from "../../utils/mod.ts"
+import { extractZodSchemaKeys, flattenObject, stringifyObject, toMins } from "../../utils/mod.ts"
 
-const extraHeaders = [] as const
+const extraHeaders = ["Duration (in minutes)"] as const
 
 export const githubActionRunHeaders = [
   ...extraHeaders,
@@ -18,6 +18,7 @@ export async function* githubActionRunAsCsv(
 ): AsyncGenerator<GithubActionRunRow> {
   for await (const { actionRunData } of iter) {
     yield {
+      "Duration (in minutes)": actionRunData.duration ? (toMins(actionRunData.duration).toPrecision(3)).toString() : "",
       ...stringifyObject(flattenObject(actionRunData.run), { stringifyUndefined: true }),
     }
   }
