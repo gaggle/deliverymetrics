@@ -67,8 +67,10 @@ async function updateJsonSchema({ check }: Partial<{ check: boolean }> = {}) {
       Deno.exit(1)
     }
   } else {
-    await Deno.writeTextFile("configuration-schema.json", jsonSchema)
-    console.log("Updated configuration-schema.json")
+    if (existingSchema !== jsonSchema) {
+      await Deno.writeTextFile("configuration-schema.json", jsonSchema)
+      console.log("Updated configuration-schema.json")
+    }
   }
 }
 
