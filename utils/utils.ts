@@ -509,6 +509,10 @@ export function filterUndefined<T>(input: T | T[]): NonUndefinedKeys<T> | T[] {
   }
 }
 
+export function filterUnique<T>(value: T, idx: number, arr: T[]): boolean {
+  return arr.indexOf(value) === idx
+}
+
 export function stringToStream(content: string): ReadableStream<Uint8Array> {
   // Encode the string to a Uint8Array
   const array = new TextEncoder().encode(content)
