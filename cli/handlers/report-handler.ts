@@ -410,7 +410,7 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
 
   yield async () => {
     await timeCtx("jira-search-data", async () => {
-      const { fieldKeys, fieldKeysToNames, yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
+      const { fieldKeys, yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
         maxDays: opts.dataTimeframe,
         signal: opts.signal,
       })
@@ -420,7 +420,6 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
         {
           header: jiraSearchDataHeaders({
             fieldKeys,
-            fieldKeysToNames,
             fieldsToInclude: [...filterUndefined([customCompletedDateHeader, customStartDateHeader])],
             includeCustomFields: false,
           }),
