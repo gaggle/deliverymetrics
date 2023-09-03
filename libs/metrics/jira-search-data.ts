@@ -4,8 +4,8 @@ import {
   assertUnreachable,
   asyncToArray,
   daysBetween,
-  flattenObject,
   getValueByPath,
+  mapIter,
 } from "../../utils/mod.ts"
 
 import { JiraSearchIssue, JiraSearchNames } from "../jira/api/search/mod.ts"
@@ -34,10 +34,22 @@ export async function getJiraSearchDataYielder(
     getAllFieldKeys(client, opts),
     getAllFieldKeysToNames(client, opts),
   ])
+
   return {
-    fieldKeys,
+    fieldKeys: fieldKeys.map((el) => {
+      const translated = fieldKeysToNames[el]
+      return translated ? translated : el
+    }),
     fieldKeysToNames,
-    yieldJiraSearchIssues: yieldJiraSearchData(client, latestSync, opts),
+    yieldJiraSearchIssues: mapIter((el) => {
+      const fields = Object.fromEntries(
+        Object.entries(el.fields || {}).map(([key, val]) => {
+          const translated = fieldKeysToNames[key]
+          return [translated ? translated : key, val]
+        }),
+      )
+      return { ...el, fields }
+    }, yieldJiraSearchData(client, latestSync, opts)),
   }
 }
 
@@ -49,10 +61,8 @@ async function getAllFieldKeys(
   for await (const { issue } of client.findSearchIssues()) {
     if (opts.signal?.aborted) throw new AbortError()
 
-    for (const el of Object.keys(flattenObject(issue))) {
-      if (el.startsWith("fields.")) {
-        headers.add(el)
-      }
+    for (const el of Object.keys(issue.fields || [])) {
+      headers.add(el)
     }
   }
   return Array.from(headers)

@@ -1,4 +1,4 @@
-import { assertEquals } from "dev:asserts"
+import { assertArrayIncludes, assertEquals } from "dev:asserts"
 
 import { asyncSingle, asyncToArray } from "../../utils/mod.ts"
 
@@ -7,13 +7,13 @@ import { createFakeReadonlyJiraClient, getFakeJiraSyncInfo } from "../jira/mod.t
 
 import { getJiraSearchDataYielder } from "./jira-search-data.ts"
 
-Deno.test("fieldKeys returns all field keys", async () => {
+Deno.test("fieldKeys returns all field keys translated via search names", async () => {
   const dbIssue = getFakeDbJiraSearchIssue({
     issue: { fields: { updated: "1970-01-10T00:00:00.000+0000" } },
     namesHash: "123",
   })
   const dbNames = getFakeDbJiraSearchNames({
-    names: { "customfield_22118": "Foo Bar", "updated": "Updated" },
+    names: { "customfield_19175": "Foo Bar", "updated": "Updated" },
     hash: dbIssue.namesHash,
   })
   const client = await createFakeReadonlyJiraClient({
@@ -25,127 +25,43 @@ Deno.test("fieldKeys returns all field keys", async () => {
   const { fieldKeys } = await getJiraSearchDataYielder(client)
 
   assertEquals(fieldKeys, [
-    "fields.aggregatetimeoriginalestimate",
-    "fields.subtasks",
-    "fields.timeestimate",
-    "fields.aggregatetimespent",
-    "fields.labels",
-    "fields.reporter.self",
-    "fields.reporter.accountId",
-    "fields.reporter.emailAddress",
-    "fields.reporter.avatarUrls.48x48",
-    "fields.reporter.avatarUrls.24x24",
-    "fields.reporter.avatarUrls.16x16",
-    "fields.reporter.avatarUrls.32x32",
-    "fields.reporter.displayName",
-    "fields.reporter.active",
-    "fields.reporter.timeZone",
-    "fields.reporter.accountType",
-    "fields.statuscategorychangedate",
-    "fields.priority.self",
-    "fields.priority.iconUrl",
-    "fields.priority.name",
-    "fields.priority.id",
-    "fields.created",
-    "fields.assignee",
-    "fields.status.self",
-    "fields.status.description",
-    "fields.status.iconUrl",
-    "fields.status.name",
-    "fields.status.id",
-    "fields.status.statusCategory.self",
-    "fields.status.statusCategory.id",
-    "fields.status.statusCategory.key",
-    "fields.status.statusCategory.colorName",
-    "fields.status.statusCategory.name",
-    "fields.timespent",
-    "fields.components",
-    "fields.progress.progress",
-    "fields.progress.total",
-    "fields.project.self",
-    "fields.project.id",
-    "fields.project.key",
-    "fields.project.name",
-    "fields.project.projectTypeKey",
-    "fields.project.simplified",
-    "fields.project.avatarUrls.48x48",
-    "fields.project.avatarUrls.24x24",
-    "fields.project.avatarUrls.16x16",
-    "fields.project.avatarUrls.32x32",
-    "fields.issuetype.self",
-    "fields.issuetype.id",
-    "fields.issuetype.description",
-    "fields.issuetype.iconUrl",
-    "fields.issuetype.name",
-    "fields.issuetype.subtask",
-    "fields.issuetype.avatarId",
-    "fields.issuetype.entityId",
-    "fields.issuetype.hierarchyLevel",
-    "fields.environment",
-    "fields.workratio",
-    "fields.timeoriginalestimate",
-    "fields.customfield_19175",
-    "fields.parent.id",
-    "fields.parent.key",
-    "fields.parent.self",
-    "fields.parent.fields.summary",
-    "fields.parent.fields.status.self",
-    "fields.parent.fields.status.description",
-    "fields.parent.fields.status.iconUrl",
-    "fields.parent.fields.status.name",
-    "fields.parent.fields.status.id",
-    "fields.parent.fields.status.statusCategory.self",
-    "fields.parent.fields.status.statusCategory.id",
-    "fields.parent.fields.status.statusCategory.key",
-    "fields.parent.fields.status.statusCategory.colorName",
-    "fields.parent.fields.status.statusCategory.name",
-    "fields.parent.fields.priority.self",
-    "fields.parent.fields.priority.iconUrl",
-    "fields.parent.fields.priority.name",
-    "fields.parent.fields.priority.id",
-    "fields.parent.fields.issuetype.self",
-    "fields.parent.fields.issuetype.id",
-    "fields.parent.fields.issuetype.description",
-    "fields.parent.fields.issuetype.iconUrl",
-    "fields.parent.fields.issuetype.name",
-    "fields.parent.fields.issuetype.subtask",
-    "fields.parent.fields.issuetype.avatarId",
-    "fields.parent.fields.issuetype.entityId",
-    "fields.parent.fields.issuetype.hierarchyLevel",
-    "fields.votes.self",
-    "fields.votes.votes",
-    "fields.votes.hasVoted",
-    "fields.duedate",
-    "fields.aggregateprogress.progress",
-    "fields.aggregateprogress.total",
-    "fields.security",
-    "fields.lastViewed",
-    "fields.issuelinks",
-    "fields.updated",
-    "fields.summary",
-    "fields.versions",
-    "fields.resolution.self",
-    "fields.resolution.id",
-    "fields.resolution.description",
-    "fields.resolution.name",
-    "fields.watches.self",
-    "fields.watches.watchCount",
-    "fields.watches.isWatching",
-    "fields.description",
-    "fields.fixVersions",
-    "fields.aggregatetimeestimate",
-    "fields.creator.self",
-    "fields.creator.accountId",
-    "fields.creator.emailAddress",
-    "fields.creator.avatarUrls.48x48",
-    "fields.creator.avatarUrls.24x24",
-    "fields.creator.avatarUrls.16x16",
-    "fields.creator.avatarUrls.32x32",
-    "fields.creator.displayName",
-    "fields.creator.active",
-    "fields.creator.timeZone",
-    "fields.creator.accountType",
-    "fields.resolutiondate",
+    "aggregatetimeoriginalestimate",
+    "subtasks",
+    "timeestimate",
+    "aggregatetimespent",
+    "labels",
+    "reporter",
+    "statuscategorychangedate",
+    "priority",
+    "created",
+    "assignee",
+    "status",
+    "timespent",
+    "components",
+    "progress",
+    "project",
+    "issuetype",
+    "environment",
+    "workratio",
+    "timeoriginalestimate",
+    "Foo Bar",
+    "parent",
+    "votes",
+    "duedate",
+    "aggregateprogress",
+    "security",
+    "lastViewed",
+    "issuelinks",
+    "Updated",
+    "summary",
+    "versions",
+    "resolution",
+    "watches",
+    "description",
+    "fixVersions",
+    "aggregatetimeestimate",
+    "creator",
+    "resolutiondate",
   ])
 })
 
@@ -156,7 +72,7 @@ Deno.test("fieldKeysToNames", async (t) => {
       namesHash: "123",
     })
     const dbNames = getFakeDbJiraSearchNames({
-      names: { "customfield_22118": "Foo Bar", "updated": "Updated" },
+      names: { "customfield_19175": "Foo Bar", "updated": "Updated" },
       hash: dbIssue.namesHash,
     })
     const client = await createFakeReadonlyJiraClient({
@@ -167,7 +83,7 @@ Deno.test("fieldKeysToNames", async (t) => {
 
     const { fieldKeysToNames } = await getJiraSearchDataYielder(client)
 
-    assertEquals(fieldKeysToNames, { customfield_22118: "Foo Bar", updated: "Updated" })
+    assertEquals(fieldKeysToNames, { customfield_19175: "Foo Bar", updated: "Updated" })
   })
 
   await t.step("uses latest name for each field", async () => {
@@ -179,7 +95,7 @@ Deno.test("fieldKeysToNames", async (t) => {
       ],
       searchNames: [
         getFakeDbJiraSearchNames({
-          names: { "customfield_22118": "Foo Bar", "updated": "Updated" },
+          names: { "customfield_19175": "Foo Bar", "updated": "Updated" },
           hash: "123",
         }),
         getFakeDbJiraSearchNames({
@@ -192,7 +108,7 @@ Deno.test("fieldKeysToNames", async (t) => {
     const { fieldKeysToNames } = await getJiraSearchDataYielder(client)
 
     assertEquals(fieldKeysToNames, {
-      customfield_22118: "Foo Bar",
+      customfield_19175: "Foo Bar",
       customfield_90210: "Foo Bar",
       updated: "Updated New",
     })
@@ -206,7 +122,7 @@ Deno.test("yieldJiraSearchIssues", async (t) => {
       namesHash: "123",
     })
     const dbNames = getFakeDbJiraSearchNames({
-      names: { "customfield_22118": "Foo Bar", "updated": "Updated" },
+      names: { "customfield_19175": "Foo Bar", "updated": "Updated" },
       hash: dbIssue.namesHash,
     })
     const client = await createFakeReadonlyJiraClient({
@@ -217,7 +133,7 @@ Deno.test("yieldJiraSearchIssues", async (t) => {
 
     const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client)
 
-    assertEquals(await asyncToArray(yieldJiraSearchIssues), [dbIssue.issue])
+    assertEquals((await asyncToArray(yieldJiraSearchIssues)).map((el) => el.id), [dbIssue.issue.id])
   })
 
   await t.step("stops yielding issues after maxDays old", async () => {
@@ -240,7 +156,7 @@ Deno.test("yieldJiraSearchIssues", async (t) => {
         }),
       ],
       searchNames: [getFakeDbJiraSearchNames({
-        names: { "customfield_22118": "Foo Bar", "updated": "Updated" },
+        names: { "customfield_19175": "Foo Bar", "updated": "Updated" },
         hash: "123",
       })],
     })
@@ -266,7 +182,7 @@ Deno.test("yieldJiraSearchIssues", async (t) => {
 
     const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client, { includeStatuses: ["Done"] })
 
-    assertEquals(await asyncSingle(yieldJiraSearchIssues), doneDbIssue.issue)
+    assertEquals((await asyncSingle(yieldJiraSearchIssues)).id, doneDbIssue.issue.id)
   })
 
   await t.step("can include only specified types", async () => {
@@ -285,7 +201,7 @@ Deno.test("yieldJiraSearchIssues", async (t) => {
 
     const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client, { includeTypes: ["Story"] })
 
-    assertEquals(await asyncSingle(yieldJiraSearchIssues), storyDbIssue.issue)
+    assertEquals((await asyncSingle(yieldJiraSearchIssues)).id, storyDbIssue.issue.id)
   })
 
   await t.step("can sort by field", async () => {
@@ -305,5 +221,26 @@ Deno.test("yieldJiraSearchIssues", async (t) => {
     })
     const results = await asyncToArray(yieldJiraSearchIssues)
     assertEquals(results.map((el) => el.key), ["3", "2", "4", "1"])
+  })
+
+  await t.step("translates field keys via search names", async () => {
+    const dbIssue = getFakeDbJiraSearchIssue({
+      issue: { fields: { updated: "1970-01-10T00:00:00.000+0000" } },
+      namesHash: "123",
+    })
+    const dbNames = getFakeDbJiraSearchNames({
+      names: { "customfield_19175": "Foo Bar", "updated": "Updated" },
+      hash: dbIssue.namesHash,
+    })
+    const client = await createFakeReadonlyJiraClient({
+      syncs: [getFakeJiraSyncInfo({ type: "search" })],
+      searchIssues: [dbIssue],
+      searchNames: [dbNames],
+    })
+
+    const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client)
+    const result = await asyncSingle(yieldJiraSearchIssues)
+
+    assertArrayIncludes(Object.keys(result.fields!), ["Foo Bar", "Updated"])
   })
 })
