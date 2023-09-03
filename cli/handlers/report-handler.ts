@@ -421,7 +421,8 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
           header: jiraSearchDataHeaders({
             fieldKeys,
             fieldKeysToNames,
-            includeCustomFields: [...filterUndefined([customCompletedDateHeader, customStartDateHeader])],
+            fieldsToInclude: [...filterUndefined([customCompletedDateHeader, customStartDateHeader])],
+            includeCustomFields: false,
           }),
         },
       )

@@ -47,14 +47,19 @@ export async function* jiraSearchDataIssuesAsCsv(
 export function jiraSearchDataHeaders(opts: Partial<{
   fieldKeys: Array<string>
   fieldKeysToNames: Record<string, string>
-  includeCustomFields: Array<string>
+  includeCustomFields: boolean
+  fieldsToInclude: Array<string>
 }> = {}): Array<string> {
-  const regex = /^fields.customfield_\d+/
   const fieldKeys = opts.fieldKeys || []
-  const headers = arraySubtract(Array.from(new Set([...fixedHeaders, ...fieldKeys]).values()), ignoreHeaders)
-  if (opts.includeCustomFields) {
-    return [...headers.filter((el) => !regex.test(el)), ...opts.includeCustomFields]
-  } else {
-    return headers
-  }
+  const fieldsToInclude = opts.fieldsToInclude || []
+  const includeCustomFields = opts.includeCustomFields || false
+
+  const allHeaders = arraySubtract(Array.from(new Set([...fixedHeaders, ...fieldKeys]).values()), ignoreHeaders)
+
+  const regex = /^fields.customfield_\d+/
+  return allHeaders.filter((el) => {
+    if (fieldsToInclude.includes(el)) return true
+    if (includeCustomFields) return true
+    return !regex.test(el)
+  })
 }

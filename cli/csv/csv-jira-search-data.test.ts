@@ -274,7 +274,7 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
     )
 
     const issue = await asyncSingle(jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues))
-    const headers = jiraSearchDataHeaders({ fieldKeys, fieldKeysToNames })
+    const headers = jiraSearchDataHeaders({ fieldKeys, fieldKeysToNames, includeCustomFields: true })
     const flattenedIssueKeys = Object.keys(flattenObject(issue))
 
     const issueKeysNotRepresentedInNames = arraySubtract(arraySubtract(flattenedIssueKeys, headers), ignoreHeaders)
@@ -282,5 +282,47 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
 
     const headersNotRepresentedInIssueKeys = arraySubtract(headers, flattenedIssueKeys)
     assertEquals(headersNotRepresentedInIssueKeys, ["operations.linkGroups"])
+  })
+
+  await t.step("doesn't include custom fields by default", () => {
+    const customFieldName = "fields.customfield_123"
+    const headers = jiraSearchDataHeaders({ fieldKeys: [customFieldName] })
+
+    assertEquals(
+      headers.indexOf(customFieldName),
+      -1,
+      `Expected actual: ${JSON.stringify(headers, null, 2)} to not include: ${customFieldName}`,
+    )
+  })
+
+  await t.step("can include custom fields", () => {
+    const headers = jiraSearchDataHeaders({ fieldKeys: ["fields.customfield_123"], includeCustomFields: true })
+
+    assertArrayIncludes(headers, ["fields.customfield_123"])
+  })
+
+  await t.step("includes specified custom fields even when custom fields are globally excluded", () => {
+    const headers = jiraSearchDataHeaders({
+      fieldKeys: ["fields.customfield_123", "fields.customfield_234"],
+      includeCustomFields: false,
+      fieldsToInclude: ["fields.customfield_123"],
+    })
+
+    assertArrayIncludes(headers, ["fields.customfield_123"])
+    assertEquals(
+      headers.indexOf("fields.customfield_234"),
+      -1,
+      `Expected actual: ${JSON.stringify(headers, null, 2)} to not include: fields.customfield_234`,
+    )
+  })
+
+  await t.step("it doesn't do anything to include a field that doesn't exist", () => {
+    const headers = jiraSearchDataHeaders({ fieldsToInclude: ["foo"] })
+
+    assertEquals(
+      headers.indexOf("foo"),
+      -1,
+      `Expected actual: ${JSON.stringify(headers, null, 2)} to not include: foo`,
+    )
   })
 })
