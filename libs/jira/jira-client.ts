@@ -49,8 +49,12 @@ export class AloeDBReadonlyJiraClient extends EventEmitter<JiraClientEvents> imp
 
   async *findSearchIssues(): AsyncGenerator<DBJiraSearchIssue> {
     for (const el of await this.db.searchIssues.findMany()) {
-      const dbNames = await this.db.searchNames.findOne({ hash: el.namesHash })
-      if (dbNames === null) throw new Error("...")
+      if (el.namesHash) {
+        const dbNames = await this.db.searchNames.findOne({ hash: el.namesHash })
+        if (dbNames === null) {
+          throw new Error(`cannot find corresponding names hash '${el.namesHash}' in issue id '${el.issueId}'`)
+        }
+      }
       yield el
     }
   }
