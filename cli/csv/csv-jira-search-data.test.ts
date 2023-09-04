@@ -250,9 +250,9 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
     assertEquals(result, expectedFixedHeaders)
   })
 
-  await t.step("adds", () => {
+  await t.step("adds field-keys as fields", () => {
     const result = jiraSearchDataHeaders({
-      fieldKeys: ["fields.created", "fields.updated", "fields.summary", "fields.description", "fields.foo"],
+      fieldKeys: ["created", "updated", "summary", "description", "foo"],
     })
 
     assertEquals(result, [
@@ -265,16 +265,23 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
   })
 
   await t.step("can use metrics/getJiraSearchDataYielder to calculate csv row and headers", async () => {
-    const { fieldKeys, fieldKeysToNames, yieldJiraSearchIssues } = await getJiraSearchDataYielder(
+    const { fieldKeys, yieldJiraSearchIssues } = await getJiraSearchDataYielder(
       await createFakeReadonlyJiraClient({
         syncs: [getFakeJiraSyncInfo({ type: "search" })],
-        searchIssues: [getFakeDbJiraSearchIssue({ namesHash: "123" })],
-        searchNames: [getFakeDbJiraSearchNames({ hash: "123" })],
+        searchIssues: [getFakeDbJiraSearchIssue({
+          namesHash: "123",
+          issue: { fields: { customfield_19175: "foo" } },
+        })],
+        searchNames: [getFakeDbJiraSearchNames({
+          hash: "123",
+          names: { "customfield_19175": "Foo Bar" },
+        })],
       }),
     )
 
     const issue = await asyncSingle(jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues))
-    const headers = jiraSearchDataHeaders({ fieldKeys, fieldKeysToNames, includeCustomFields: true })
+    const headers = jiraSearchDataHeaders({ fieldKeys })
+
     const flattenedIssueKeys = Object.keys(flattenObject(issue))
 
     const issueKeysNotRepresentedInNames = arraySubtract(arraySubtract(flattenedIssueKeys, headers), ignoreHeaders)
@@ -285,7 +292,7 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
   })
 
   await t.step("doesn't include custom fields by default", () => {
-    const customFieldName = "fields.customfield_123"
+    const customFieldName = "customfield_123"
     const headers = jiraSearchDataHeaders({ fieldKeys: [customFieldName] })
 
     assertEquals(
@@ -296,16 +303,16 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
   })
 
   await t.step("can include custom fields", () => {
-    const headers = jiraSearchDataHeaders({ fieldKeys: ["fields.customfield_123"], includeCustomFields: true })
+    const headers = jiraSearchDataHeaders({ fieldKeys: ["customfield_123"] })
 
     assertArrayIncludes(headers, ["fields.customfield_123"])
   })
 
-  await t.step("includes specified custom fields even when custom fields are globally excluded", () => {
+  await t.step("includes specified fields even when they get globally excluded", () => {
     const headers = jiraSearchDataHeaders({
-      fieldKeys: ["fields.customfield_123", "fields.customfield_234"],
-      includeCustomFields: false,
+      fieldKeys: ["customfield_123", "customfield_234"],
       fieldsToInclude: ["fields.customfield_123"],
+      fieldsToExclude: [/.*/],
     })
 
     assertArrayIncludes(headers, ["fields.customfield_123"])

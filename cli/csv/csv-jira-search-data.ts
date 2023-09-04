@@ -1,7 +1,13 @@
 import { jiraSearchIssueSchema } from "../../libs/jira/api/search/mod.ts"
 import { GetJiraSearchDataYielderReturnType } from "../../libs/metrics/mod.ts"
 
-import { arraySubtract, extractZodSchemaKeys, flattenObject, stringifyObject } from "../../utils/mod.ts"
+import {
+  arraySubtract,
+  extractZodSchemaKeys,
+  flattenObject,
+  regexOrStringTestMany,
+  stringifyObject,
+} from "../../utils/mod.ts"
 
 export const ignoreHeaders = ["changelog.histories", "transitions"]
 const extraHeaders = ["Changelog Histories", "Transitions", "Transitions Count"] as const
@@ -46,20 +52,21 @@ export async function* jiraSearchDataIssuesAsCsv(
 
 export function jiraSearchDataHeaders(opts: Partial<{
   fieldKeys: Array<string>
-  fieldKeysToNames: Record<string, string>
-  includeCustomFields: boolean
-  fieldsToInclude: Array<string>
+  fieldsToExclude: Array<string | RegExp>
+  fieldsToInclude: Array<string | RegExp>
 }> = {}): Array<string> {
   const fieldKeys = opts.fieldKeys || []
   const fieldsToInclude = opts.fieldsToInclude || []
-  const includeCustomFields = opts.includeCustomFields || false
+  const fieldsToExclude = opts.fieldsToExclude || []
 
-  const allHeaders = arraySubtract(Array.from(new Set([...fixedHeaders, ...fieldKeys]).values()), ignoreHeaders)
+  const allHeaders = arraySubtract(
+    Array.from(new Set([...fixedHeaders, ...fieldKeys.map((el) => `fields.${el}`)]).values()),
+    ignoreHeaders,
+  )
 
-  const regex = /^fields.customfield_\d+/
   return allHeaders.filter((el) => {
-    if (fieldsToInclude.includes(el)) return true
-    if (includeCustomFields) return true
-    return !regex.test(el)
+    if (regexOrStringTestMany(el, fieldsToInclude)) return true
+    if (regexOrStringTestMany(el, fieldsToExclude)) return false
+    return true
   })
 }
