@@ -381,7 +381,7 @@ export function getFakeDbJiraSearchIssue(partial: DeepPartial<DBJiraSearchIssue>
     issue: base,
     issueId: base.id || partial.issueId,
     issueKey: base.key || partial.issueKey,
-    namesHash: "123" || partial.namesHash,
+    namesHash: "namesHash" in partial ? partial.namesHash : "123",
   }
 }
 
