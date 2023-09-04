@@ -178,8 +178,8 @@ export function main(args: Array<string>) {
         if (jiraSync) {
           reportSpec.jira = {
             apiUser: jiraSync.api_user,
-            customCompletedDateHeader: configReport.jira?.custom_completed_date_header,
-            customStartDateHeader: configReport.jira?.custom_start_date_header,
+            completedDateHeader: configReport.jira?.completed_date_header,
+            startDateHeader: configReport.jira?.start_date_header,
             devLeadTimeStatuses: configReport.jira?.dev_lead_time_statuses,
             devLeadTimeTypes: configReport.jira?.dev_lead_time_types,
             host: jiraSync.host,

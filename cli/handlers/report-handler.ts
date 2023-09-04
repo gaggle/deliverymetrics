@@ -102,8 +102,8 @@ type ReportSpecGitHub = {
 
 type ReportSpecJira = {
   apiUser: string
-  customCompletedDateHeader?: string
-  customStartDateHeader?: string
+  completedDateHeader?: string
+  startDateHeader?: string
   devLeadTimeStatuses?: string[]
   devLeadTimeTypes?: string[]
   host: string
@@ -377,8 +377,8 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
     persistenceDir: join(opts.cacheRoot, "jira", slugify(jira.host), slugify(jira.apiUser)),
   })
 
-  const customCompletedDateHeader = jira.customCompletedDateHeader
-  const customStartDateHeader = jira.customStartDateHeader
+  const customCompletedDateHeader = jira.completedDateHeader
+  const customStartDateHeader = jira.startDateHeader
   if (customCompletedDateHeader && customStartDateHeader) {
     yield async () => {
       await timeCtx("jira-focusedobjective-team-dashboard-data", async () => {

@@ -63,8 +63,8 @@ const configReportSchema = z.object({
     }).optional(),
   }).optional(),
   jira: z.object({
-    custom_completed_date_header: z.string().optional(),
-    custom_start_date_header: z.string().optional(),
+    completed_date_header: z.string().optional(),
+    start_date_header: z.string().optional(),
     dev_lead_time_statuses: z.array(z.string()).optional(),
     dev_lead_time_types: z.array(z.string()).optional(),
   })
