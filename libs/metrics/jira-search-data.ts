@@ -4,6 +4,7 @@ import {
   assertUnreachable,
   asyncToArray,
   daysBetween,
+  flattenObject,
   getValueByPath,
   mapIter,
 } from "../../utils/mod.ts"
@@ -25,6 +26,7 @@ export async function getJiraSearchDataYielder(
     maxDays: number
     signal: AbortSignal
     sortBy: { key: string; type: "date" }
+    excludeUnusedFields: boolean
   }> = {},
 ): Promise<GetJiraSearchDataYielderReturnType> {
   const latestSync = await client.findLatestSync({ type: "search" })
@@ -61,7 +63,7 @@ async function getAllFieldKeys(
   for await (const { issue } of client.findSearchIssues()) {
     if (opts.signal?.aborted) throw new AbortError()
 
-    for (const el of Object.keys(issue.fields || [])) {
+    for (const el of Object.keys(flattenObject(issue.fields || {}))) {
       headers.add(el)
     }
   }
