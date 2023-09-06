@@ -32,10 +32,8 @@ export async function getJiraSearchDataYielder(
   const latestSync = await client.findLatestSync({ type: "search" })
   if (!latestSync) return { fieldKeys: [], fieldKeysToNames: {}, yieldJiraSearchIssues: arrayToAsyncGenerator([]) }
 
-  const [fieldKeys, fieldKeysToNames] = await Promise.all([
-    getAllFieldKeys(client, opts),
-    getAllFieldKeysToNames(client, opts),
-  ])
+  const fieldKeysToNames = await getAllFieldKeysToNames(client, { signal: opts.signal })
+  const fieldKeys = await getAllFieldKeys(client, { signal: opts.signal, fieldKeysToNames })
 
   return {
     fieldKeys: fieldKeys.map((el) => {
@@ -57,14 +55,21 @@ export async function getJiraSearchDataYielder(
 
 async function getAllFieldKeys(
   client: ReadonlyJiraClient,
-  opts: Partial<{ signal: AbortSignal }>,
+  { signal, fieldKeysToNames }: Partial<{ signal: AbortSignal; fieldKeysToNames: Record<string, string> }>,
 ): Promise<Array<string>> {
   const headers = new Set<string>()
   for await (const { issue } of client.findSearchIssues()) {
-    if (opts.signal?.aborted) throw new AbortError()
+    if (signal?.aborted) throw new AbortError()
 
-    for (const el of Object.keys(flattenObject(issue.fields || {}))) {
-      headers.add(el)
+    const translatedFields = fieldKeysToNames
+      ? Object.fromEntries(
+        Object.entries(issue.fields || {})
+          .map(([key, val]) => [fieldKeysToNames[key] || key, val]),
+      )
+      : issue.fields
+
+    for (const key of Object.keys(flattenObject(translatedFields || {}))) {
+      headers.add(key)
     }
   }
   return Array.from(headers)
