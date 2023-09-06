@@ -33,29 +33,34 @@ export async function getJiraSearchDataYielder(
   if (!latestSync) return { fieldKeys: [], fieldKeysToNames: {}, yieldJiraSearchIssues: arrayToAsyncGenerator([]) }
 
   const fieldKeysToNames = await getAllFieldKeysToNames(client, { signal: opts.signal })
-  const fieldKeys = await getAllFieldKeys(client, { signal: opts.signal, fieldKeysToNames })
+  const fieldKeys = await getAllFieldKeys(client, {
+    discardEmptyStrings: opts.excludeUnusedFields,
+    discardNulls: opts.excludeUnusedFields,
+    fieldKeysToNames,
+    signal: opts.signal,
+  })
 
   return {
-    fieldKeys: fieldKeys.map((el) => {
-      const translated = fieldKeysToNames[el]
-      return translated ? translated : el
-    }),
+    fieldKeys,
     fieldKeysToNames,
-    yieldJiraSearchIssues: mapIter((el) => {
-      const fields = Object.fromEntries(
-        Object.entries(el.fields || {}).map(([key, val]) => {
-          const translated = fieldKeysToNames[key]
-          return [translated ? translated : key, val]
-        }),
-      )
-      return { ...el, fields }
-    }, yieldJiraSearchData(client, latestSync, opts)),
+    yieldJiraSearchIssues: mapIter((el) => ({
+      ...el,
+      fields: Object.fromEntries(
+        Object.entries(el.fields || {})
+          .map(([key, val]) => [fieldKeysToNames[key] || key, val]),
+      ),
+    }), yieldJiraSearchData(client, latestSync, opts)),
   }
 }
 
 async function getAllFieldKeys(
   client: ReadonlyJiraClient,
-  { signal, fieldKeysToNames }: Partial<{ signal: AbortSignal; fieldKeysToNames: Record<string, string> }>,
+  { discardEmptyStrings, discardNulls, fieldKeysToNames, signal }: Partial<{
+    discardEmptyStrings: boolean
+    discardNulls: boolean
+    fieldKeysToNames: Record<string, string>
+    signal: AbortSignal
+  }>,
 ): Promise<Array<string>> {
   const headers = new Set<string>()
   for await (const { issue } of client.findSearchIssues()) {
@@ -68,7 +73,9 @@ async function getAllFieldKeys(
       )
       : issue.fields
 
-    for (const key of Object.keys(flattenObject(translatedFields || {}))) {
+    for (const [key, val] of Object.entries(flattenObject(translatedFields || {}))) {
+      if (val === "" && discardEmptyStrings) continue
+      if (val === null && discardNulls) continue
       headers.add(key)
     }
   }

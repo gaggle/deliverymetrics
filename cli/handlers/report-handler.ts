@@ -399,7 +399,7 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
               customStartDateHeader,
               "fields.issuetype.name",
               "key",
-              "fields.summary",
+              "fields.Summary",
               "fields.status.name",
             ],
           },
@@ -413,6 +413,7 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
       const { fieldKeys, yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
         maxDays: opts.dataTimeframe,
         signal: opts.signal,
+        excludeUnusedFields: true,
       })
       await writeCSVToFile(
         join(opts.outputDir, "jira-search-data.csv"),
@@ -421,7 +422,6 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
           header: jiraSearchDataHeaders({
             fieldKeys,
             fieldsToInclude: [...filterUndefined([customCompletedDateHeader, customStartDateHeader])],
-            includeCustomFields: false,
           }),
         },
       )

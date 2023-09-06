@@ -41,23 +41,50 @@ Deno.test("fieldKeys returns all field keys translated via search names", async 
   ])
 })
 
-Deno.test("fieldKeys can exclude globally unused fields", async () => {
-  const getJiraSearchIssueWithFields = (fields: Record<string, unknown>) => {
-    const issue = getFakeDbJiraSearchIssue({ namesHash: "123" })
-    issue.issue.fields = fields
-    return issue
-  }
+Deno.test("fieldKeys emits all field names, including those whose values are globally null", async () => {
   const client = await createFakeReadonlyJiraClient({
     syncs: [getFakeJiraSyncInfo({ type: "search" })],
     searchIssues: [
-      getJiraSearchIssueWithFields({ foo: "foo" }),
-      getJiraSearchIssueWithFields({ foo: "foo", bar: "bar", baz: undefined }),
-      getJiraSearchIssueWithFields({ baz: undefined, ham: undefined }),
+      getFakeDbJiraSearchIssue(
+        { namesHash: undefined, issue: { fields: { foo: "1" } } },
+        { wipeBaseFields: true },
+      ),
+      getFakeDbJiraSearchIssue(
+        { namesHash: undefined, issue: { fields: { foo: "2", bar: "1", baz: null } } },
+        { wipeBaseFields: true },
+      ),
+      getFakeDbJiraSearchIssue(
+        { namesHash: undefined, issue: { fields: { baz: null, ham: null } } },
+        { wipeBaseFields: true },
+      ),
     ],
-    searchNames: [getFakeDbJiraSearchNames({ hash: "123" })],
   })
 
   const { fieldKeys } = await getJiraSearchDataYielder(client, { excludeUnusedFields: false })
+
+  assertEquals(fieldKeys, ["foo", "bar", "baz", "ham"])
+})
+
+Deno.test("fieldKeys can exclude globally unused fields", async () => {
+  const client = await createFakeReadonlyJiraClient({
+    syncs: [getFakeJiraSyncInfo({ type: "search" })],
+    searchIssues: [
+      getFakeDbJiraSearchIssue(
+        { namesHash: undefined, issue: { fields: { foo: "1" } } },
+        { wipeBaseFields: true },
+      ),
+      getFakeDbJiraSearchIssue(
+        { namesHash: undefined, issue: { fields: { foo: "2", bar: "1", baz: null } } },
+        { wipeBaseFields: true },
+      ),
+      getFakeDbJiraSearchIssue(
+        { namesHash: undefined, issue: { fields: { baz: null, ham: null } } },
+        { wipeBaseFields: true },
+      ),
+    ],
+  })
+
+  const { fieldKeys } = await getJiraSearchDataYielder(client, { excludeUnusedFields: true })
 
   assertEquals(fieldKeys, ["foo", "bar"])
 })
@@ -222,11 +249,11 @@ Deno.test("yieldJiraSearchIssues can sort by field", async () => {
 
 Deno.test("yieldJiraSearchIssues translates field keys via search names", async () => {
   const dbIssue = getFakeDbJiraSearchIssue({
-    issue: { fields: { updated: "1970-01-10T00:00:00.000+0000" } },
+    issue: { fields: { customfield_19175: "custom", foo: { bar: "baz" } } },
     namesHash: "123",
   })
   const dbNames = getFakeDbJiraSearchNames({
-    names: { "customfield_19175": "Foo Bar", "updated": "Updated" },
+    names: { "customfield_19175": "Foo Bar", "foo": "Mr. Foo" },
     hash: dbIssue.namesHash,
   })
   const client = await createFakeReadonlyJiraClient({
@@ -238,7 +265,7 @@ Deno.test("yieldJiraSearchIssues translates field keys via search names", async 
   const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client)
   const result = await asyncSingle(yieldJiraSearchIssues)
 
-  assertArrayIncludes(Object.keys(result.fields!), ["Foo Bar", "Updated"])
+  assertArrayIncludes(Object.keys(result.fields!), ["Foo Bar", "Mr. Foo"])
 })
 
 Deno.test("yieldJiraSearchIssues can exclude field names when they are globally unused", () => {
