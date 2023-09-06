@@ -4,7 +4,10 @@ import { DeepPartial } from "../../../../utils/types.ts"
 
 import { DBJiraSearchIssue, DBJiraSearchNames, JiraSearchIssue, JiraSearchNames } from "./jira-search-schema.ts"
 
-export function getFakeJiraIssue(partial: DeepPartial<JiraSearchIssue> = {}): JiraSearchIssue {
+export function getFakeJiraIssue(
+  partial: DeepPartial<JiraSearchIssue> = {},
+  opts: Partial<{ wipeBaseFields: boolean }> = {},
+): JiraSearchIssue {
   const base: JiraSearchIssue = {
     "expand": "operations,versionedRepresentations,editmeta,changelog,transitions,renderedFields",
     "id": "1234567",
@@ -364,6 +367,9 @@ export function getFakeJiraIssue(partial: DeepPartial<JiraSearchIssue> = {}): Ji
     }
     delete partial.changelog
   }
+  if (opts.wipeBaseFields) {
+    base.fields = {}
+  }
   if (partial.fields) {
     base.fields = deepMerge(base.fields!, partial.fields)
     if (partial.fields.status) {
@@ -375,12 +381,15 @@ export function getFakeJiraIssue(partial: DeepPartial<JiraSearchIssue> = {}): Ji
   return deepMerge(base, partial as JiraSearchIssue)
 }
 
-export function getFakeDbJiraSearchIssue(partial: DeepPartial<DBJiraSearchIssue> = {}): DBJiraSearchIssue {
-  const base = getFakeJiraIssue(partial.issue)
+export function getFakeDbJiraSearchIssue(
+  partial: DeepPartial<DBJiraSearchIssue> = {},
+  opts: Partial<{ wipeBaseFields: boolean }> = {},
+): DBJiraSearchIssue {
+  const issue = getFakeJiraIssue(partial.issue, { wipeBaseFields: opts.wipeBaseFields })
   return {
-    issue: base,
-    issueId: base.id || partial.issueId,
-    issueKey: base.key || partial.issueKey,
+    issue,
+    issueId: partial.issueId || issue.id,
+    issueKey: partial.issueKey || issue.key,
     namesHash: "namesHash" in partial ? partial.namesHash : "123",
   }
 }
