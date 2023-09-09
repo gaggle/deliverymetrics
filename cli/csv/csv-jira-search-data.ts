@@ -1,20 +1,9 @@
-import { jiraSearchIssueSchema } from "../../libs/jira/api/search/mod.ts"
 import { GetJiraSearchDataYielderReturnType } from "../../libs/metrics/mod.ts"
 
-import {
-  arraySubtract,
-  extractZodSchemaKeys,
-  flattenObject,
-  regexOrStringTestMany,
-  stringifyObject,
-} from "../../utils/mod.ts"
+import { arraySubtract, flattenObject, regexOrStringTestMany, stringifyObject } from "../../utils/mod.ts"
 
 export const ignoreHeaders = ["changelog.histories", "transitions"]
 const extraHeaders = ["Changelog Histories", "Transitions", "Transitions Count"] as const
-const fixedHeaders = [
-  ...extraHeaders,
-  ...Object.keys(flattenObject(extractZodSchemaKeys(jiraSearchIssueSchema))).sort(),
-]
 
 export async function* jiraSearchDataIssuesAsCsv(
   iter: GetJiraSearchDataYielderReturnType["yieldJiraSearchIssues"],
@@ -60,7 +49,7 @@ export function jiraSearchDataHeaders(opts: Partial<{
   const fieldsToExclude = opts.fieldsToExclude || []
 
   const allHeaders = arraySubtract(
-    Array.from(new Set([...fixedHeaders, ...fieldKeys.map((el) => `fields.${el}`)]).values()),
+    Array.from(new Set([...extraHeaders, ...fieldKeys.map((el) => `fields.${el}`)]).values()),
     ignoreHeaders,
   )
 

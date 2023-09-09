@@ -6,7 +6,7 @@ import { getJiraSearchDataYielder } from "../../libs/metrics/mod.ts"
 
 import { arraySubtract, arrayToAsyncGenerator, asyncSingle, flattenObject, omit } from "../../utils/mod.ts"
 
-import { ignoreHeaders, jiraSearchDataHeaders, jiraSearchDataIssuesAsCsv } from "./csv-jira-search-data.ts"
+import { jiraSearchDataHeaders, jiraSearchDataIssuesAsCsv } from "./csv-jira-search-data.ts"
 
 Deno.test("jiraSearchDataIssuesAsCsv", async (t) => {
   await t.step("converts Jira issue to a csv row", async () => {
@@ -210,44 +210,14 @@ Deno.test("jiraSearchDataIssuesAsCsv", async (t) => {
 })
 
 Deno.test("jiraSearchDataHeaders", async (t) => {
-  const expectedFixedHeaders = [
-    "Changelog Histories",
-    "Transitions",
-    "Transitions Count",
-    "changelog.maxResults",
-    "changelog.startAt",
-    "changelog.total",
-    "expand",
-    "fields.description",
-    "fields.issuetype.avatarId",
-    "fields.issuetype.description",
-    "fields.issuetype.entityId",
-    "fields.issuetype.hierarchyLevel",
-    "fields.issuetype.iconUrl",
-    "fields.issuetype.id",
-    "fields.issuetype.name",
-    "fields.issuetype.self",
-    "fields.issuetype.subtask",
-    "fields.status.description",
-    "fields.status.iconUrl",
-    "fields.status.id",
-    "fields.status.name",
-    "fields.status.self",
-    "fields.status.statusCategory.colorName",
-    "fields.status.statusCategory.id",
-    "fields.status.statusCategory.key",
-    "fields.status.statusCategory.name",
-    "fields.status.statusCategory.self",
-    "id",
-    "key",
-    "operations.linkGroups",
-    "self",
-  ]
-
   await t.step("returns fixed headers by default", () => {
     const result = jiraSearchDataHeaders()
 
-    assertEquals(result, expectedFixedHeaders)
+    assertEquals(result, [
+      "Changelog Histories",
+      "Transitions",
+      "Transitions Count",
+    ])
   })
 
   await t.step("adds field-keys as fields", () => {
@@ -256,10 +226,13 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
     })
 
     assertEquals(result, [
-      ...expectedFixedHeaders,
+      "Changelog Histories",
+      "Transitions",
+      "Transitions Count",
       "fields.created",
       "fields.updated",
       "fields.summary",
+      "fields.description",
       "fields.foo",
     ])
   })
@@ -284,11 +257,19 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
 
     const flattenedIssueKeys = Object.keys(flattenObject(issue))
 
-    const issueKeysNotRepresentedInNames = arraySubtract(arraySubtract(flattenedIssueKeys, headers), ignoreHeaders)
+    const issueKeysNotRepresentedInNames = arraySubtract(arraySubtract(flattenedIssueKeys, headers), [
+      "expand",
+      "id",
+      "self",
+      "key",
+      "changelog.startAt",
+      "changelog.maxResults",
+      "changelog.total",
+    ])
     assertEquals(issueKeysNotRepresentedInNames, [])
 
     const headersNotRepresentedInIssueKeys = arraySubtract(headers, flattenedIssueKeys)
-    assertEquals(headersNotRepresentedInIssueKeys, ["operations.linkGroups"])
+    assertEquals(headersNotRepresentedInIssueKeys, [])
   })
 
   await t.step("doesn't include custom fields by default", () => {
