@@ -183,7 +183,9 @@ export function main(args: Array<string>) {
             completedDateHeader: jiraReport?.completed_date_header,
             devLeadTimeStatuses: jiraReport?.dev_lead_time_statuses,
             devLeadTimeTypes: jiraReport?.dev_lead_time_types,
+            headerOrder: parseRegexLikeStringArray(jiraReport?.header_order || []),
             host: jiraSync.host,
+            ignoreHeaders: parseRegexLikeStringArray(jiraReport?.ignore_headers || []),
             startDateHeader: jiraReport?.start_date_header,
           }
         }
