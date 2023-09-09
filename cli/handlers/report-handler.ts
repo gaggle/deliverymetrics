@@ -27,7 +27,6 @@ import {
   AbortError,
   arrayToAsyncGenerator,
   asyncToArray,
-  filterUndefined,
   inspectIter,
   mapIter,
   mergeAsyncGenerators,
@@ -103,10 +102,12 @@ type ReportSpecGitHub = {
 type ReportSpecJira = {
   apiUser: string
   completedDateHeader?: string
-  startDateHeader?: string
   devLeadTimeStatuses?: string[]
   devLeadTimeTypes?: string[]
+  headerOrder?: Array<string | RegExp>
   host: string
+  ignoreHeaders?: Array<string | RegExp>
+  startDateHeader?: string
 }
 
 export interface ReportSpec {
@@ -415,14 +416,16 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
         signal: opts.signal,
         excludeUnusedFields: true,
       })
+      const filteredHeaders = jiraSearchDataHeaders({
+        fieldKeys,
+        fieldsToExclude: jira.ignoreHeaders,
+        fieldsToInclude: jira.headerOrder,
+      })
       await writeCSVToFile(
         join(opts.outputDir, "jira-search-data.csv"),
         jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues, { maxDescriptionLength: 10 }),
         {
-          header: jiraSearchDataHeaders({
-            fieldKeys,
-            fieldsToInclude: [...filterUndefined([customCompletedDateHeader, customStartDateHeader])],
-          }),
+          header: filteredHeaders,
         },
       )
     })
