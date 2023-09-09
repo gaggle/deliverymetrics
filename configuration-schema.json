@@ -135,10 +135,10 @@
             "jira": {
               "type": "object",
               "properties": {
-                "custom_completed_date_header": {
+                "completed_date_header": {
                   "type": "string"
                 },
-                "custom_start_date_header": {
+                "start_date_header": {
                   "type": "string"
                 },
                 "dev_lead_time_statuses": {
@@ -148,6 +148,18 @@
                   }
                 },
                 "dev_lead_time_types": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "header_order": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "ignore_headers": {
                   "type": "array",
                   "items": {
                     "type": "string"
