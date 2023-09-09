@@ -1,45 +1,16 @@
-import { assertArrayIncludes, assertEquals } from "dev:asserts"
+import { assertEquals, assertObjectMatch } from "dev:asserts"
 
 import { asyncSingle, asyncToArray } from "../../utils/mod.ts"
 
-import { getFakeDbJiraSearchIssue, getFakeDbJiraSearchNames } from "../jira/api/search/mod.ts"
+import {
+  DBJiraSearchIssue,
+  DBJiraSearchNames,
+  getFakeDbJiraSearchIssue,
+  getFakeDbJiraSearchNames,
+} from "../jira/api/search/mod.ts"
 import { createFakeReadonlyJiraClient, getFakeJiraSyncInfo } from "../jira/mod.ts"
 
 import { getJiraSearchDataYielder } from "./jira-search-data.ts"
-
-Deno.test("fieldKeys returns all field keys translated via search names", async () => {
-  const dbIssue = getFakeDbJiraSearchIssue({
-    issue: {
-      fields: {
-        foo: "1970-01-10T00:00:00.000+0000",
-        bar: "baz",
-        ham: {
-          "spam": "https://atlassian.net/rest/api/2/user?accountId=123a1aabb123ab0123a1a111",
-          "eggs": { "bacon": "potatoes" },
-        },
-      },
-    },
-    namesHash: "123",
-  }, { wipeBaseFields: true })
-  const dbNames = getFakeDbJiraSearchNames({
-    names: { "bar": "Mr. Bar", "ham": "Mr. Ham" },
-    hash: dbIssue.namesHash,
-  })
-  const client = await createFakeReadonlyJiraClient({
-    syncs: [getFakeJiraSyncInfo({ type: "search" })],
-    searchIssues: [dbIssue],
-    searchNames: [dbNames],
-  })
-
-  const { fieldKeys } = await getJiraSearchDataYielder(client)
-
-  assertEquals(fieldKeys, [
-    "foo",
-    "Mr. Bar",
-    "Mr. Ham.spam",
-    "Mr. Ham.eggs.bacon",
-  ])
-})
 
 Deno.test("fieldKeys emits all field names, including those whose values are globally null", async () => {
   const client = await createFakeReadonlyJiraClient({
@@ -87,57 +58,6 @@ Deno.test("fieldKeys can exclude globally unused fields", async () => {
   const { fieldKeys } = await getJiraSearchDataYielder(client, { excludeUnusedFields: true })
 
   assertEquals(fieldKeys, ["foo", "bar"])
-})
-
-Deno.test("fieldKeysToNames returns all names", async () => {
-  const dbIssue = getFakeDbJiraSearchIssue({
-    issue: { fields: { updated: "1970-01-10T00:00:00.000+0000" } },
-    namesHash: "123",
-  })
-  const dbNames = getFakeDbJiraSearchNames({
-    names: { "customfield_19175": "Foo Bar", "updated": "Updated" },
-    hash: dbIssue.namesHash,
-  })
-  const client = await createFakeReadonlyJiraClient({
-    syncs: [getFakeJiraSyncInfo({ type: "search" })],
-    searchIssues: [dbIssue],
-    searchNames: [dbNames],
-  })
-
-  const { fieldKeysToNames } = await getJiraSearchDataYielder(client)
-
-  assertEquals(fieldKeysToNames, { customfield_19175: "Foo Bar", updated: "Updated" })
-})
-
-Deno.test("fieldKeysToNames uses latest name for each field", async () => {
-  const client = await createFakeReadonlyJiraClient({
-    syncs: [getFakeJiraSyncInfo({ type: "search" })],
-    searchIssues: [
-      getFakeDbJiraSearchIssue({ namesHash: "123" }),
-      getFakeDbJiraSearchIssue({ namesHash: "987" }),
-    ],
-    searchNames: [
-      getFakeDbJiraSearchNames({
-        names: { "customfield_19175": "Foo Bar", "updated": "Updated" },
-        hash: "123",
-      }),
-      getFakeDbJiraSearchNames({
-        names: { "customfield_90210": "Foo Bar", "updated": "Updated New" },
-        hash: "987",
-      }),
-    ],
-  })
-
-  const { fieldKeysToNames } = await getJiraSearchDataYielder(client)
-
-  assertEquals(fieldKeysToNames, {
-    customfield_19175: "Foo Bar",
-    customfield_90210: "Foo Bar",
-    updated: "Updated New",
-  })
-})
-
-Deno.test("fieldKeysToNames can exclude names for globally unused fields", () => {
 })
 
 Deno.test("yieldJiraSearchIssues returns an async generator of issues", async () => {
@@ -247,26 +167,125 @@ Deno.test("yieldJiraSearchIssues can sort by field", async () => {
   assertEquals(results.map((el) => el.key), ["3", "2", "4", "1"])
 })
 
-Deno.test("yieldJiraSearchIssues translates field keys via search names", async () => {
-  const dbIssue = getFakeDbJiraSearchIssue({
-    issue: { fields: { customfield_19175: "custom", foo: { bar: "baz" } } },
-    namesHash: "123",
-  })
-  const dbNames = getFakeDbJiraSearchNames({
-    names: { "customfield_19175": "Foo Bar", "foo": "Mr. Foo" },
-    hash: dbIssue.namesHash,
-  })
-  const client = await createFakeReadonlyJiraClient({
-    syncs: [getFakeJiraSyncInfo({ type: "search" })],
-    searchIssues: [dbIssue],
-    searchNames: [dbNames],
-  })
+const translationsTestSuite: Record<string, {
+  searchIssues: DBJiraSearchIssue[]
+  searchNames: DBJiraSearchNames[]
+  expectedFieldKeys?: string[]
+  expectedIssueFields?: Record<string, unknown>[]
+  only?: boolean
+}> = {
+  "two field keys translating to the same label have disambiguated translations": {
+    searchIssues: [{ issue: { fields: { foo: "foo", bar: { ham: "spam" } } }, namesHash: "123" }],
+    searchNames: [{ names: { foo: "Label", bar: "Label" }, hash: "123" }],
+    expectedFieldKeys: ["Label (foo)", "Label (bar).ham"],
+    expectedIssueFields: [{ "Label (foo)": "foo", "Label (bar)": { ham: "spam" } }],
+  },
+  "if a field key is basically the same as its label then don't add field key to the translation": {
+    searchIssues: [{
+      issue: { fields: { same: "1", withspacing: "2", withdash: "3", pascalCasedKey: "4" } },
+      namesHash: "123",
+    }],
+    searchNames: [{
+      names: { same: "Same", withspacing: "With Spacing", withdash: "With-Dash", pascalCasedKey: "Pascal Cased Key" },
+      hash: "123",
+    }],
+    expectedFieldKeys: ["Same", "With Spacing", "With-Dash", "Pascal Cased Key"],
+    expectedIssueFields: [{ "Same": "1", "With Spacing": "2", "With-Dash": "3", "Pascal Cased Key": "4" }],
+  },
+  "if two field keys translations clash across different issues they are still disambiguated": {
+    searchIssues: [
+      { issue: { fields: { foo: "foo" } }, namesHash: "123" },
+      { issue: { fields: { bar: "bar" } }, namesHash: "123" },
+    ],
+    searchNames: [{ names: { foo: "Mr. Ham", bar: "Mr. Ham" }, hash: "123" }],
+    expectedFieldKeys: ["Mr. Ham (foo)", "Mr. Ham (bar)"],
+    expectedIssueFields: [{ "Mr. Ham (foo)": "foo" }, { "Mr. Ham (bar)": "bar" }],
+  },
+  "if multiple Jira Search Names causes a clash then field keys are disambiguated appropriately": {
+    searchIssues: [
+      { issue: { fields: { foo: "foo" } }, namesHash: "123" },
+      { issue: { fields: { bar: "bar" } }, namesHash: "456" },
+    ],
+    searchNames: [
+      { names: { foo: "Mr. Ham" }, hash: "123" },
+      { names: { bar: "Mr. Ham" }, hash: "456" },
+    ],
+    expectedFieldKeys: ["Mr. Ham (foo)", "Mr. Ham (bar)"],
+    expectedIssueFields: [{ "Mr. Ham (foo)": "foo" }, { "Mr. Ham (bar)": "bar" }],
+  },
+  "issue field keys are translated according to the labels that issue is associated with": {
+    searchIssues: [
+      { issue: { fields: { foo: "foo1" } }, namesHash: "123" },
+      { issue: { fields: { foo: "foo2" } }, namesHash: "456" },
+    ],
+    searchNames: [
+      { names: { foo: "Mr. Ham" }, hash: "123" },
+      { names: { foo: "Mr. Spam" }, hash: "456" },
+    ],
+    expectedFieldKeys: ["Mr. Ham (foo)", "Mr. Spam (foo)"],
+    expectedIssueFields: [{ "Mr. Ham (foo)": "foo1" }, { "Mr. Spam (foo)": "foo2" }],
+  },
+  "translation collisions are avoided even across a complex set of separate issues and names": {
+    searchIssues: [
+      { issue: { fields: { foo: "foo1" } }, namesHash: "123" },
+      { issue: { fields: { foo: "foo2" } }, namesHash: "456" },
+      { issue: { fields: { foo: "foo3" } }, namesHash: "789" },
+      { issue: { fields: { bar: "bar4" } }, namesHash: "789" },
+      { issue: { fields: { eggs: "eggs5" } }, namesHash: "789" },
+    ],
+    searchNames: [
+      { names: { foo: "Mr. Foo", bar: "Mr. Bar" }, hash: "123" },
+      { names: { foo: "Mr. Ham", bar: "Mr. Bar" }, hash: "456" },
+      { names: { foo: "Mr. Ham", bar: "Mr. Ham", eggs: "Mr. Eggs" }, hash: "789" },
+    ],
+    expectedFieldKeys: ["Mr. Foo (foo)", "Mr. Ham (foo)", "Mr. Ham (bar)", "Mr. Eggs (eggs)"],
+    expectedIssueFields: [
+      { "Mr. Foo (foo)": "foo1" },
+      { "Mr. Ham (foo)": "foo2" },
+      { "Mr. Ham (foo)": "foo3" },
+      { "Mr. Ham (bar)": "bar4" },
+      { "Mr. Eggs (eggs)": "eggs5" },
+    ],
+  },
+}
 
-  const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client)
-  const result = await asyncSingle(yieldJiraSearchIssues)
+Deno.test("when translating", async (t) => {
+  for (
+    const [name, {
+      searchNames,
+      searchIssues,
+      expectedFieldKeys,
+      expectedIssueFields,
+    }] of Object.entries(translationsTestSuite).filter(([, data], _, array) => {
+      if (data.only === true) return true
+      if (array.some(([, data]) => data.only)) return false
+      return true
+    })
+  ) {
+    await t.step(name, async () => {
+      const client = await createFakeReadonlyJiraClient({
+        syncs: [getFakeJiraSyncInfo({ type: "search" })],
+        searchIssues: searchIssues.map((el) => getFakeDbJiraSearchIssue(el, { wipeBaseFields: true })),
+        searchNames: searchNames.map((el) => getFakeDbJiraSearchNames(el)),
+      })
 
-  assertArrayIncludes(Object.keys(result.fields!), ["Foo Bar", "Mr. Foo"])
-})
+      const { fieldKeys, yieldJiraSearchIssues } = await getJiraSearchDataYielder(client)
+      const issues = await asyncToArray(yieldJiraSearchIssues)
 
-Deno.test("yieldJiraSearchIssues can exclude field names when they are globally unused", () => {
+      if (expectedFieldKeys) {
+        assertEquals(fieldKeys, expectedFieldKeys, "mismatched fieldKeys")
+      }
+
+      if (expectedIssueFields) {
+        assertEquals(issues.length, expectedIssueFields.length, "wrong number of issues yielded")
+        for (const [idx, issue] of issues.entries()) {
+          assertObjectMatch(
+            issue.fields || {},
+            expectedIssueFields[idx],
+            `issue fields mismatch in test #${idx}, got: ${JSON.stringify(issue.fields, null, 2)}`,
+          )
+        }
+      }
+    })
+  }
 })

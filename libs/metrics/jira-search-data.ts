@@ -1,3 +1,5 @@
+import { warning } from "std:log"
+
 import {
   AbortError,
   arrayToAsyncGenerator,
@@ -6,15 +8,13 @@ import {
   daysBetween,
   flattenObject,
   getValueByPath,
-  mapIter,
 } from "../../utils/mod.ts"
 
-import { JiraSearchIssue, JiraSearchNames } from "../jira/api/search/mod.ts"
+import { JiraSearchIssue } from "../jira/api/search/mod.ts"
 import { JiraSyncInfo, ReadonlyJiraClient } from "../jira/mod.ts"
 
 export interface GetJiraSearchDataYielderReturnType {
   fieldKeys: Array<string>
-  fieldKeysToNames: JiraSearchNames
   yieldJiraSearchIssues: AsyncGenerator<JiraSearchIssue>
 }
 
@@ -30,41 +30,33 @@ export async function getJiraSearchDataYielder(
   }> = {},
 ): Promise<GetJiraSearchDataYielderReturnType> {
   const latestSync = await client.findLatestSync({ type: "search" })
-  if (!latestSync) return { fieldKeys: [], fieldKeysToNames: {}, yieldJiraSearchIssues: arrayToAsyncGenerator([]) }
+  if (!latestSync) return { fieldKeys: [], yieldJiraSearchIssues: arrayToAsyncGenerator([]) }
 
-  const fieldKeysToNames = await getAllFieldKeysToNames(client, { signal: opts.signal })
-  const fieldKeys = await getAllFieldKeys(client, {
-    discardEmptyStrings: opts.excludeUnusedFields,
-    discardNulls: opts.excludeUnusedFields,
-    fieldKeysToNames,
-    signal: opts.signal,
-  })
+  const [fieldKeys, yieldJiraSearchIssues] = await Promise.all([
+    getAllFieldKeys(client, {
+      ...opts,
+      discardEmptyStrings: opts.excludeUnusedFields,
+      discardNulls: opts.excludeUnusedFields,
+    }),
+    yieldJiraSearchData(client, latestSync, opts),
+  ])
 
-  return {
-    fieldKeys,
-    fieldKeysToNames,
-    yieldJiraSearchIssues: mapIter((el) => ({
-      ...el,
-      fields: Object.fromEntries(
-        Object.entries(el.fields || {})
-          .map(([key, val]) => [fieldKeysToNames[key] || key, val]),
-      ),
-    }), yieldJiraSearchData(client, latestSync, opts)),
-  }
+  return { fieldKeys, yieldJiraSearchIssues }
 }
 
 async function getAllFieldKeys(
   client: ReadonlyJiraClient,
-  { discardEmptyStrings, discardNulls, fieldKeysToNames, signal }: Partial<{
+  { discardEmptyStrings, discardNulls, signal }: Partial<{
     discardEmptyStrings: boolean
     discardNulls: boolean
-    fieldKeysToNames: Record<string, string>
     signal: AbortSignal
   }>,
 ): Promise<Array<string>> {
   const headers = new Set<string>()
-  for await (const { issue } of client.findSearchIssues()) {
+  for await (const { issue, namesHash } of client.findSearchIssues()) {
     if (signal?.aborted) throw new AbortError()
+
+    const fieldKeysToNames = namesHash ? await getFieldTranslationsByHash(client, namesHash) : {}
 
     const translatedFields = fieldKeysToNames
       ? Object.fromEntries(
@@ -74,29 +66,12 @@ async function getAllFieldKeys(
       : issue.fields
 
     for (const [key, val] of Object.entries(flattenObject(translatedFields || {}))) {
-      if (val === "" && discardEmptyStrings) continue
-      if (val === null && discardNulls) continue
+      if (discardEmptyStrings && val === "") continue
+      if (discardNulls && val === null) continue
       headers.add(key)
     }
   }
   return Array.from(headers)
-}
-
-async function getAllFieldKeysToNames(
-  client: ReadonlyJiraClient,
-  opts: Partial<{ signal: AbortSignal }>,
-): Promise<Record<string, string>> {
-  const allNames: Record<string, string> = {}
-  for await (const { names } of client.findSearchNames()) {
-    if (opts.signal?.aborted) {
-      throw new AbortError()
-    }
-
-    for (const [key, value] of Object.entries(names)) {
-      allNames[key] = value
-    }
-  }
-  return allNames
 }
 
 async function* yieldJiraSearchData(
@@ -111,7 +86,7 @@ async function* yieldJiraSearchData(
   }>,
 ): AsyncGenerator<JiraSearchIssue> {
   const sortBy = opts.sortBy
-  const issues = sortBy
+  const dbIssues = sortBy
     ? arrayToAsyncGenerator((await asyncToArray(client.findSearchIssues())).sort((a, b) => {
       const aVal = getValueByPath(a.issue, sortBy.key)
       const bVal = getValueByPath(b.issue, sortBy.key)
@@ -133,7 +108,7 @@ async function* yieldJiraSearchData(
     }))
     : client.findSearchIssues()
 
-  for await (const { issue } of issues) {
+  for await (const { issue, namesHash } of dbIssues) {
     if (opts.signal?.aborted) {
       throw new AbortError()
     }
@@ -165,8 +140,37 @@ async function* yieldJiraSearchData(
       return false
     }
 
-    yield issue
+    const fieldKeysToNames = namesHash ? await getFieldTranslationsByHash(client, namesHash) : {}
+
+    yield {
+      ...issue,
+      fields: Object.fromEntries(
+        Object.entries(issue.fields || {})
+          .map(([key, val]) => [fieldKeysToNames[key] || key, val]),
+      ),
+    }
   }
+}
+
+async function getFieldTranslationsByHash(client: ReadonlyJiraClient, hash: string): Promise<Record<string, string>> {
+  const item = await client.findSearchNameByHash(hash)
+  if (!item) throw new Error(`No search name by hash: ${hash}`)
+
+  const translationByFieldsKey: Record<string, string> = {}
+  for (const [key, label] of Object.entries(item.names)) {
+    const translation = getTranslationFromKeyAndLabel(key, label)
+    if (translationByFieldsKey[key]) {
+      warning(`Overwriting translation key '${key}': ${translationByFieldsKey[key]} -> ${translation}`)
+    }
+    translationByFieldsKey[key] = translation
+  }
+  return translationByFieldsKey
+}
+
+function getTranslationFromKeyAndLabel(key: string, label: string): string {
+  const keyMatch = key.toLowerCase()
+  const labelMatch = label.toLowerCase().replaceAll(" ", "").replaceAll("-", "")
+  return keyMatch === labelMatch ? label : `${label} (${key})`
 }
 
 function newEpochMaybe(value: string | undefined | null): number | undefined {
