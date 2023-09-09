@@ -67,6 +67,8 @@ const configReportSchema = z.object({
     start_date_header: z.string().optional(),
     dev_lead_time_statuses: z.array(z.string()).optional(),
     dev_lead_time_types: z.array(z.string()).optional(),
+    header_order: z.array(z.string()).optional(),
+    ignore_headers: z.array(z.string()).optional(),
   })
     .optional(),
   outdir: z.string(),
