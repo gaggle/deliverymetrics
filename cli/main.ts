@@ -150,39 +150,41 @@ export function main(args: Array<string>) {
         }
 
         if (githubSync) {
+          const githubReport = configReport.github
           reportSpec.github = {
             ...parseGithubUrl(githubSync.repo),
             actionRuns: {
-              branch: configReport.github?.actionRuns?.branch,
-              headerOrder: parseRegexLikeStringArray(configReport.github?.actionRuns?.header_order || []),
-              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.actionRuns?.ignore_headers || []),
-              workflow: configReport.github?.actionRuns?.workflow,
+              branch: githubReport?.actionRuns?.branch,
+              headerOrder: parseRegexLikeStringArray(githubReport?.actionRuns?.header_order || []),
+              ignoreHeaders: parseRegexLikeStringArray(githubReport?.actionRuns?.ignore_headers || []),
+              workflow: githubReport?.actionRuns?.workflow,
             },
             actionWorkflows: {
-              headerOrder: parseRegexLikeStringArray(configReport.github?.actionWorkflows?.header_order || []),
-              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.actionWorkflows?.ignore_headers || []),
+              headerOrder: parseRegexLikeStringArray(githubReport?.actionWorkflows?.header_order || []),
+              ignoreHeaders: parseRegexLikeStringArray(githubReport?.actionWorkflows?.ignore_headers || []),
             },
             pullCommits: {
-              headerOrder: parseRegexLikeStringArray(configReport.github?.pullCommits?.header_order || []),
-              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.pullCommits?.ignore_headers || []),
+              headerOrder: parseRegexLikeStringArray(githubReport?.pullCommits?.header_order || []),
+              ignoreHeaders: parseRegexLikeStringArray(githubReport?.pullCommits?.ignore_headers || []),
             },
             pulls: {
-              headerOrder: parseRegexLikeStringArray(configReport.github?.pulls?.header_order || []),
-              ignoreHeaders: parseRegexLikeStringArray(configReport.github?.pulls?.ignore_headers || []),
-              ignoreLabels: configReport.github?.pulls?.ignore_labels || [],
-              includeCancelled: configReport.github?.pulls?.include_cancelled || false,
+              headerOrder: parseRegexLikeStringArray(githubReport?.pulls?.header_order || []),
+              ignoreHeaders: parseRegexLikeStringArray(githubReport?.pulls?.ignore_headers || []),
+              ignoreLabels: githubReport?.pulls?.ignore_labels || [],
+              includeCancelled: githubReport?.pulls?.include_cancelled || false,
             },
           }
         }
 
         if (jiraSync) {
+          const jiraReport = configReport.jira
           reportSpec.jira = {
             apiUser: jiraSync.api_user,
-            completedDateHeader: configReport.jira?.completed_date_header,
-            startDateHeader: configReport.jira?.start_date_header,
-            devLeadTimeStatuses: configReport.jira?.dev_lead_time_statuses,
-            devLeadTimeTypes: configReport.jira?.dev_lead_time_types,
+            completedDateHeader: jiraReport?.completed_date_header,
+            devLeadTimeStatuses: jiraReport?.dev_lead_time_statuses,
+            devLeadTimeTypes: jiraReport?.dev_lead_time_types,
             host: jiraSync.host,
+            startDateHeader: jiraReport?.start_date_header,
           }
         }
 
