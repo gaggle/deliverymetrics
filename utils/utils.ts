@@ -197,6 +197,16 @@ export async function* mapIter<TInput, TOut>(
   }
 }
 
+export async function* asyncMapIter<TInput, TOut>(
+  transformer: (value: TInput, index: number) => Promise<TOut>,
+  iter: AsyncGenerator<TInput>,
+): AsyncGenerator<TOut> {
+  let idx = 0
+  for await (const el of iter) {
+    yield await transformer(el, idx++)
+  }
+}
+
 /**
  * A throttled function that will only be invoked at most once per
  * every `wait` milliseconds.

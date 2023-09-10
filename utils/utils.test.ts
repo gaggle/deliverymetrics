@@ -6,7 +6,7 @@ import { z } from "zod"
 import { withFakeTime } from "./dev-utils.ts"
 import { AbortError } from "./errors.ts"
 import {
-  arrayToAsyncGenerator,
+  arrayToAsyncGenerator, asyncMapIter,
   asyncSingle,
   asyncToArray,
   clamp,
@@ -296,7 +296,14 @@ Deno.test("pluralize", async (t) => {
 
 Deno.test("mapIter", async (t) => {
   await t.step("maps over an iterator", async () => {
-    const iter = await mapIter((el) => el * 2, arrayToAsyncGenerator([1, 2, 3]))
+    const iter = mapIter((el) => el * 2, arrayToAsyncGenerator([1, 2, 3]))
+    assertEquals(await asyncToArray(iter), [2, 4, 6])
+  })
+})
+
+Deno.test("asyncMapIter", async (t) => {
+  await t.step("maps over an iterator with an async function", async () => {
+    const iter = asyncMapIter<number, number>((el) => Promise.resolve(el * 2), arrayToAsyncGenerator([1, 2, 3]))
     assertEquals(await asyncToArray(iter), [2, 4, 6])
   })
 })
