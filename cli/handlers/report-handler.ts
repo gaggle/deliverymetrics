@@ -378,9 +378,9 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
     persistenceDir: join(opts.cacheRoot, "jira", slugify(jira.host), slugify(jira.apiUser)),
   })
 
-  const customCompletedDateHeader = jira.completedDateHeader
-  const customStartDateHeader = jira.startDateHeader
-  if (customCompletedDateHeader && customStartDateHeader) {
+  const completedDateHeader = jira.completedDateHeader
+  const startDateHeader = jira.startDateHeader
+  if (completedDateHeader && startDateHeader) {
     yield async () => {
       await timeCtx("jira-focusedobjective-team-dashboard-data", async () => {
         const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
@@ -388,20 +388,33 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
           includeTypes: jira.devLeadTimeTypes,
           maxDays: opts.dataTimeframe,
           signal: opts.signal,
-          sortBy: { key: customCompletedDateHeader, type: "date" },
+          sortBy: { key: completedDateHeader, type: "date" },
         })
 
         await writeCSVToFile(
           join(opts.outputDir, "jira-focusedobjective-team-dashboard-data.csv"),
-          jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues),
+          mapIter((el) => {
+            const completed = el[completedDateHeader]
+            const started = el[startDateHeader]
+            // ↑ These come out of the CSV function so are *always* strings,
+            // but if empty might be stringified as "null"
+            return {
+              "Completed Date": completed === "null" ? "null" : YYYYMMDD(completed),
+              "Start Date": started === "null" ? "null" : YYYYMMDD(started),
+              "Type": el["fields.Issue Type.name"],
+              "Key": el["key"],
+              "Summary": el["fields.Summary"],
+              "Status": el["fields.Status.name"],
+            }
+          }, jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues)),
           {
             header: [
-              customCompletedDateHeader,
-              customStartDateHeader,
-              "fields.issuetype.name",
-              "key",
-              "fields.Summary",
-              "fields.status.name",
+              "Completed Date",
+              "Start Date",
+              "Type",
+              "Key",
+              "Summary",
+              "Status",
             ],
           },
         )
@@ -435,4 +448,8 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
 export const _internals = {
   getGithubClient,
   getJiraClient,
+}
+
+export function YYYYMMDD(date: string): string {
+  return new Date(date).toISOString().split("T")[0]
 }
