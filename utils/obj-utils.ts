@@ -1,17 +1,8 @@
+import { flattenObject } from "./utils.ts"
+
 // deno-lint-ignore no-explicit-any
 export function getValueByPath(obj: { [key: string]: any }, path: string): any {
-  const keys = path.split(".")
-
-  return keys.reduce((current, key, index) => {
-    if (current[key] === undefined) {
-      if (index === keys.length - 1) {
-        return undefined
-      } else {
-        throw new TypeError(`Cannot read path '${path}' from object`)
-      }
-    }
-    return current[key]
-  }, obj)
+  return flattenObject(obj)[path]
 }
 
 // deno-lint-ignore no-explicit-any

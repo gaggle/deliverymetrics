@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "dev:asserts"
+import { assertEquals } from "dev:asserts"
 
 import { getValueByPath, setValueByPath } from "./obj-utils.ts"
 
@@ -12,7 +12,7 @@ Deno.test("getValueByPath gets via path", () => {
   assertEquals(getValueByPath(a, "foo.bar"), "baz")
 })
 
-Deno.test("getValueByPath returns undefined if leaf is missing", () => {
+Deno.test("getValueByPath returns undefined if path is missing", () => {
   const a = {
     foo: {
       bar: "baz",
@@ -20,36 +20,6 @@ Deno.test("getValueByPath returns undefined if leaf is missing", () => {
   }
 
   assertEquals(getValueByPath(a, "foo.ham"), undefined)
-})
-
-Deno.test("getValueByPath throws if path is completely wrong", () => {
-  const a = { foo: "bar" }
-
-  assertThrows(
-    () => getValueByPath(a, "eggs.bacon"),
-    TypeError,
-    `Cannot read path 'eggs.bacon' from object`,
-  )
-})
-
-Deno.test("getValueByPath fails by telling which part of a nested path failed", () => {
-  const a = { foo: { bar: "baz", }, }
-
-  assertThrows(
-    () => getValueByPath(a, "foo.ham.spam"),
-    TypeError,
-    `Cannot read path 'foo.ham.spam' from object`,
-  )
-})
-
-Deno.test("getValueByPath fails by telling which part of a deeply nested path failed", () => {
-  const a = { foo: { bar: { baz: { ham: { spam: "eggs" } } }, }, }
-
-  assertThrows(
-    () => getValueByPath(a, "foo.bar.baz.donut.glazing"),
-    TypeError,
-    `Cannot read path 'foo.bar.baz.donut.glazing' from object`,
-  )
 })
 
 Deno.test("setValueByPath sets value via path", () => {
