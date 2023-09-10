@@ -4,13 +4,15 @@ import {
   AbortError,
   arrayToAsyncGenerator,
   assertUnreachable,
+  asyncMapIter,
   asyncToArray,
   daysBetween,
+  filterIter,
   flattenObject,
   getValueByPath,
 } from "../../utils/mod.ts"
 
-import { JiraSearchIssue } from "../jira/api/search/mod.ts"
+import { DBJiraSearchIssue, JiraSearchIssue } from "../jira/api/search/mod.ts"
 import { JiraSyncInfo, ReadonlyJiraClient } from "../jira/mod.ts"
 
 export interface GetJiraSearchDataYielderReturnType {
@@ -85,9 +87,53 @@ async function* yieldJiraSearchData(
     sortBy: { key: string; type: "date" }
   }>,
 ): AsyncGenerator<JiraSearchIssue> {
+  let translatedIssues = asyncMapIter(
+    async (dbIssue) => {
+      const fieldKeysToNames = dbIssue.namesHash ? await getFieldTranslationsByHash(client, dbIssue.namesHash) : {}
+      dbIssue.issue.fields = Object.fromEntries(
+        Object.entries(dbIssue.issue.fields || {})
+          .map(([key, val]) => [fieldKeysToNames[key] || key, val]),
+      )
+      return dbIssue as DBJiraSearchIssue
+    },
+    filterIter(({ issue }) => {
+      if (opts.signal?.aborted) {
+        throw new AbortError()
+      }
+
+      if (opts.includeStatuses) {
+        if (issue.fields?.status?.name) {
+          if (!opts.includeStatuses.includes(issue.fields?.status?.name)) {
+            return false
+          }
+        } else {
+          return false
+        }
+      }
+
+      if (opts.includeTypes) {
+        if (issue.fields?.issuetype?.name) {
+          if (!opts.includeTypes?.includes(issue.fields?.issuetype?.name)) {
+            return false
+          }
+        } else {
+          return false
+        }
+      }
+
+      if (
+        issue.fields?.updated &&
+        daysBetween(new Date(issue.fields.updated), new Date(latestSync.updatedAt!)) > (opts.maxDays || Infinity)
+      ) {
+        return false
+      }
+      return true
+    }, client.findSearchIssues()),
+  )
+
   const sortBy = opts.sortBy
-  const dbIssues = sortBy
-    ? arrayToAsyncGenerator((await asyncToArray(client.findSearchIssues())).sort((a, b) => {
+  if (sortBy) {
+    translatedIssues = arrayToAsyncGenerator((await asyncToArray(translatedIssues)).sort((a, b) => {
       const aVal = getValueByPath(a.issue, sortBy.key)
       const bVal = getValueByPath(b.issue, sortBy.key)
 
@@ -106,49 +152,10 @@ async function* yieldJiraSearchData(
           assertUnreachable(sortBy.type)
       }
     }))
-    : client.findSearchIssues()
+  }
 
-  for await (const { issue, namesHash } of dbIssues) {
-    if (opts.signal?.aborted) {
-      throw new AbortError()
-    }
-
-    if (opts.includeStatuses) {
-      if (issue.fields?.status?.name) {
-        if (!opts.includeStatuses.includes(issue.fields?.status?.name)) {
-          continue
-        }
-      } else {
-        continue
-      }
-    }
-
-    if (opts.includeTypes) {
-      if (issue.fields?.issuetype?.name) {
-        if (!opts.includeTypes?.includes(issue.fields?.issuetype?.name)) {
-          continue
-        }
-      } else {
-        continue
-      }
-    }
-
-    if (
-      issue.fields?.updated &&
-      daysBetween(new Date(issue.fields.updated), new Date(latestSync.updatedAt!)) > (opts.maxDays || Infinity)
-    ) {
-      return false
-    }
-
-    const fieldKeysToNames = namesHash ? await getFieldTranslationsByHash(client, namesHash) : {}
-
-    yield {
-      ...issue,
-      fields: Object.fromEntries(
-        Object.entries(issue.fields || {})
-          .map(([key, val]) => [fieldKeysToNames[key] || key, val]),
-      ),
-    }
+  for await (const { issue } of translatedIssues) {
+    yield issue
   }
 }
 

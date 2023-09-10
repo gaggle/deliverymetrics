@@ -152,19 +152,35 @@ Deno.test("yieldJiraSearchIssues can sort by field", async () => {
   const client = await createFakeReadonlyJiraClient({
     syncs: [getFakeJiraSyncInfo({ type: "search" })],
     searchIssues: [
-      getFakeDbJiraSearchIssue({ issue: { key: "1", fields: { foo: null } } }),
-      getFakeDbJiraSearchIssue({ issue: { key: "2", fields: { foo: "2000-01-01" } } }),
-      getFakeDbJiraSearchIssue({ issue: { key: "3", fields: { foo: "1999-01-01" } } }),
-      getFakeDbJiraSearchIssue({ issue: { key: "4", fields: { foo: "2001-01-01" } } }),
+      getFakeDbJiraSearchIssue({ namesHash: undefined, issue: { key: "4", fields: { foo: null } } }),
+      getFakeDbJiraSearchIssue({ namesHash: undefined, issue: { key: "2", fields: { foo: "2000-01-01" } } }),
+      getFakeDbJiraSearchIssue({ namesHash: undefined, issue: { key: "1", fields: { foo: "1999-01-01" } } }),
+      getFakeDbJiraSearchIssue({ namesHash: undefined, issue: { key: "3", fields: { foo: "2001-01-01" } } }),
     ],
-    searchNames: [getFakeDbJiraSearchNames()],
   })
 
   const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client, {
     sortBy: { key: "fields.foo", type: "date" },
   })
   const results = await asyncToArray(yieldJiraSearchIssues)
-  assertEquals(results.map((el) => el.key), ["3", "2", "4", "1"])
+  assertEquals(results.map((el) => el.key), ["1", "2", "3", "4"])
+})
+
+Deno.test("yieldJiraSearchIssues can sort by translated field", async () => {
+  const client = await createFakeReadonlyJiraClient({
+    syncs: [getFakeJiraSyncInfo({ type: "search" })],
+    searchIssues: [
+      getFakeDbJiraSearchIssue({ issue: { key: "2", fields: { foo: "2000-01-01" } } }, { wipeBaseFields: true }),
+      getFakeDbJiraSearchIssue({ issue: { key: "1", fields: { foo: "1999-01-01" } } }, { wipeBaseFields: true }),
+    ],
+    searchNames: [getFakeDbJiraSearchNames({ names: { foo: "Mr. Foo" } })],
+  })
+
+  const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(client, {
+    sortBy: { key: "fields.Mr. Foo (foo)", type: "date" },
+  })
+  const results = await asyncToArray(yieldJiraSearchIssues)
+  assertEquals(results.map((el) => el.key), ["1", "2"])
 })
 
 const translationsTestSuite: Record<string, {
