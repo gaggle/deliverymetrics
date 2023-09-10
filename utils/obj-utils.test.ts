@@ -23,16 +23,32 @@ Deno.test("getValueByPath returns undefined if leaf is missing", () => {
 })
 
 Deno.test("getValueByPath throws if path is completely wrong", () => {
-  const a = {
-    foo: {
-      bar: "baz",
-    },
-  }
+  const a = { foo: "bar" }
 
   assertThrows(
     () => getValueByPath(a, "eggs.bacon"),
     TypeError,
-    "Cannot read properties of undefined (reading 'bacon')",
+    `Cannot read path 'eggs.bacon' from object`,
+  )
+})
+
+Deno.test("getValueByPath fails by telling which part of a nested path failed", () => {
+  const a = { foo: { bar: "baz", }, }
+
+  assertThrows(
+    () => getValueByPath(a, "foo.ham.spam"),
+    TypeError,
+    `Cannot read path 'foo.ham.spam' from object`,
+  )
+})
+
+Deno.test("getValueByPath fails by telling which part of a deeply nested path failed", () => {
+  const a = { foo: { bar: { baz: { ham: { spam: "eggs" } } }, }, }
+
+  assertThrows(
+    () => getValueByPath(a, "foo.bar.baz.donut.glazing"),
+    TypeError,
+    `Cannot read path 'foo.bar.baz.donut.glazing' from object`,
   )
 })
 

@@ -7,7 +7,7 @@ export function getValueByPath(obj: { [key: string]: any }, path: string): any {
       if (index === keys.length - 1) {
         return undefined
       } else {
-        throw new TypeError(`Cannot read properties of undefined (reading '${keys[index + 1]}')`)
+        throw new TypeError(`Cannot read path '${path}' from object`)
       }
     }
     return current[key]
