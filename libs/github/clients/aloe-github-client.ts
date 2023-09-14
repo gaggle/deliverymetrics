@@ -10,8 +10,7 @@ import { AloeDatabase } from "../../db/mod.ts"
 
 import { fetchGithubActionRuns, GithubActionRun } from "../api/action-run/mod.ts"
 import { fetchGithubActionWorkflows, GithubActionWorkflow } from "../api/action-workflows/mod.ts"
-import { fetchGithubCommits } from "../api/commits/mod.ts"
-import { GithubCommit } from "../api/commits/mod.ts"
+import { fetchGithubCommits, GithubCommit } from "../api/commits/mod.ts"
 import { BoundGithubPullCommit, fetchGithubPullCommits, GithubPullCommitDateKey } from "../api/pull-commits/mod.ts"
 import { fetchGithubPulls, GithubPull, GithubPullDateKey } from "../api/pulls/mod.ts"
 import { fetchGithubReleases, GithubRelease } from "../api/releases/mod.ts"
@@ -357,10 +356,9 @@ export class AloeGithubClient extends ReadonlyAloeGithubClient implements Github
     const result = await this.internalFetch({
       type: "stats-contributors",
       iteratorFn: () => _internals.fetchGithubStatsContributors(this.owner, this.repo, this.token),
-      upsertFn: async (el) => {
-        const author = el.author
-        await this.db.statsContributors.deleteMany(author === null ? { author: null } : { author: { id: author.id } })
-        await this.db.statsContributors.insertOne(el)
+      upsertFn: async (fetchedEl) => {
+        await this.db.statsContributors.deleteMany((el) => el.author?.id === fetchedEl.author?.id)
+        await this.db.statsContributors.insertOne(fetchedEl)
       },
       saveFn: () => this.db.statsContributors.save(),
       ...opts,

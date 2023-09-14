@@ -1119,5 +1119,28 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
         })
       }
     })
+
+    await t.step("should replace existing entries with the new synced entry", async (t) => {
+      const statsContributor1 = getFakeGithubStatsContributor({
+        total: 1,
+        weeks: [{ w: 255600, a: 0, d: 0, c: 1 }],
+        author: { id: 1 },
+      })
+      const statsContributor2 = getFakeGithubStatsContributor({
+        total: 3,
+        weeks: [{ w: 255600, a: 0, d: 0, c: 1 }, { w: 860400, a: 0, d: 0, c: 2 }],
+        author: { id: 1 },
+      })
+      for await (const client of yieldGithubClient({ statsContributors: [statsContributor1] })) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async () => {
+            await client.syncStatsContributors()
+            assertEquals(await asyncToArray(client.findStatsContributors()), [statsContributor2])
+          }, {
+            fetchStatsContributors: [[statsContributor2]],
+          })
+        })
+      }
+    })
   })
 })
