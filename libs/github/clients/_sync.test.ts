@@ -144,570 +144,6 @@ function withInternalsStubs(
 }
 
 Deno.test("Syncable Github Client shared tests", async (t) => {
-  await t.step("#syncPulls", async (t) => {
-    await t.step("should sync using the client's owner, repo, and token", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchPullsStub }) => {
-            await client.syncPulls()
-
-            assertSpyCalls(fetchPullsStub, 1)
-            assertObjectMatch(fetchPullsStub.calls[0].args, {
-              "0": "owner",
-              "1": "repo",
-              "2": "token",
-            })
-          }, {
-            fetchPulls: [[getFakeGithubPull({ commits_url: "https://commits_url" })]],
-          })
-        })
-      }
-    })
-
-    await t.step("should sync only newer than specified time", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchPullsStub }) => {
-            await client.syncPulls({ newerThan: 10 })
-            assertSpyCalls(fetchPullsStub, 1)
-            assertObjectMatch(fetchPullsStub.calls[0].args, {
-              "3": { newerThan: 10 },
-            })
-          }, { fetchPulls: [[getFakeGithubPull()]] })
-        })
-      }
-    })
-
-    await t.step("should add fetched items to cache", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        const fakePull = getFakeGithubPull()
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async () => {
-            await client.syncPulls()
-            assertEquals(await asyncToArray(client.findPulls()), [fakePull])
-          }, { fetchPulls: [[fakePull]] })
-        })
-      }
-    })
-
-    await t.step("should upsert fetched items", async (t) => {
-      const fakePull1 = getFakeGithubPull({ number: 1 })
-      const fakePull2 = getFakeGithubPull({ number: 2 })
-      for await (
-        const client of yieldGithubClient({
-          pulls: [fakePull1, fakePull2],
-          syncInfos: [getFakeSyncInfo({ type: "pull", createdAt: 0, updatedAt: 10_000 })],
-        })
-      ) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async () => {
-            await client.syncPulls()
-            assertEquals(await asyncToArray(client.findPulls()), [fakePull1, fakePull2])
-          }, { fetchPulls: [[fakePull2]] })
-        })
-      }
-    })
-
-    await t.step("should leave an unfinished sync marker if sync fails", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withFakeTime(async () => {
-            await withInternalsStubs(async () => {
-              await assertRejects(() => client.syncPulls())
-              assertEquals(await client.findLatestSync({ type: "pull", includeUnfinished: true }), {
-                type: "pull",
-                createdAt: 10_000,
-              })
-            }, {
-              async *fetchPulls() {
-                yield getFakeGithubPull()
-                throw new Error("oh noes")
-              },
-            })
-          }, new FakeTime(10_000))
-        })
-      }
-    })
-
-    await t.step("should create a sync marker", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withFakeTime(async () => {
-            await withInternalsStubs(async () => {
-              await client.syncPulls()
-              assertEquals(await client.findLatestSync({ type: "pull" }), {
-                type: "pull",
-                createdAt: 10_000,
-                updatedAt: 10_000,
-              })
-            }, { fetchPulls: [[getFakeGithubPull()]] })
-          }, new FakeTime(10_000))
-        })
-      }
-    })
-
-    await t.step("should return syncedAt", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withFakeTime(async (t) => {
-            await withInternalsStubs(async () => {
-              const result = await client.syncPulls()
-              assertEquals(result.syncedAt, 10_000)
-            }, {
-              async *fetchPulls() {
-                await t.tickAsync(1000)
-                yield getFakeGithubPull()
-              },
-            })
-          }, new FakeTime(10_000))
-        })
-      }
-    })
-
-    await t.step("should return synced pulls", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withFakeTime(async () => {
-            const fakePull = getFakeGithubPull()
-            await withInternalsStubs(async () => {
-              const result = await client.syncPulls()
-              assertEquals(result.syncedPulls, [fakePull])
-            }, { fetchPulls: [[fakePull]] })
-          }, new FakeTime(10_000))
-        })
-      }
-    })
-
-    await t.step("should react to abort", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          const pull1 = getFakeGithubPull({ number: 1 })
-          const pull2 = getFakeGithubPull({ number: 2 })
-          await withInternalsStubs(async () => {
-            await assertRejects(() => client.syncPulls({ signal: AbortSignal.timeout(1) }), AbortError)
-            assertEquals(await asyncToArray(client.findPulls()), [pull1])
-          }, {
-            async *fetchPulls() {
-              yield pull1
-              await sleep(5)
-              yield pull2
-            },
-          })
-        })
-      }
-    })
-
-    await t.step("should respect newerThan", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchPullsStub }) => {
-            await client.syncPulls({ newerThan: new Date("2000").getTime() })
-            assertEquals(fetchPullsStub.calls[0].args[3].newerThan, new Date("2000").getTime())
-          }, {
-            fetchPulls: [[getFakeGithubPull()]],
-          })
-        })
-      }
-    })
-
-    await t.step("should sync to latest fully completed sync", async (t) => {
-      for await (
-        const client of yieldGithubClient({
-          syncInfos: [
-            { type: "pull", createdAt: new Date("2000").getTime(), updatedAt: new Date("2000").getTime() },
-            { type: "pull", createdAt: new Date("2005").getTime(), updatedAt: new Date("2005").getTime() },
-            // ↑ 🎉 2005 is the most recent & finished & pull sync
-            { type: "commit", createdAt: new Date("2010").getTime(), updatedAt: new Date("2010").getTime() },
-            { type: "pull", createdAt: new Date("2015").getTime() },
-          ],
-        })
-      ) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchPullsStub }) => {
-            await client.syncPulls()
-            assertEquals(fetchPullsStub.calls[0].args[3].newerThan, new Date("2005").getTime())
-          }, {
-            fetchPulls: [[getFakeGithubPull()]],
-          })
-        })
-      }
-    })
-
-    await t.step("choose the most recent if both latest sync & newerThan are present", async (t) => {
-      for await (
-        const client of yieldGithubClient({
-          syncInfos: [{ type: "pull", createdAt: new Date("2005").getTime(), updatedAt: new Date("2005").getTime() }],
-        })
-      ) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchPullsStub }) => {
-            await client.syncPulls({ newerThan: new Date("2010").getTime() })
-            assertEquals(fetchPullsStub.calls[0].args[3].newerThan, new Date("2010").getTime())
-          }, {
-            fetchPulls: [[getFakeGithubPull()]],
-          })
-        })
-      }
-      for await (
-        const client of yieldGithubClient({
-          syncInfos: [{ type: "pull", createdAt: new Date("2010").getTime(), updatedAt: new Date("2010").getTime() }],
-        })
-      ) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchPullsStub }) => {
-            await client.syncPulls({ newerThan: new Date("2005").getTime() })
-            assertEquals(fetchPullsStub.calls[0].args[3].newerThan, new Date("2010").getTime())
-          }, {
-            fetchPulls: [[getFakeGithubPull()]],
-          })
-        })
-      }
-    })
-  })
-
-  await t.step("#syncPullCommits", async (t) => {
-    await t.step("should sync using the client's owner, repo, and token", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchPullCommitsStub }) => {
-            await client.syncPullCommits([getFakeGithubPull({ number: 2 })])
-
-            assertSpyCalls(fetchPullCommitsStub, 1)
-            assertObjectMatch(fetchPullCommitsStub.calls[0].args, {
-              "0": { commits_url: "https://api.github.com/repos/octocat/Hello-World/pulls/2/commits" },
-              "1": "token",
-            })
-          }, {
-            fetchPullCommits: [[getFakeGithubPullCommit()]],
-          })
-        })
-      }
-    })
-
-    await t.step("should add fetched items to cache", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async () => {
-            await client.syncPullCommits([getFakeGithubPull({ number: 2 })])
-            assertEquals(await asyncToArray(client.findPullCommits({ pr: 2 })), [getFakeGithubPullCommit({ pr: 2 })])
-          }, { fetchPullCommits: [arrayToAsyncGenerator([getFakeGithubPullCommit()])] })
-        })
-      }
-    })
-
-    await t.step("should upsert fetched items", async (t) => {
-      const fakeCommit1 = getFakeGithubPullCommit({ pr: 1 })
-      const fakePull = getFakeGithubPull({ number: 2 })
-      const fakeCommit2 = getFakeGithubPullCommit({ pr: 2 })
-      for await (
-        const client of yieldGithubClient({
-          pullCommits: [fakeCommit1, fakeCommit2],
-          syncInfos: [getFakeSyncInfo({ type: "pull-commit", createdAt: 0, updatedAt: 10_000 })],
-        })
-      ) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async () => {
-            await client.syncPullCommits([fakePull])
-            assertEquals(await asyncToArray(client.findPullCommits()), [fakeCommit1, fakeCommit2])
-          }, { fetchPullCommits: [arrayToAsyncGenerator([getFakeGithubPullCommit()])] })
-        })
-      }
-    })
-
-    await t.step("should leave an unfinished sync marker if sync fails", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withFakeTime(async () => {
-            await withInternalsStubs(async () => {
-              await assertRejects(() => client.syncPullCommits([getFakeGithubPull()]))
-
-              assertEquals(await client.findLatestSync({ type: "pull-commit", includeUnfinished: true }), {
-                type: "pull-commit",
-                createdAt: 10_000,
-              })
-            }, {
-              fetchPullCommits: [[getFakeGithubPullCommit(), new Error("oh noes")]],
-            })
-          }, new FakeTime(10_000))
-        })
-      }
-    })
-
-    await t.step("should create a sync marker", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withFakeTime(async () => {
-            await withInternalsStubs(async () => {
-              await client.syncPullCommits([getFakeGithubPull()])
-              assertEquals(await client.findLatestSync({ type: "pull-commit" }), {
-                type: "pull-commit",
-                createdAt: 10_000,
-                updatedAt: 10_000,
-              })
-            }, { fetchPullCommits: [arrayToAsyncGenerator([getFakeGithubPullCommit()])] })
-          }, new FakeTime(10_000))
-        })
-      }
-    })
-
-    await t.step("should return syncedAt", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withFakeTime(async (t) => {
-            await withInternalsStubs(async () => {
-              const result = await client.syncPullCommits([getFakeGithubPull()])
-              assertEquals(result.syncedAt, 10_000)
-            }, {
-              async *fetchPullCommits() {
-                await t.tickAsync(1000)
-                yield getFakeGithubPullCommit()
-              },
-            })
-          }, new FakeTime(10_000))
-        })
-      }
-    })
-
-    await t.step("should react to abort", async (t) => {
-      const pull1 = getFakeGithubPull({ number: 1 })
-      const pullCommit1 = getFakeGithubPullCommit({ pr: pull1.number, node_id: "1a" })
-      const pullCommit2 = getFakeGithubPullCommit({ pr: pull1.number, node_id: "1b" })
-
-      async function* fetchPullCommits1() {
-        await sleep(5)
-        yield pullCommit1
-        await sleep(5)
-        yield pullCommit2
-      }
-
-      const pull2 = getFakeGithubPull({ number: 2 })
-
-      async function* fetchPullCommits2() {
-        await sleep(5)
-        yield getFakeGithubPullCommit({ pr: pull2.number, node_id: "2a" })
-        await sleep(5)
-        yield getFakeGithubPullCommit({ pr: pull2.number, node_id: "2b" })
-      }
-
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async () => {
-            await assertRejects(
-              () => client.syncPullCommits([pull1, pull2], { signal: AbortSignal.timeout(1) }),
-              AbortError,
-            )
-            // ↑ 1. Syncing commits for two pulls, with the AbortSignal timing out after 1 tick…
-            // ↑ 3. …then the sync will reject with AbortError…
-            assertEquals(await asyncToArray(client.findPullCommits()), [pullCommit1, pullCommit2])
-            // ↑ 4. …and cache will contain only the first pull's commits
-            //      because the abort happened during processing of the first pull
-          }, {
-            fetchPullCommits: [fetchPullCommits1(), fetchPullCommits2()],
-            // ↑ 2. …and given two sets of pull-commits, one for each pull…
-          })
-        })
-      }
-    })
-  })
-
-  await t.step("#syncCommits", async (t) => {
-    await t.step("should sync using the client's owner, repo, and token", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchCommitsStub }) => {
-            await client.syncCommits()
-
-            assertSpyCalls(fetchCommitsStub, 1)
-            assertObjectMatch(fetchCommitsStub.calls[0].args, {
-              "0": "owner",
-              "1": "repo",
-              "2": "token",
-            })
-          }, {
-            fetchCommits: [[getFakeGithubCommit()]],
-          })
-        })
-      }
-    })
-
-    await t.step("should sync only newer than specified time", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchCommitsStub }) => {
-            await client.syncCommits({ newerThan: 10 })
-            assertSpyCalls(fetchCommitsStub, 1)
-            assertObjectMatch(fetchCommitsStub.calls[0].args, {
-              "3": { newerThan: 10 },
-            })
-          }, { fetchCommits: [[getFakeGithubCommit()]] })
-        })
-      }
-    })
-
-    await t.step("should add fetched items to cache", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        const fakeCommit = getFakeGithubCommit()
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async () => {
-            await client.syncCommits()
-            assertEquals(await asyncToArray(client.findCommits()), [fakeCommit])
-          }, { fetchCommits: [[fakeCommit]] })
-        })
-      }
-    })
-
-    await t.step("should upsert fetched items", async (t) => {
-      const fakeCommit1 = getFakeGithubCommit({ sha: "1", node_id: "1" })
-      const fakeCommit2 = getFakeGithubCommit({ sha: "2", node_id: "2" })
-      for await (const client of yieldGithubClient({ commits: [fakeCommit1, fakeCommit2] })) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async () => {
-            await client.syncCommits()
-            assertEquals(await asyncToArray(client.findCommits()), [fakeCommit1, fakeCommit2])
-          }, { fetchCommits: [[fakeCommit2]] })
-        })
-      }
-    })
-
-    await t.step("should leave an unfinished sync marker if sync fails", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withFakeTime(async () => {
-            await withInternalsStubs(async () => {
-              await assertRejects(() => client.syncCommits())
-              assertEquals(await client.findLatestSync({ type: "commit", includeUnfinished: true }), {
-                type: "commit",
-                createdAt: 10_000,
-              })
-            }, {
-              async *fetchCommits() {
-                yield getFakeGithubCommit()
-                throw new Error("oh noes")
-              },
-            })
-          }, new FakeTime(10_000))
-        })
-      }
-    })
-
-    await t.step("should create a sync marker", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withFakeTime(async () => {
-            await withInternalsStubs(async () => {
-              await client.syncCommits()
-              assertEquals(await client.findLatestSync({ type: "commit" }), {
-                type: "commit",
-                createdAt: 10_000,
-                updatedAt: 10_000,
-              })
-            }, { fetchCommits: [[getFakeGithubCommit()]] })
-          }, new FakeTime(10_000))
-        })
-      }
-    })
-
-    await t.step("should return syncedAt", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withFakeTime(async (t) => {
-            await withInternalsStubs(async () => {
-              const result = await client.syncCommits()
-              assertEquals(result.syncedAt, 10_000)
-            }, {
-              async *fetchCommits() {
-                await t.tickAsync(1000)
-                yield getFakeGithubCommit()
-              },
-            })
-          }, new FakeTime(10_000))
-        })
-      }
-    })
-
-    await t.step("should react to abort", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          const commit1 = getFakeGithubCommit({ node_id: "1" })
-          const commit2 = getFakeGithubCommit({ node_id: "2" })
-          await withInternalsStubs(async () => {
-            await assertRejects(() => client.syncCommits({ signal: AbortSignal.timeout(1) }), AbortError)
-            assertEquals(await asyncToArray(client.findCommits()), [commit1])
-          }, {
-            async *fetchCommits() {
-              yield commit1
-              await sleep(5)
-              yield commit2
-            },
-          })
-        })
-      }
-    })
-
-    await t.step("should respect newerThan", async (t) => {
-      for await (const client of yieldGithubClient()) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchCommitsStub }) => {
-            await client.syncCommits({ newerThan: new Date("2000").getTime() })
-            assertEquals(fetchCommitsStub.calls[0].args[3].newerThan, new Date("2000").getTime())
-          }, { fetchCommits: [[getFakeGithubCommit()]] })
-        })
-      }
-    })
-
-    await t.step("should sync to latest fully completed sync", async (t) => {
-      for await (
-        const client of yieldGithubClient({
-          syncInfos: [
-            { type: "commit", createdAt: new Date("2000").getTime(), updatedAt: new Date("2000").getTime() },
-            { type: "commit", createdAt: new Date("2005").getTime(), updatedAt: new Date("2005").getTime() },
-            // ↑ 🎉 2005 is the most recent & finished & commit sync
-            { type: "pull", createdAt: new Date("2010").getTime(), updatedAt: new Date("2010").getTime() },
-            { type: "commit", createdAt: new Date("2015").getTime() },
-          ],
-        })
-      ) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchCommitsStub }) => {
-            await client.syncCommits()
-            assertEquals(fetchCommitsStub.calls[0].args[3].newerThan, new Date("2005").getTime())
-          }, { fetchCommits: [[getFakeGithubCommit()]] })
-        })
-      }
-    })
-
-    await t.step("choose the most recent if both latest sync & newerThan are present", async (t) => {
-      for await (
-        const client of yieldGithubClient({
-          syncInfos: [{ type: "commit", createdAt: new Date("2005").getTime(), updatedAt: new Date("2005").getTime() }],
-        })
-      ) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchCommitsStub }) => {
-            await client.syncCommits({ newerThan: new Date("2010").getTime() })
-            assertEquals(fetchCommitsStub.calls[0].args[3].newerThan, new Date("2010").getTime())
-          }, {
-            fetchCommits: [[getFakeGithubCommit()]],
-          })
-        })
-      }
-      for await (
-        const client of yieldGithubClient({
-          syncInfos: [{ type: "commit", createdAt: new Date("2010").getTime(), updatedAt: new Date("2010").getTime() }],
-        })
-      ) {
-        await t.step(`for ${client.constructor.name}`, async () => {
-          await withInternalsStubs(async ({ fetchCommitsStub }) => {
-            await client.syncCommits({ newerThan: new Date("2005").getTime() })
-            assertEquals(fetchCommitsStub.calls[0].args[3].newerThan, new Date("2010").getTime())
-          }, {
-            fetchCommits: [[getFakeGithubCommit()]],
-          })
-        })
-      }
-    })
-  })
-
   await t.step("#syncActionRuns", async (t) => {
     await t.step("should sync using the client's owner, repo, and token", async (t) => {
       for await (const client of yieldGithubClient()) {
@@ -1070,6 +506,570 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
               await sleep(5)
               yield workflow2
             },
+          })
+        })
+      }
+    })
+  })
+
+  await t.step("#syncCommits", async (t) => {
+    await t.step("should sync using the client's owner, repo, and token", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchCommitsStub }) => {
+            await client.syncCommits()
+
+            assertSpyCalls(fetchCommitsStub, 1)
+            assertObjectMatch(fetchCommitsStub.calls[0].args, {
+              "0": "owner",
+              "1": "repo",
+              "2": "token",
+            })
+          }, {
+            fetchCommits: [[getFakeGithubCommit()]],
+          })
+        })
+      }
+    })
+
+    await t.step("should sync only newer than specified time", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchCommitsStub }) => {
+            await client.syncCommits({ newerThan: 10 })
+            assertSpyCalls(fetchCommitsStub, 1)
+            assertObjectMatch(fetchCommitsStub.calls[0].args, {
+              "3": { newerThan: 10 },
+            })
+          }, { fetchCommits: [[getFakeGithubCommit()]] })
+        })
+      }
+    })
+
+    await t.step("should add fetched items to cache", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        const fakeCommit = getFakeGithubCommit()
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async () => {
+            await client.syncCommits()
+            assertEquals(await asyncToArray(client.findCommits()), [fakeCommit])
+          }, { fetchCommits: [[fakeCommit]] })
+        })
+      }
+    })
+
+    await t.step("should upsert fetched items", async (t) => {
+      const fakeCommit1 = getFakeGithubCommit({ sha: "1", node_id: "1" })
+      const fakeCommit2 = getFakeGithubCommit({ sha: "2", node_id: "2" })
+      for await (const client of yieldGithubClient({ commits: [fakeCommit1, fakeCommit2] })) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async () => {
+            await client.syncCommits()
+            assertEquals(await asyncToArray(client.findCommits()), [fakeCommit1, fakeCommit2])
+          }, { fetchCommits: [[fakeCommit2]] })
+        })
+      }
+    })
+
+    await t.step("should leave an unfinished sync marker if sync fails", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withFakeTime(async () => {
+            await withInternalsStubs(async () => {
+              await assertRejects(() => client.syncCommits())
+              assertEquals(await client.findLatestSync({ type: "commit", includeUnfinished: true }), {
+                type: "commit",
+                createdAt: 10_000,
+              })
+            }, {
+              async *fetchCommits() {
+                yield getFakeGithubCommit()
+                throw new Error("oh noes")
+              },
+            })
+          }, new FakeTime(10_000))
+        })
+      }
+    })
+
+    await t.step("should create a sync marker", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withFakeTime(async () => {
+            await withInternalsStubs(async () => {
+              await client.syncCommits()
+              assertEquals(await client.findLatestSync({ type: "commit" }), {
+                type: "commit",
+                createdAt: 10_000,
+                updatedAt: 10_000,
+              })
+            }, { fetchCommits: [[getFakeGithubCommit()]] })
+          }, new FakeTime(10_000))
+        })
+      }
+    })
+
+    await t.step("should return syncedAt", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withFakeTime(async (t) => {
+            await withInternalsStubs(async () => {
+              const result = await client.syncCommits()
+              assertEquals(result.syncedAt, 10_000)
+            }, {
+              async *fetchCommits() {
+                await t.tickAsync(1000)
+                yield getFakeGithubCommit()
+              },
+            })
+          }, new FakeTime(10_000))
+        })
+      }
+    })
+
+    await t.step("should react to abort", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          const commit1 = getFakeGithubCommit({ node_id: "1" })
+          const commit2 = getFakeGithubCommit({ node_id: "2" })
+          await withInternalsStubs(async () => {
+            await assertRejects(() => client.syncCommits({ signal: AbortSignal.timeout(1) }), AbortError)
+            assertEquals(await asyncToArray(client.findCommits()), [commit1])
+          }, {
+            async *fetchCommits() {
+              yield commit1
+              await sleep(5)
+              yield commit2
+            },
+          })
+        })
+      }
+    })
+
+    await t.step("should respect newerThan", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchCommitsStub }) => {
+            await client.syncCommits({ newerThan: new Date("2000").getTime() })
+            assertEquals(fetchCommitsStub.calls[0].args[3].newerThan, new Date("2000").getTime())
+          }, { fetchCommits: [[getFakeGithubCommit()]] })
+        })
+      }
+    })
+
+    await t.step("should sync to latest fully completed sync", async (t) => {
+      for await (
+        const client of yieldGithubClient({
+          syncInfos: [
+            { type: "commit", createdAt: new Date("2000").getTime(), updatedAt: new Date("2000").getTime() },
+            { type: "commit", createdAt: new Date("2005").getTime(), updatedAt: new Date("2005").getTime() },
+            // ↑ 🎉 2005 is the most recent & finished & commit sync
+            { type: "pull", createdAt: new Date("2010").getTime(), updatedAt: new Date("2010").getTime() },
+            { type: "commit", createdAt: new Date("2015").getTime() },
+          ],
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchCommitsStub }) => {
+            await client.syncCommits()
+            assertEquals(fetchCommitsStub.calls[0].args[3].newerThan, new Date("2005").getTime())
+          }, { fetchCommits: [[getFakeGithubCommit()]] })
+        })
+      }
+    })
+
+    await t.step("choose the most recent if both latest sync & newerThan are present", async (t) => {
+      for await (
+        const client of yieldGithubClient({
+          syncInfos: [{ type: "commit", createdAt: new Date("2005").getTime(), updatedAt: new Date("2005").getTime() }],
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchCommitsStub }) => {
+            await client.syncCommits({ newerThan: new Date("2010").getTime() })
+            assertEquals(fetchCommitsStub.calls[0].args[3].newerThan, new Date("2010").getTime())
+          }, {
+            fetchCommits: [[getFakeGithubCommit()]],
+          })
+        })
+      }
+      for await (
+        const client of yieldGithubClient({
+          syncInfos: [{ type: "commit", createdAt: new Date("2010").getTime(), updatedAt: new Date("2010").getTime() }],
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchCommitsStub }) => {
+            await client.syncCommits({ newerThan: new Date("2005").getTime() })
+            assertEquals(fetchCommitsStub.calls[0].args[3].newerThan, new Date("2010").getTime())
+          }, {
+            fetchCommits: [[getFakeGithubCommit()]],
+          })
+        })
+      }
+    })
+  })
+
+  await t.step("#syncPullCommits", async (t) => {
+    await t.step("should sync using the client's owner, repo, and token", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchPullCommitsStub }) => {
+            await client.syncPullCommits([getFakeGithubPull({ number: 2 })])
+
+            assertSpyCalls(fetchPullCommitsStub, 1)
+            assertObjectMatch(fetchPullCommitsStub.calls[0].args, {
+              "0": { commits_url: "https://api.github.com/repos/octocat/Hello-World/pulls/2/commits" },
+              "1": "token",
+            })
+          }, {
+            fetchPullCommits: [[getFakeGithubPullCommit()]],
+          })
+        })
+      }
+    })
+
+    await t.step("should add fetched items to cache", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async () => {
+            await client.syncPullCommits([getFakeGithubPull({ number: 2 })])
+            assertEquals(await asyncToArray(client.findPullCommits({ pr: 2 })), [getFakeGithubPullCommit({ pr: 2 })])
+          }, { fetchPullCommits: [arrayToAsyncGenerator([getFakeGithubPullCommit()])] })
+        })
+      }
+    })
+
+    await t.step("should upsert fetched items", async (t) => {
+      const fakeCommit1 = getFakeGithubPullCommit({ pr: 1 })
+      const fakePull = getFakeGithubPull({ number: 2 })
+      const fakeCommit2 = getFakeGithubPullCommit({ pr: 2 })
+      for await (
+        const client of yieldGithubClient({
+          pullCommits: [fakeCommit1, fakeCommit2],
+          syncInfos: [getFakeSyncInfo({ type: "pull-commit", createdAt: 0, updatedAt: 10_000 })],
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async () => {
+            await client.syncPullCommits([fakePull])
+            assertEquals(await asyncToArray(client.findPullCommits()), [fakeCommit1, fakeCommit2])
+          }, { fetchPullCommits: [arrayToAsyncGenerator([getFakeGithubPullCommit()])] })
+        })
+      }
+    })
+
+    await t.step("should leave an unfinished sync marker if sync fails", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withFakeTime(async () => {
+            await withInternalsStubs(async () => {
+              await assertRejects(() => client.syncPullCommits([getFakeGithubPull()]))
+
+              assertEquals(await client.findLatestSync({ type: "pull-commit", includeUnfinished: true }), {
+                type: "pull-commit",
+                createdAt: 10_000,
+              })
+            }, {
+              fetchPullCommits: [[getFakeGithubPullCommit(), new Error("oh noes")]],
+            })
+          }, new FakeTime(10_000))
+        })
+      }
+    })
+
+    await t.step("should create a sync marker", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withFakeTime(async () => {
+            await withInternalsStubs(async () => {
+              await client.syncPullCommits([getFakeGithubPull()])
+              assertEquals(await client.findLatestSync({ type: "pull-commit" }), {
+                type: "pull-commit",
+                createdAt: 10_000,
+                updatedAt: 10_000,
+              })
+            }, { fetchPullCommits: [arrayToAsyncGenerator([getFakeGithubPullCommit()])] })
+          }, new FakeTime(10_000))
+        })
+      }
+    })
+
+    await t.step("should return syncedAt", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withFakeTime(async (t) => {
+            await withInternalsStubs(async () => {
+              const result = await client.syncPullCommits([getFakeGithubPull()])
+              assertEquals(result.syncedAt, 10_000)
+            }, {
+              async *fetchPullCommits() {
+                await t.tickAsync(1000)
+                yield getFakeGithubPullCommit()
+              },
+            })
+          }, new FakeTime(10_000))
+        })
+      }
+    })
+
+    await t.step("should react to abort", async (t) => {
+      const pull1 = getFakeGithubPull({ number: 1 })
+      const pullCommit1 = getFakeGithubPullCommit({ pr: pull1.number, node_id: "1a" })
+      const pullCommit2 = getFakeGithubPullCommit({ pr: pull1.number, node_id: "1b" })
+
+      async function* fetchPullCommits1() {
+        await sleep(5)
+        yield pullCommit1
+        await sleep(5)
+        yield pullCommit2
+      }
+
+      const pull2 = getFakeGithubPull({ number: 2 })
+
+      async function* fetchPullCommits2() {
+        await sleep(5)
+        yield getFakeGithubPullCommit({ pr: pull2.number, node_id: "2a" })
+        await sleep(5)
+        yield getFakeGithubPullCommit({ pr: pull2.number, node_id: "2b" })
+      }
+
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async () => {
+            await assertRejects(
+              () => client.syncPullCommits([pull1, pull2], { signal: AbortSignal.timeout(1) }),
+              AbortError,
+            )
+            // ↑ 1. Syncing commits for two pulls, with the AbortSignal timing out after 1 tick…
+            // ↑ 3. …then the sync will reject with AbortError…
+            assertEquals(await asyncToArray(client.findPullCommits()), [pullCommit1, pullCommit2])
+            // ↑ 4. …and cache will contain only the first pull's commits
+            //      because the abort happened during processing of the first pull
+          }, {
+            fetchPullCommits: [fetchPullCommits1(), fetchPullCommits2()],
+            // ↑ 2. …and given two sets of pull-commits, one for each pull…
+          })
+        })
+      }
+    })
+  })
+
+  await t.step("#syncPulls", async (t) => {
+    await t.step("should sync using the client's owner, repo, and token", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchPullsStub }) => {
+            await client.syncPulls()
+
+            assertSpyCalls(fetchPullsStub, 1)
+            assertObjectMatch(fetchPullsStub.calls[0].args, {
+              "0": "owner",
+              "1": "repo",
+              "2": "token",
+            })
+          }, {
+            fetchPulls: [[getFakeGithubPull({ commits_url: "https://commits_url" })]],
+          })
+        })
+      }
+    })
+
+    await t.step("should sync only newer than specified time", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchPullsStub }) => {
+            await client.syncPulls({ newerThan: 10 })
+            assertSpyCalls(fetchPullsStub, 1)
+            assertObjectMatch(fetchPullsStub.calls[0].args, {
+              "3": { newerThan: 10 },
+            })
+          }, { fetchPulls: [[getFakeGithubPull()]] })
+        })
+      }
+    })
+
+    await t.step("should add fetched items to cache", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        const fakePull = getFakeGithubPull()
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async () => {
+            await client.syncPulls()
+            assertEquals(await asyncToArray(client.findPulls()), [fakePull])
+          }, { fetchPulls: [[fakePull]] })
+        })
+      }
+    })
+
+    await t.step("should upsert fetched items", async (t) => {
+      const fakePull1 = getFakeGithubPull({ number: 1 })
+      const fakePull2 = getFakeGithubPull({ number: 2 })
+      for await (
+        const client of yieldGithubClient({
+          pulls: [fakePull1, fakePull2],
+          syncInfos: [getFakeSyncInfo({ type: "pull", createdAt: 0, updatedAt: 10_000 })],
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async () => {
+            await client.syncPulls()
+            assertEquals(await asyncToArray(client.findPulls()), [fakePull1, fakePull2])
+          }, { fetchPulls: [[fakePull2]] })
+        })
+      }
+    })
+
+    await t.step("should leave an unfinished sync marker if sync fails", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withFakeTime(async () => {
+            await withInternalsStubs(async () => {
+              await assertRejects(() => client.syncPulls())
+              assertEquals(await client.findLatestSync({ type: "pull", includeUnfinished: true }), {
+                type: "pull",
+                createdAt: 10_000,
+              })
+            }, {
+              async *fetchPulls() {
+                yield getFakeGithubPull()
+                throw new Error("oh noes")
+              },
+            })
+          }, new FakeTime(10_000))
+        })
+      }
+    })
+
+    await t.step("should create a sync marker", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withFakeTime(async () => {
+            await withInternalsStubs(async () => {
+              await client.syncPulls()
+              assertEquals(await client.findLatestSync({ type: "pull" }), {
+                type: "pull",
+                createdAt: 10_000,
+                updatedAt: 10_000,
+              })
+            }, { fetchPulls: [[getFakeGithubPull()]] })
+          }, new FakeTime(10_000))
+        })
+      }
+    })
+
+    await t.step("should return syncedAt", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withFakeTime(async (t) => {
+            await withInternalsStubs(async () => {
+              const result = await client.syncPulls()
+              assertEquals(result.syncedAt, 10_000)
+            }, {
+              async *fetchPulls() {
+                await t.tickAsync(1000)
+                yield getFakeGithubPull()
+              },
+            })
+          }, new FakeTime(10_000))
+        })
+      }
+    })
+
+    await t.step("should return synced pulls", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withFakeTime(async () => {
+            const fakePull = getFakeGithubPull()
+            await withInternalsStubs(async () => {
+              const result = await client.syncPulls()
+              assertEquals(result.syncedPulls, [fakePull])
+            }, { fetchPulls: [[fakePull]] })
+          }, new FakeTime(10_000))
+        })
+      }
+    })
+
+    await t.step("should react to abort", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          const pull1 = getFakeGithubPull({ number: 1 })
+          const pull2 = getFakeGithubPull({ number: 2 })
+          await withInternalsStubs(async () => {
+            await assertRejects(() => client.syncPulls({ signal: AbortSignal.timeout(1) }), AbortError)
+            assertEquals(await asyncToArray(client.findPulls()), [pull1])
+          }, {
+            async *fetchPulls() {
+              yield pull1
+              await sleep(5)
+              yield pull2
+            },
+          })
+        })
+      }
+    })
+
+    await t.step("should respect newerThan", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchPullsStub }) => {
+            await client.syncPulls({ newerThan: new Date("2000").getTime() })
+            assertEquals(fetchPullsStub.calls[0].args[3].newerThan, new Date("2000").getTime())
+          }, {
+            fetchPulls: [[getFakeGithubPull()]],
+          })
+        })
+      }
+    })
+
+    await t.step("should sync to latest fully completed sync", async (t) => {
+      for await (
+        const client of yieldGithubClient({
+          syncInfos: [
+            { type: "pull", createdAt: new Date("2000").getTime(), updatedAt: new Date("2000").getTime() },
+            { type: "pull", createdAt: new Date("2005").getTime(), updatedAt: new Date("2005").getTime() },
+            // ↑ 🎉 2005 is the most recent & finished & pull sync
+            { type: "commit", createdAt: new Date("2010").getTime(), updatedAt: new Date("2010").getTime() },
+            { type: "pull", createdAt: new Date("2015").getTime() },
+          ],
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchPullsStub }) => {
+            await client.syncPulls()
+            assertEquals(fetchPullsStub.calls[0].args[3].newerThan, new Date("2005").getTime())
+          }, {
+            fetchPulls: [[getFakeGithubPull()]],
+          })
+        })
+      }
+    })
+
+    await t.step("choose the most recent if both latest sync & newerThan are present", async (t) => {
+      for await (
+        const client of yieldGithubClient({
+          syncInfos: [{ type: "pull", createdAt: new Date("2005").getTime(), updatedAt: new Date("2005").getTime() }],
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchPullsStub }) => {
+            await client.syncPulls({ newerThan: new Date("2010").getTime() })
+            assertEquals(fetchPullsStub.calls[0].args[3].newerThan, new Date("2010").getTime())
+          }, {
+            fetchPulls: [[getFakeGithubPull()]],
+          })
+        })
+      }
+      for await (
+        const client of yieldGithubClient({
+          syncInfos: [{ type: "pull", createdAt: new Date("2010").getTime(), updatedAt: new Date("2010").getTime() }],
+        })
+      ) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchPullsStub }) => {
+            await client.syncPulls({ newerThan: new Date("2005").getTime() })
+            assertEquals(fetchPullsStub.calls[0].args[3].newerThan, new Date("2010").getTime())
+          }, {
+            fetchPulls: [[getFakeGithubPull()]],
           })
         })
       }
