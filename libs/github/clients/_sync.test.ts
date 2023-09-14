@@ -1081,4 +1081,43 @@ Deno.test("Syncable Github Client shared tests", async (t) => {
       }
     })
   })
+
+  await t.step("#syncStatsContributors", async (t) => {
+    await t.step("should call underlying fetchGithubStatsContributors function to fetch the data", async (t) => {
+      for await (const client of yieldGithubClient()) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async ({ fetchStatsContributorsStub }) => {
+            await client.syncStatsContributors()
+
+            assertSpyCalls(fetchStatsContributorsStub, 1)
+            assertObjectMatch(fetchStatsContributorsStub.calls[0].args, {
+              "0": "owner",
+              "1": "repo",
+              "2": "token",
+            })
+          }, {
+            fetchStatsContributors: [[getFakeGithubStatsContributor()]],
+          })
+        })
+      }
+    })
+
+    await t.step("should store the fetched stats contributor element", async (t) => {
+      const preExistingStatsContributor = getFakeGithubStatsContributor({ author: { id: 1 } })
+      const newStatsContributor = getFakeGithubStatsContributor({ author: { id: 2 } })
+      for await (const client of yieldGithubClient({ statsContributors: [preExistingStatsContributor] })) {
+        await t.step(`for ${client.constructor.name}`, async () => {
+          await withInternalsStubs(async () => {
+            await client.syncStatsContributors()
+            assertEquals(await asyncToArray(client.findStatsContributors()), [
+              preExistingStatsContributor,
+              newStatsContributor,
+            ])
+          }, {
+            fetchStatsContributors: [[newStatsContributor]],
+          })
+        })
+      }
+    })
+  })
 })
