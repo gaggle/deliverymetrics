@@ -12,11 +12,11 @@ import { getFakeGithubCommit, GithubCommit } from "../api/commits/mod.ts"
 import { BoundGithubPullCommit, getFakeGithubPullCommit } from "../api/pull-commits/mod.ts"
 import { getFakeGithubPull, GithubPull } from "../api/pulls/mod.ts"
 import { GithubRelease } from "../api/releases/mod.ts"
-import { GithubStatsCodeFrequency } from "../api/stats-code-frequency/mod.ts"
+import { DBCodeFrequency, GithubStatsCodeFrequency } from "../api/stats-code-frequency/mod.ts"
 import { GithubStatsCommitActivity } from "../api/stats-commit-activity/mod.ts"
-import { GithubStatsContributor } from "../api/stats-contributors/mod.ts"
+import { getFakeGithubStatsContributor, GithubStatsContributor } from "../api/stats-contributors/mod.ts"
 import { GithubStatsParticipation } from "../api/stats-participation/mod.ts"
-import { GithubStatsPunchCard } from "../api/stats-punch-card/mod.ts"
+import { DBPunchCard, GithubStatsPunchCard } from "../api/stats-punch-card/mod.ts"
 
 import { createFakeGithubClient, getFakeSyncInfo } from "../testing/mod.ts"
 
@@ -31,6 +31,12 @@ async function* yieldGithubClient(
     commits: Array<GithubCommit>
     pullCommits: Array<BoundGithubPullCommit>
     pulls: Array<GithubPull>
+    releases: Array<GithubRelease>
+    statsCodeFrequency: Array<DBCodeFrequency>
+    statsCommitActivity: Array<GithubStatsCommitActivity>
+    statsContributors: Array<GithubStatsContributor>
+    statsParticipation: Array<GithubStatsParticipation>
+    statsPunchCard: Array<DBPunchCard>
     syncInfos: Array<SyncInfo>
   }>,
 ): AsyncGenerator<GithubClient> {
