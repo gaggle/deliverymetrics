@@ -38,7 +38,7 @@ export function getFakeGithubStatsContributor(
       "type": "User",
       "site_admin": false,
     },
-    "total": 135,
+    "total": 10,
     "weeks": partial.weeks || [{ "w": 1367712000, "a": 6898, "d": 77, "c": 10 }],
   }
   delete partial.weeks
