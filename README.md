@@ -1,4 +1,4 @@
-# gaggle/deliverymetrics 0.2.0
+# gaggle/deliverymetrics 0.2.1
 
 ## Installation
 
