@@ -1,0 +1,4 @@
+dependencies:
+  deno.land: =1.37.1
+env:
+  VERSION: 0.2.2
