@@ -1,0 +1,57 @@
+name: "Version Config"
+description: "Parse version and check if the codebase is in a pushable state"
+inputs:
+  semver:
+    description: "The version string to be parsed and checked"
+    required: true
+  default-branch:
+    description: "Name of main branch"
+    default: ${{ github.event.repository.default_branch }}
+outputs:
+  semver:
+    description: "The full semantic version. Same as input.semver"
+    value: ${{ steps.entrypoint.outputs.semver }}
+  major:
+    description: "Major version, 1.2.3 -> 1"
+    value: ${{ steps.entrypoint.outputs.major }}
+  minor:
+    description: "Minor version, 1.2.3 -> 2"
+    value: ${{ steps.entrypoint.outputs.minor }}
+
+  patch:
+    description: "Patch version, 1.2.3 -> 3"
+    value: ${{ steps.entrypoint.outputs.patch }}
+
+  tag-exists:
+    description: "Indicates whether a Git tag already exists for the version"
+    value: ${{ steps.entrypoint.outputs.tag-exists }}
+
+  releasable:
+    description: "Determines if the current state of the codebase should released, determined by whether the commit is for the default branch and if the version it's associated with has already been released"
+    value: ${{ steps.entrypoint.outputs.releasable }}
+
+  previous-release-tag:
+    description: "The previous release's tag"
+    value: ${{ steps.entrypoint.outputs.previous-release-tag }}
+
+  elixir-version:
+    description: "The currently specified Elixir version"
+    value: ${{ steps.entrypoint.outputs.elixir-version }}
+
+  otp-version:
+    description: "The currently specified Elixir OTP version"
+    value: ${{ steps.entrypoint.outputs.otp-version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Fetch Git tags
+      run: git fetch --prune --unshallow --tags > /dev/null
+      shell: bash
+    - run: ${{ github.action_path }}/entrypoint.sh
+      id: entrypoint
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        INPUT_DEFAULT_BRANCH: ${{ inputs.default-branch }}
+        INPUT_SEMVER: ${{ inputs.semver }}
