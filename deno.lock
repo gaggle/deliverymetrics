@@ -1,5 +1,26 @@
 {
-  "version": "2",
+  "version": "3",
+  "packages": {
+    "specifiers": {
+      "npm:zod-to-json-schema": "npm:zod-to-json-schema@3.21.4_zod@3.22.2"
+    },
+    "npm": {
+      "zod-to-json-schema@3.21.4_zod@3.22.2": {
+        "integrity": "sha512-fjUZh4nQ1s6HMccgIeE0VP4QG/YRGPmyjO9sAh890aQKPEk3nqbfUXhMFaC+Dr5KvYBm8BCyvfpZf2jY9aGSsw==",
+        "dependencies": {
+          "zod": "zod@3.22.2"
+        }
+      },
+      "zod@3.22.2": {
+        "integrity": "sha512-wvWkphh5WQsJbVk1tbx1l1Ly4yg+XecD+Mq280uBGt9wa5BKSWf4Mhp6GmrkPixhMxmabYY7RbzlwVP32pbGCg==",
+        "dependencies": {}
+      }
+    }
+  },
+  "redirects": {
+    "https://crux.land/router@0.0.5": "https://crux.land/api/get/2KNRVU.ts",
+    "https://denopkg.com/alextes/run-with-limit/mod.ts": "https://denopkg.com/alextes/run-with-limit@master/mod.ts"
+  },
   "remote": {
     "https://crux.land/api/get/2KNRVU.ts": "6a77d55844aba78d01520c5ff0b2f0af7f24cc1716a0de8b3bb6bd918c47b5ba",
     "https://deno.land/std@0.144.0/_util/assert.ts": "e94f2eb37cebd7f199952e242c77654e43333c1ac4c5c700e929ea3aa5489f74",
@@ -334,22 +355,5 @@
     "https://deno.land/x/zod@v3.17.10/mod.ts": "64e55237cb4410e17d968cd08975566059f27638ebb0b86048031b987ba251c4",
     "https://deno.land/x/zod@v3.17.10/types.ts": "e365eed55953d0deaa40b29e3003247c866ccf58bbd8fc2f87c42d3cd620d075",
     "https://denopkg.com/alextes/run-with-limit@master/mod.ts": "105c2331312e18c76c4a18c7733b9c23bebedf5ea5fd328915e5537fe54c4d60"
-  },
-  "npm": {
-    "specifiers": {
-      "zod-to-json-schema": "zod-to-json-schema@3.21.4_zod@3.22.2"
-    },
-    "packages": {
-      "zod-to-json-schema@3.21.4_zod@3.22.2": {
-        "integrity": "sha512-fjUZh4nQ1s6HMccgIeE0VP4QG/YRGPmyjO9sAh890aQKPEk3nqbfUXhMFaC+Dr5KvYBm8BCyvfpZf2jY9aGSsw==",
-        "dependencies": {
-          "zod": "zod@3.22.2"
-        }
-      },
-      "zod@3.22.2": {
-        "integrity": "sha512-wvWkphh5WQsJbVk1tbx1l1Ly4yg+XecD+Mq280uBGt9wa5BKSWf4Mhp6GmrkPixhMxmabYY7RbzlwVP32pbGCg==",
-        "dependencies": {}
-      }
-    }
   }
 }
