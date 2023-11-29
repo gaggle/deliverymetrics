@@ -1,8 +1,11 @@
-name: CI CD
+name: CI/CD
 
 on:
   push:
     branches: [ '**' ] # this triggers only on branch commits, which prevents triggering off of tag-only commits
+    paths-ignore:
+      - .github/workflows/container-release.yml
+      - .github/workflows/move-tags.yml
   workflow_dispatch:
 
 env:
@@ -12,9 +15,26 @@ env:
 
 concurrency:
   group: ${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      previous-release-tag: ${{ steps.parse.outputs.previous-release-tag }}
+      releasable: ${{ steps.parse.outputs.releasable }}
+      semver: ${{ steps.parse.outputs.semver }}
+      tag-exists: ${{ steps.parse.outputs.tag-exists }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pkgxdev/dev@v0
+      - name: Parse version
+        id: parse
+        uses: ./.github/actions/version
+        with:
+          semver: ${{ env.VERSION }}
+      - name: Show outputs
+        run: echo -e "Outputs:\n${{ toJSON(steps.parse.outputs) }}"
+
   tests:
     strategy:
       fail-fast: false
@@ -30,7 +50,7 @@ jobs:
     name: ${{ matrix.entry.cmd }} (on ${{ matrix.entry.os }})
     steps:
       - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
+      - uses: pkgxdev/dev@v0
 
       - name: Cache dependencies
         uses: actions/cache@v3
@@ -41,51 +61,11 @@ jobs:
 
       - run: ${{ matrix.entry.cmd }}
 
-  version-check:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.tea.outputs.version }}
-      version-exists: ${{ steps.check-version.outputs.version-exists }}
-      version-major: ${{ steps.parse-version.outputs.version-major }}
-      version-minor: ${{ steps.parse-version.outputs.version-minor }}
-      version-patch: ${{ steps.parse-version.outputs.version-patch }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
-        id: tea
-
-      - name: Version sanity check
-        run: |
-          test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f1 -d.)"
-          test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f2 -d.)"
-          test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f3 -d.)"
-
-      - name: Parse version
-        id: parse-version
-        run: |
-          echo "version-major=$(echo ${{ steps.tea.outputs.version }} | cut -f1 -d.)" >> $GITHUB_OUTPUT
-          echo "version-minor=$(echo ${{ steps.tea.outputs.version }} | cut -f2 -d.)" >> $GITHUB_OUTPUT
-          echo "version-patch=$(echo ${{ steps.tea.outputs.version }} | cut -f3 -d.)" >> $GITHUB_OUTPUT
-          echo GitHub Output: $(cat $GITHUB_OUTPUT)
-
-      - name: Did we already publish this version?
-        id: check-version
-        run: |
-          # fetch tags since actions/checkout is a shallow checkout
-          git fetch --prune --unshallow --tags
-
-          if git show-ref --tags v${{ steps.tea.outputs.version }} --quiet; then
-            echo "version-exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "version-exists=false" >> $GITHUB_OUTPUT
-          fi
-          echo GitHub Output: $(cat $GITHUB_OUTPUT)
-
   bundle-source-code:
     runs-on: ubuntu-latest
-    needs: [ version-check ]
+    needs: [ version ]
     env:
-      FILENAME: deliverymetrics-v${{ needs.version-check.outputs.version }}
+      FILENAME: deliverymetrics-v${{ needs.version.outputs.semver }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -95,7 +75,7 @@ jobs:
         run: cd ${{ env.FILENAME }} && rm -rf .github .git .gitignore
 
       - name: Stamp version
-        run: ./$FILENAME/bin/stamp-version '${{ needs.version-check.outputs.version }}' $FILENAME
+        run: ./$FILENAME/bin/stamp-version '${{ needs.version.outputs.semver }}' $FILENAME
 
       - name: Tarball source-code
         run: tar cJf $FILENAME.tar.xz $FILENAME
@@ -108,7 +88,7 @@ jobs:
           if-no-files-found: error
 
   compile:
-    needs: [ version-check, bundle-source-code ]
+    needs: [ version, bundle-source-code ]
     permissions:
       contents: read
       actions: write
@@ -139,8 +119,8 @@ jobs:
         with:
           name: source-code
       - name: Unpack downloaded artifact
-        run: tar xJf deliverymetrics-v${{ needs.version-check.outputs.version }}.tar.xz --strip-components=1
-      - uses: teaxyz/setup@v0
+        run: tar xJf deliverymetrics-v${{ needs.version.outputs.semver }}.tar.xz --strip-components=1
+      - uses: pkgxdev/dev@v0
 
       - name: Cache dependencies
         uses: actions/cache@v3
@@ -152,31 +132,53 @@ jobs:
       - run: SUFFIX="${{ matrix.platform.suffix }}" EXTRA_ARGS="--target ${{ matrix.platform.target }}" deno task compile
 
       - name: Create tarball from compiled binary
-        run: tar cJf deliverymetrics-v${{ needs.version-check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz deliverymetrics${{ matrix.platform.suffix }}
+        run: tar cJf deliverymetrics-v${{ needs.version.outputs.semver }}+${{ matrix.platform.build-id }}.tar.xz deliverymetrics${{ matrix.platform.suffix }}
 
       - uses: actions/upload-artifact@v3
         with:
           name: binaries
           path: |
-            deliverymetrics-v${{ needs.version-check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
-            deliverymetrics-v${{ needs.version-check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz.asc
+            deliverymetrics-v${{ needs.version.outputs.semver }}+${{ matrix.platform.build-id }}.tar.xz
+            deliverymetrics-v${{ needs.version.outputs.semver }}+${{ matrix.platform.build-id }}.tar.xz.asc
           if-no-files-found: error
 
   release:
+    needs: [ version, tests, compile ]
     runs-on: ubuntu-latest
-    needs: [ version-check, tests, compile ]
-    if: ${{ github.ref == 'refs/heads/main' && needs.version-check.outputs.version-exists == 'false' }}
+    name: ${{ needs.version.outputs.releasable == 'true' && 'release' || 'release (dry-run)' }}
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v3
       - uses: actions/download-artifact@v3
+      - name: Generate release description
+        run: |
+          log_content() {
+            local content="$1"
+            local label="${2:-}"
+          
+            if [[ -n "$label" ]]; then
+              # Replace the beginning of each line with two spaces
+              local indented_content="${content//$'\n'/$'\n'  }"
+              printf "%s:\n  %s\n" "$label" "$indented_content"
+            else
+              echo "$content"
+            fi
+          }
+          CHANGELOG_URL="https://github.com/${{ github.event.repository.full_name }}/compare/${{ needs.version.outputs.previous-release-tag }}...v${{ needs.version.outputs.semver }}"
+          echo "BODY=**Full Changelog**: $CHANGELOG_URL" >> $GITHUB_ENV
+          echo ::group::Set outputs
+          log_content "$(cat "$GITHUB_ENV")" "GITHUB_ENV"
+          echo ::endgroup::
+
       - uses: softprops/action-gh-release@v1
+        if: needs.version.outputs.releasable == 'true'
         with:
-          tag_name: v${{ needs.version-check.outputs.version }}
-          files: |
-            binaries/*
-            source-code/*
+          body: ${{ env.BODY }}
           fail_on_unmatched_files: true
-          generate_release_notes: true
+          files: |
+            binaries/* 
+            source-code/*
+          generate_release_notes: false
+          tag_name: v${{ needs.version.outputs.semver }}
           token: ${{ secrets.PAT }} # using our own PAT so other workflows run
