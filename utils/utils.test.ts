@@ -11,7 +11,6 @@ import {
   asyncSingle,
   asyncToArray,
   clamp,
-  extractSemVers,
   extractZodSchemaKeys,
   filterObject,
   filterUndefined,
@@ -779,32 +778,4 @@ Deno.test("clamp", async (t) => {
     assertEquals(clamp(1000, 0, 100), 100)
     assertEquals(clamp(-1000, 0, 100), 0)
   })
-})
-
-Deno.test("extractSemVers", async (t) => {
-  await t.step("returns an empty list when there is nothing to extract", () => {
-    assertEquals(extractSemVers("foo"), [])
-  })
-
-  await t.step("extracts a version when it's part of a longer string", () => {
-    assertEquals(extractSemVers("foo 1.0.0 bar").map((el) => el.raw), ["1.0.0"])
-  })
-
-  await t.step("extracts versions from multiline string", () => {
-    const str = `Lorem ipsum dolor sit amet, 1.0.0 eget aliquet nibh.
-
-Libero nunc 2.0 consectetur.`
-    assertEquals(extractSemVers(str).map((el) => el.raw), ["1.0.0", "2.0"])
-  })
-
-  for (const value of ["0.0.4", "1.0.0", "1.1.7", "1.2.3", "10.20.30", "2.0.0"]) {
-    await t.step(`extracts ${value}`, () => {
-      const actual = extractSemVers(value)
-      assertEquals(
-        actual.map((el) => el.raw),
-        [value],
-        `Expected ${value} to get extracted but got: ${JSON.stringify(actual)}`,
-      )
-    })
-  }
 })
