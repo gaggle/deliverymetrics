@@ -3,8 +3,8 @@ import { Epoch } from "../../../../utils/types.ts"
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
-import { githubRestSpec } from "../github-rest-api-spec.ts"
 
+import { githubCommitRestApiSpec } from "./github-commit-rest-api-spec.ts"
 import { GithubCommit } from "./github-commit-schema.ts"
 
 type FetchCommitsOpts = { newerThan?: Epoch; signal?: AbortSignal }
@@ -18,10 +18,10 @@ export async function* fetchGithubCommits(
   const req = createGithubRequest({
     method: "GET",
     token,
-    url: githubRestSpec.commits.getUrl(owner, repo, newerThan ? toISOStringWithoutMs(newerThan) : undefined),
+    url: githubCommitRestApiSpec.getUrl(owner, repo, newerThan ? toISOStringWithoutMs(newerThan) : undefined),
   })
 
-  for await (const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.commits.schema, { signal })) {
+  for await (const { data } of _internals.fetchGithubApiExhaustively(req, githubCommitRestApiSpec.schema, { signal })) {
     for (const el of data) {
       yield el
     }

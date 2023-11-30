@@ -5,10 +5,10 @@ import { arrayToAsyncGenerator, asyncToArray } from "../../../../utils/mod.ts"
 import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../../utils/dev-utils.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
-import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { _internals, fetchGithubCommits } from "./fetch-github-commits.ts"
 import { getFakeGithubCommit } from "./get-fake-github-commit.ts"
+import { githubCommitRestApiSpec } from "./github-commit-rest-api-spec.ts"
 
 Deno.test("fetchCommits", async (t) => {
   await t.step("calls fetchExhaustively with schema", async () => {
@@ -22,7 +22,7 @@ Deno.test("fetchCommits", async (t) => {
             expectedCalls: 1,
             expectedArgs: 3,
           })
-          assertEquals(schema, githubRestSpec.commits.schema)
+          assertEquals(schema, githubCommitRestApiSpec.schema)
         },
         stub(
           _internals,

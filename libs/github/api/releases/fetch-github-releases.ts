@@ -5,8 +5,8 @@ import { Epoch } from "../../../../utils/types.ts"
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
-import { githubRestSpec } from "../github-rest-api-spec.ts"
 
+import { githubReleaseRestApiSpec } from "./github-release-rest-api-spec.ts"
 import { GithubRelease } from "./github-release-schema.ts"
 
 type FetchPullsOpts = { newerThan?: Epoch; signal?: AbortSignal }
@@ -20,10 +20,12 @@ export async function* fetchGithubReleases(
   const req = createGithubRequest({
     method: "GET",
     token,
-    url: githubRestSpec.releases.getUrl(owner, repo),
+    url: githubReleaseRestApiSpec.getUrl(owner, repo),
   })
 
-  for await (const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.releases.schema, { signal })) {
+  for await (
+    const { data } of _internals.fetchGithubApiExhaustively(req, githubReleaseRestApiSpec.schema, { signal })
+  ) {
     for (const el of data) {
       if (newerThan) {
         const fromDate = new Date(el.created_at)

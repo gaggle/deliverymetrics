@@ -1,8 +1,8 @@
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
-import { githubRestSpec } from "../github-rest-api-spec.ts"
 
+import { githubStatsCommitActivityRestApiSpec } from "./github-stats-commit-activity-rest-api-spec.ts"
 import { GithubStatsCommitActivity } from "./github-stats-commit-activity-schema.ts"
 
 export async function* fetchGithubStatsCommitActivity(
@@ -14,11 +14,11 @@ export async function* fetchGithubStatsCommitActivity(
   const req = createGithubRequest({
     method: "GET",
     token,
-    url: githubRestSpec.statsCommitActivity.getUrl(owner, repo),
+    url: githubStatsCommitActivityRestApiSpec.getUrl(owner, repo),
   })
 
   for await (
-    const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.statsCommitActivity.schema, {
+    const { data } of _internals.fetchGithubApiExhaustively(req, githubStatsCommitActivityRestApiSpec.schema, {
       retryStrategy: "github-backoff",
       maxRetries: 10,
       signal,

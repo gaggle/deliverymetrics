@@ -1,90 +1,48 @@
-import { z } from "zod"
+import { githubActionRunsRestApiSpec } from "./action-run/mod.ts"
 
-import { githubActionRunSchema } from "./action-run/mod.ts"
+import { githubActionWorkflowRestApiSpec } from "./action-workflows/mod.ts"
 
-import { githubActionWorkflowSchema } from "./action-workflows/mod.ts"
+import { githubCommitRestApiSpec } from "./commits/mod.ts"
 
-import { githubCommitSchema } from "./commits/mod.ts"
+import { githubPullCommitRestApiSpec } from "./pull-commits/mod.ts"
 
-import { githubPullCommitSchema } from "./pull-commits/mod.ts"
+import { githubPullRestApiSpec } from "./pulls/mod.ts"
 
-import { GithubPull, githubPullSchema } from "./pulls/mod.ts"
+import { githubReleaseRestApiSpec } from "./releases/mod.ts"
 
-import { githubReleaseSchema } from "./releases/mod.ts"
+import { githubRepositoryRestApiSpec } from "./repository/mod.ts"
 
-import { githubRepositorySchema } from "./repository/mod.ts"
+import { githubStatsCodeFrequencyRestApiSpec } from "./stats-code-frequency/mod.ts"
 
-import { githubStatsCodeFrequencySchema } from "./stats-code-frequency/mod.ts"
+import { githubStatsCommitActivityRestApiSpec } from "./stats-commit-activity/mod.ts"
 
-import { githubStatsCommitActivitySchema } from "./stats-commit-activity/mod.ts"
+import { githubStatsContributorRestApiSpec } from "./stats-contributors/mod.ts"
 
-import { githubStatsContributorSchema } from "./stats-contributors/mod.ts"
+import { githubStatsParticipationRestApiSpec } from "./stats-participation/mod.ts"
 
-import { githubStatsParticipationSchema } from "./stats-participation/mod.ts"
-
-import { githubStatsPunchCardSchema } from "./stats-punch-card/mod.ts"
+import { githubStatsPunchCardRestApiSpec } from "./stats-punch-card/mod.ts"
 
 export const githubRestSpec = {
   /**
    * https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#list-workflow-runs-for-a-repository
    */
-  actionRuns: {
-    getUrl: (owner: string, repo: string, branch?: string) => {
-      const url = new URL(`https://api.github.com/repos/${owner}/${repo}/actions/runs`)
-      url.searchParams.set("per_page", "50")
-      // ↑ Occasionally the API would return 502 Bad Gateway when per_page=100 (despite retrying)
-      if (branch) {
-        url.searchParams.set("branch", branch)
-      }
-      return url.toString()
-    },
-    schema: z.object({ total_count: z.number().int(), workflow_runs: z.array(githubActionRunSchema) }),
-  },
+  actionRuns: githubActionRunsRestApiSpec,
   /**
    * https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28
    */
-  actionWorkflows: {
-    getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/actions/workflows`).toString(),
-    schema: z.object({ total_count: z.number().int(), workflows: z.array(githubActionWorkflowSchema) }),
-  },
+  actionWorkflows: githubActionWorkflowRestApiSpec,
   /**
    * https://docs.github.com/en/rest/commits/commits?apiVersion=2022-11-28#list-commits
    */
-  commits: {
-    /**
-     * @param owner The account owner of the repository. The name is not case-sensitive.
-     * @param repo The name of the repository. The name is not case-sensitive.
-     * @param since Only show notifications updated after the given time.
-     *              This is a timestamp in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.
-     */
-    getUrl: (owner: string, repo: string, since?: string) => {
-      const url = new URL(`https://api.github.com/repos/${owner}/${repo}/commits`)
-      if (since) url.searchParams.set("since", since)
-      return url.toString()
-    },
-    schema: z.array(githubCommitSchema),
-  },
+  commits: githubCommitRestApiSpec,
   /**
    * https://docs.github.com/en/rest/pulls/pulls#list-commits-on-a-pull-request
    */
-  pullCommits: {
-    getUrl: (pull: Pick<GithubPull, "commits_url">) => pull.commits_url,
-    schema: z.array(githubPullCommitSchema),
-  },
+  pullCommits: githubPullCommitRestApiSpec,
   /**
    * https://docs.github.com/en/rest/pulls/pulls
    */
-  pulls: {
-    getUrl: (owner: string, repo: string) => {
-      const url = new URL(`https://api.github.com/repos/${owner}/${repo}/pulls`)
-      url.searchParams.set("state", "all")
-      url.searchParams.set("sort", "updated")
-      url.searchParams.set("direction", "desc")
-      return url.toString()
-    },
-    schema: z.array(githubPullSchema),
-  },
+  pulls: githubPullRestApiSpec,
   /**
    * # Get the weekly commit activity
    * Returns a weekly aggregate of the number of additions and deletions pushed to a repository.
@@ -121,11 +79,7 @@ export const githubRestSpec = {
    * Repository statistics are cached by the SHA of the repository's default branch;
    * pushing to the default branch resets the statistics cache.
    */
-  statsCodeFrequency: {
-    getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/code_frequency`).toString(),
-    schema: z.array(githubStatsCodeFrequencySchema),
-  },
+  statsCodeFrequency: githubStatsCodeFrequencyRestApiSpec,
   /**
    * # Get the last year of commit activity
    * Returns the last year of commit activity grouped by week.
@@ -162,11 +116,7 @@ export const githubRestSpec = {
    * Repository statistics are cached by the SHA of the repository's default branch;
    * pushing to the default branch resets the statistics cache.
    */
-  statsCommitActivity: {
-    getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/commit_activity`).toString(),
-    schema: z.array(githubStatsCommitActivitySchema),
-  },
+  statsCommitActivity: githubStatsCommitActivityRestApiSpec,
   /**
    * # Get all contributor commit activity
    * Returns the total number of commits authored by the contributor.
@@ -210,11 +160,7 @@ export const githubRestSpec = {
    *
    * https://docs.github.com/en/rest/metrics/statistics?apiVersion=2022-11-28#get-all-contributor-commit-activity
    */
-  statsContributors: {
-    getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/contributors`).toString(),
-    schema: z.array(githubStatsContributorSchema),
-  },
+  statsContributors: githubStatsContributorRestApiSpec,
   /**
    * # Get the weekly commit count
    * Returns the total commit counts for the owner and total commit counts in all.
@@ -255,11 +201,7 @@ export const githubRestSpec = {
    * Repository statistics are cached by the SHA of the repository's default branch;
    * pushing to the default branch resets the statistics cache.
    */
-  statsParticipation: {
-    getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/participation`).toString(),
-    schema: githubStatsParticipationSchema,
-  },
+  statsParticipation: githubStatsParticipationRestApiSpec,
   /**
    * # Get the hourly commit count for each day
    * Each array contains the day number, hour number, and number of commits:
@@ -299,11 +241,7 @@ export const githubRestSpec = {
    * Repository statistics are cached by the SHA of the repository's default branch;
    * pushing to the default branch resets the statistics cache.
    */
-  statsPunchCard: {
-    getUrl: (owner: string, repo: string) =>
-      new URL(`https://api.github.com/repos/${owner}/${repo}/stats/punch_card`).toString(),
-    schema: z.array(githubStatsPunchCardSchema),
-  },
+  statsPunchCard: githubStatsPunchCardRestApiSpec,
   /**
    * # List releases
    * This returns a list of releases,
@@ -338,14 +276,7 @@ export const githubRestSpec = {
    *
    * [https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#list-releases](https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#list-releases)
    */
-  releases: {
-    getUrl: (owner: string, repo: string) => {
-      const url = new URL(`https://api.github.com/repos/${owner}/${repo}/releases`)
-      url.searchParams.set("per_page", "100")
-      return url.toString()
-    },
-    schema: z.array(githubReleaseSchema),
-  },
+  releases: githubReleaseRestApiSpec,
   /**
    * Get a repository
    * The parent and source objects are present when the repository is a fork.
@@ -359,8 +290,5 @@ export const githubRestSpec = {
    *
    * https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
    */
-  repository: {
-    getUrl: (owner: string, repo: string) => new URL(`https://api.github.com/repos/${owner}/${repo}`).toString(),
-    schema: githubRepositorySchema,
-  },
+  repository: githubRepositoryRestApiSpec,
 } as const

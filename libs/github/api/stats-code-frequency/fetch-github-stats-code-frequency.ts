@@ -1,8 +1,8 @@
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
-import { githubRestSpec } from "../github-rest-api-spec.ts"
 
+import { githubStatsCodeFrequencyRestApiSpec } from "./github-stats-code-frequency-rest-api-spec.ts"
 import { GithubStatsCodeFrequency } from "./github-stats-code-frequency-schema.ts"
 
 export async function* fetchGithubStatsCodeFrequency(
@@ -14,11 +14,11 @@ export async function* fetchGithubStatsCodeFrequency(
   const req = createGithubRequest({
     method: "GET",
     token,
-    url: githubRestSpec.statsCodeFrequency.getUrl(owner, repo),
+    url: githubStatsCodeFrequencyRestApiSpec.getUrl(owner, repo),
   })
 
   for await (
-    const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.statsCodeFrequency.schema, {
+    const { data } of _internals.fetchGithubApiExhaustively(req, githubStatsCodeFrequencyRestApiSpec.schema, {
       retryStrategy: "github-backoff",
       maxRetries: 10,
       signal,

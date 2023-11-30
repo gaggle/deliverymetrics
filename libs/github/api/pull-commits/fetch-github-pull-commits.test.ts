@@ -7,10 +7,10 @@ import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../..
 import { getFakeGithubPull } from "../pulls/mod.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
-import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { _internals, fetchGithubPullCommits } from "./fetch-github-pull-commits.ts"
 import { getFakeGithubPullCommit } from "./get-fake-github-pull-commit.ts"
+import { githubPullCommitRestApiSpec } from "./github-pull-commit-rest-api-spec.ts"
 
 Deno.test("fetchPullCommits", async (t) => {
   await t.step("calls fetchExhaustively with schema", async () => {
@@ -25,7 +25,7 @@ Deno.test("fetchPullCommits", async (t) => {
             expectedCalls: 1,
             expectedArgs: 3,
           })
-          assertEquals(schema, githubRestSpec.pullCommits.schema)
+          assertEquals(schema, githubPullCommitRestApiSpec.schema)
         },
         stub(
           _internals,

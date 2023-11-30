@@ -4,10 +4,9 @@ import { stub } from "dev:mock"
 import { arrayToAsyncGenerator, asyncToArray } from "../../../../utils/mod.ts"
 import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../../utils/dev-utils.ts"
 
-import { getFakeGithubPull } from "../../api/pulls/mod.ts"
+import { getFakeGithubPull, githubPullRestApiSpec } from "../../api/pulls/mod.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
-import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { _internals, fetchGithubPulls } from "./fetch-github-pulls.ts"
 
@@ -23,7 +22,7 @@ Deno.test("fetchPulls", async (t) => {
             expectedCalls: 1,
             expectedArgs: 3,
           })
-          assertEquals(schema, githubRestSpec.pulls.schema)
+          assertEquals(schema, githubPullRestApiSpec.schema)
         },
         stub(
           _internals,

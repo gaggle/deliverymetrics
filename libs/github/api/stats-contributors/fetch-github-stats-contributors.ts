@@ -1,8 +1,8 @@
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
-import { githubRestSpec } from "../github-rest-api-spec.ts"
 
+import { githubStatsContributorRestApiSpec } from "./github-stats-contributor-rest-api-spec.ts"
 import { GithubStatsContributor } from "./github-stats-contributor-schema.ts"
 
 export async function* fetchGithubStatsContributors(
@@ -14,11 +14,11 @@ export async function* fetchGithubStatsContributors(
   const req = createGithubRequest({
     method: "GET",
     token,
-    url: githubRestSpec.statsContributors.getUrl(owner, repo),
+    url: githubStatsContributorRestApiSpec.getUrl(owner, repo),
   })
 
   for await (
-    const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.statsContributors.schema, {
+    const { data } of _internals.fetchGithubApiExhaustively(req, githubStatsContributorRestApiSpec.schema, {
       retryStrategy: "github-backoff",
       maxRetries: 10,
       signal,

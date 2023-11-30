@@ -5,10 +5,10 @@ import { arrayToAsyncGenerator, asyncToArray } from "../../../../utils/mod.ts"
 import { extractCallArgsFromStub, withMockedFetch, withStubs } from "../../../../utils/dev-utils.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
-import { githubRestSpec } from "../github-rest-api-spec.ts"
 
 import { _internals, fetchGithubStatsContributors } from "./fetch-github-stats-contributors.ts"
 import { getFakeGithubStatsContributor } from "./get-fake-github-stats-contributor.ts"
+import { githubStatsContributorRestApiSpec } from "./github-stats-contributor-rest-api-spec.ts"
 
 Deno.test("fetch-github-stats-contributors", async (t) => {
   const headers = { "Content-Type": "application/json" }
@@ -43,7 +43,7 @@ Deno.test("fetch-github-stats-contributors", async (t) => {
             },
           )
           assertInstanceOf(req, Request)
-          assertEquals(schema, githubRestSpec.statsContributors.schema)
+          assertEquals(schema, githubStatsContributorRestApiSpec.schema)
           assertEquals(opts, { retryStrategy: "github-backoff", maxRetries: 10, signal: undefined })
         },
         stub(

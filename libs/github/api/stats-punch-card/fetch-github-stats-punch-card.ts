@@ -1,8 +1,8 @@
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
-import { githubRestSpec } from "../github-rest-api-spec.ts"
 
+import { githubStatsPunchCardRestApiSpec } from "./github-stats-punch-card-rest-api-spec.ts"
 import { GithubStatsPunchCard } from "./github-stats-punch-card-schema.ts"
 
 export async function* fetchGithubStatsPunchCard(
@@ -14,11 +14,11 @@ export async function* fetchGithubStatsPunchCard(
   const req = createGithubRequest({
     method: "GET",
     token,
-    url: githubRestSpec.statsPunchCard.getUrl(owner, repo),
+    url: githubStatsPunchCardRestApiSpec.getUrl(owner, repo),
   })
 
   for await (
-    const { data } of _internals.fetchGithubApiExhaustively(req, githubRestSpec.statsPunchCard.schema, {
+    const { data } of _internals.fetchGithubApiExhaustively(req, githubStatsPunchCardRestApiSpec.schema, {
       retryStrategy: "github-backoff",
       maxRetries: 10,
       signal,
