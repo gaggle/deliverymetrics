@@ -1,3 +1,5 @@
+import { debug } from "std:log"
+
 import { calculateExponentialBackoff } from "./backoff.ts"
 
 type BackoffOpts =
@@ -42,10 +44,14 @@ export function githubBackoff(opts: BackoffOpts): ReturnType<typeof rateLimitAwa
   if (opts.response?.status === 202) {
     const delay = calculateExponentialBackoff(opts.attemptNumber, {
       factor: 1.5,
-      minTimeout: 500,
-      maxTimeout: 9000,
+      minTimeout: 1000,
+      maxTimeout: 20000,
       randomize: true,
     })
+
+    debug(
+      `githubBackoff got status code ${opts.response?.status}, attempt ${opts.attemptNumber}, delaying ${delay}`,
+    )
     return { delay, reason: "202 response" }
   }
   return rateLimitAwareBackoff(opts)
