@@ -51,7 +51,6 @@
     "std:path": "https://deno.land/std@0.200.0/path/mod.ts",
     "std:streams": "https://deno.land/std@0.200.0/streams/mod.ts",
     "std:yaml": "https://deno.land/std@0.200.0/yaml/mod.ts",
-    "tea-semver": "https://deno.land/x/libtea@v0.10.3/src/utils/semver.ts",
     "yargs": "./yargs.ts",
     "zod": "https://deno.land/x/zod@v3.17.10/mod.ts",
     "zod-to-json-schema": "npm:zod-to-json-schema"
