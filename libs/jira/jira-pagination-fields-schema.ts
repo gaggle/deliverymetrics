@@ -1,4 +1,4 @@
-import { z } from "https://deno.land/x/zod@v3.17.10/index.ts"
+import { z } from "zod"
 
 export const jiraPaginationFieldsSchema = z
   .object({
