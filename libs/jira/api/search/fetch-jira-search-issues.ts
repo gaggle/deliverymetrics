@@ -4,8 +4,8 @@ import { AbortError } from "../../../../utils/errors.ts"
 import { Epoch } from "../../../../utils/types.ts"
 
 import { fetchJiraApiExhaustively } from "../fetch-jira-api-exhaustively.ts"
-import { jiraRestSpec } from "../jira-rest-api-spec.ts"
 
+import { jiraSearchRestApiSpec } from "./jira-search-rest-api-spec.ts"
 import { JiraSearchIssue, JiraSearchNames } from "./jira-search-schema.ts"
 
 export async function* fetchJiraSearchIssues(
@@ -21,12 +21,12 @@ export async function* fetchJiraSearchIssues(
   const jql = `project in (${projectKeys.join(", ")}) ORDER BY updated desc`
   for await (
     const { data } of _internals.fetchJiraApiExhaustively(
-      (startAt) => jiraRestSpec.search.getReq(host, user, token, jql, { startAt }),
-      jiraRestSpec.search.schema,
+      (startAt) => jiraSearchRestApiSpec.getReq(host, user, token, jql, { startAt }),
+      jiraSearchRestApiSpec.schema,
       {
         paginationCallback: ({ data }) => {
           if (!data.startAt || !data.maxResults) return undefined
-          return jiraRestSpec.search.getReq(host, user, token, jql, { startAt: data.startAt + data.maxResults })
+          return jiraSearchRestApiSpec.getReq(host, user, token, jql, { startAt: data.startAt + data.maxResults })
         },
       },
     )
