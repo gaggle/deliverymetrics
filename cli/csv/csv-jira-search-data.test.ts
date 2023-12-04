@@ -68,6 +68,7 @@ Deno.test("jiraSearchDataIssuesAsCsv", async (t) => {
     assertArrayIncludes(Object.keys(result), fieldsThatAreTooLongToTest)
     assertEquals(omit(result, ...fieldsThatAreTooLongToTest), {
       "Changelog Histories": "altered field to toString",
+      "Component Names": "",
       "Transitions": "transitioned to In Progress; transitioned to Done",
       "Transitions Count": "1",
       "changelog.maxResults": "1",
@@ -218,6 +219,7 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
       "id",
       "self",
       "key",
+      "Component Names",
       "Changelog Histories",
       "Transitions",
       "Transitions Count",
@@ -234,6 +236,7 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
       "id",
       "self",
       "key",
+      "Component Names",
       "Changelog Histories",
       "Transitions",
       "Transitions Count",

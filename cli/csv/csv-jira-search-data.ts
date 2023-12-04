@@ -25,8 +25,10 @@ export async function* jiraSearchDataIssuesAsCsv(
       const remaining = description.slice(opts.maxDescriptionLength).length
       description = `${str}... ${remaining} more characters`
     }
+    const components: Array<{ name: string }> = issue.fields?.Components || []
     const issueRow = {
       ...stringifyObject(flattenObject(issue), { stringifyUndefined: true }),
+      "Component Names": components.map((component) => component.name).join("; "),
       "Changelog Histories": issue.changelog?.histories?.map((history) =>
         history.items?.map((item) => {
           switch (item.field) {
