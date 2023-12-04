@@ -433,6 +433,7 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
         fieldKeys,
         excludeHeaders: jira.ignoreHeaders,
         headersOrder: jira.headerOrder,
+        includeHeaders: jira.headerOrder,
       })
       await writeCSVToFile(
         join(opts.outputDir, "jira-search-data.csv"),
