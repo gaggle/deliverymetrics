@@ -42,6 +42,13 @@ Deno.test("reorganizeHeaders", async (t) => {
     )
   })
 
+  await t.step("doesn't exclude a header if its also part of headerOrder", () => {
+    assertEquals(
+      reorganizeHeaders(["f1", "f2", "x1", "x2"], { ignoreHeaders: ["f1", /x./], includeHeaders: ["f1", "x1"] }),
+      ["f1", "f2", "x1"],
+    )
+  })
+
   await t.step("sorts a complex set of string & regex sorting specifications", () => {
     const headers = [
       "Lead Time (in days)",

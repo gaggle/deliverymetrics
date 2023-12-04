@@ -2,7 +2,7 @@ import { CSVWriteCellOptions, CSVWriterOptions, writeCSVObjects } from "csv"
 import { ensureFile } from "std:fs"
 import { debug } from "std:log"
 
-import { arraySubtract, arraySubtractRegEx, mapIter, withFileOpen, withTempFile } from "./mod.ts"
+import { arraySubtract, mapIter, regexOrStringTestMany, withFileOpen, withTempFile } from "./mod.ts"
 
 export async function writeCSVToFile(
   fp: string,
@@ -65,8 +65,10 @@ export function toExcelDate(date: Date): string {
 }
 
 /**
- * Reorganizes an array of header strings by excluding specified headers and
+ * Reorganizes an array of header strings by including/excluding specified headers and
  * ordering remaining headers according to a given order.
+ *
+ * Note: If a header is both included and excluded then it will be included.
  *
  * @example
  * const headers = ['Header1', 'Header2', 'Header3', 'Header4'];
@@ -77,16 +79,19 @@ export function toExcelDate(date: Date): string {
  */
 export function reorganizeHeaders(
   headers: Array<string>,
-  { headerOrder = [], ignoreHeaders = [] }: {
+  { headerOrder = [], ignoreHeaders = [], includeHeaders = [] }: {
     headerOrder?: Array<string | RegExp>
     ignoreHeaders?: Array<string | RegExp>
+    includeHeaders?: Array<string | RegExp>
   },
 ): Array<string> {
   let filteredHeaders = [...headers]
 
-  if (ignoreHeaders.length > 0) {
-    filteredHeaders = arraySubtractRegEx(filteredHeaders, ignoreHeaders)
-  }
+  filteredHeaders = filteredHeaders.filter((el) => {
+    if (regexOrStringTestMany(el, includeHeaders)) return true
+    if (regexOrStringTestMany(el, ignoreHeaders)) return false
+    return true
+  })
 
   const lookupHeaderOrderIndex = (el: string) => {
     const strIdx = headerOrder.indexOf(el)
