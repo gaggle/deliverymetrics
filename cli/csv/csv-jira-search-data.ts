@@ -54,10 +54,12 @@ export function jiraSearchDataHeaders(opts: Partial<{
   fieldKeys: Array<string>
   excludeHeaders?: Array<string | RegExp>
   headersOrder?: Array<string | RegExp>
+  includeHeaders?: Array<string | RegExp>
 }> = {}): Array<string> {
   const fieldKeys = opts.fieldKeys || [] as Array<string>
   const excludeHeaders = opts.excludeHeaders || [] as Array<string | RegExp>
   const headerOrder = opts.headersOrder || [] as Array<string | RegExp>
+  const includeHeaders = opts.includeHeaders || [] as Array<string | RegExp>
 
   const allHeaders = arraySubtract(
     Array.from(new Set([...extraHeaders, ...fieldKeys.map((el) => `fields.${el}`)]).values()),
@@ -65,7 +67,8 @@ export function jiraSearchDataHeaders(opts: Partial<{
   )
 
   return reorganizeHeaders(allHeaders, {
-    ignoreHeaders: excludeHeaders,
     headerOrder: headerOrder,
+    ignoreHeaders: excludeHeaders,
+    includeHeaders: includeHeaders,
   })
 }
