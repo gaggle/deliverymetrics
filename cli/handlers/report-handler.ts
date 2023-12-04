@@ -431,8 +431,8 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
       })
       const filteredHeaders = jiraSearchDataHeaders({
         fieldKeys,
-        fieldsToExclude: jira.ignoreHeaders,
-        fieldsToInclude: jira.headerOrder,
+        excludeHeaders: jira.ignoreHeaders,
+        headersOrder: jira.headerOrder,
       })
       await writeCSVToFile(
         join(opts.outputDir, "jira-search-data.csv"),

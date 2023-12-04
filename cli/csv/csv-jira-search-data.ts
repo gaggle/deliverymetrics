@@ -1,9 +1,9 @@
 import { GetJiraSearchDataYielderReturnType } from "../../libs/metrics/mod.ts"
 
-import { arraySubtract, flattenObject, regexOrStringTestMany, stringifyObject } from "../../utils/mod.ts"
+import { arraySubtract, flattenObject, reorganizeHeaders, stringifyObject } from "../../utils/mod.ts"
 
 export const ignoreHeaders = ["changelog.histories", "transitions"]
-const extraHeaders = ["Changelog Histories", "Transitions", "Transitions Count"] as const
+const extraHeaders = ["expand", "id", "self", "key", "Changelog Histories", "Transitions", "Transitions Count"] as const
 
 export async function* jiraSearchDataIssuesAsCsv(
   iter: GetJiraSearchDataYielderReturnType["yieldJiraSearchIssues"],
@@ -41,21 +41,20 @@ export async function* jiraSearchDataIssuesAsCsv(
 
 export function jiraSearchDataHeaders(opts: Partial<{
   fieldKeys: Array<string>
-  fieldsToExclude: Array<string | RegExp>
-  fieldsToInclude: Array<string | RegExp>
+  excludeHeaders?: Array<string | RegExp>
+  headersOrder?: Array<string | RegExp>
 }> = {}): Array<string> {
-  const fieldKeys = opts.fieldKeys || []
-  const fieldsToInclude = opts.fieldsToInclude || []
-  const fieldsToExclude = opts.fieldsToExclude || []
+  const fieldKeys = opts.fieldKeys || [] as Array<string>
+  const excludeHeaders = opts.excludeHeaders || [] as Array<string | RegExp>
+  const headerOrder = opts.headersOrder || [] as Array<string | RegExp>
 
   const allHeaders = arraySubtract(
     Array.from(new Set([...extraHeaders, ...fieldKeys.map((el) => `fields.${el}`)]).values()),
     ignoreHeaders,
   )
 
-  return allHeaders.filter((el) => {
-    if (regexOrStringTestMany(el, fieldsToInclude)) return true
-    if (regexOrStringTestMany(el, fieldsToExclude)) return false
-    return true
+  return reorganizeHeaders(allHeaders, {
+    ignoreHeaders: excludeHeaders,
+    headerOrder: headerOrder,
   })
 }

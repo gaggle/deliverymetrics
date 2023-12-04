@@ -214,6 +214,10 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
     const result = jiraSearchDataHeaders()
 
     assertEquals(result, [
+      "expand",
+      "id",
+      "self",
+      "key",
       "Changelog Histories",
       "Transitions",
       "Transitions Count",
@@ -226,6 +230,10 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
     })
 
     assertEquals(result, [
+      "expand",
+      "id",
+      "self",
+      "key",
       "Changelog Histories",
       "Transitions",
       "Transitions Count",
@@ -287,30 +295,5 @@ Deno.test("jiraSearchDataHeaders", async (t) => {
     const headers = jiraSearchDataHeaders({ fieldKeys: ["customfield_123"] })
 
     assertArrayIncludes(headers, ["fields.customfield_123"])
-  })
-
-  await t.step("includes specified fields even when they get globally excluded", () => {
-    const headers = jiraSearchDataHeaders({
-      fieldKeys: ["customfield_123", "customfield_234"],
-      fieldsToInclude: ["fields.customfield_123"],
-      fieldsToExclude: [/.*/],
-    })
-
-    assertArrayIncludes(headers, ["fields.customfield_123"])
-    assertEquals(
-      headers.indexOf("fields.customfield_234"),
-      -1,
-      `Expected actual: ${JSON.stringify(headers, null, 2)} to not include: fields.customfield_234`,
-    )
-  })
-
-  await t.step("it doesn't do anything to include a field that doesn't exist", () => {
-    const headers = jiraSearchDataHeaders({ fieldsToInclude: ["foo"] })
-
-    assertEquals(
-      headers.indexOf("foo"),
-      -1,
-      `Expected actual: ${JSON.stringify(headers, null, 2)} to not include: foo`,
-    )
   })
 })
