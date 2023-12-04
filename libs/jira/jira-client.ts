@@ -3,8 +3,7 @@ import { EventEmitter } from "event"
 import { debug } from "std:log"
 import { join } from "std:path"
 
-import { AbortError } from "../../utils/mod.ts"
-import { hash, sortObject } from "../../utils/mod.ts"
+import { AbortError, hash, sortObject } from "../../utils/mod.ts"
 import { Epoch } from "../../utils/types.ts"
 
 import { AloeDatabase } from "../db/mod.ts"
