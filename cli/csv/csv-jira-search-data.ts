@@ -2,8 +2,17 @@ import { GetJiraSearchDataYielderReturnType } from "../../libs/metrics/mod.ts"
 
 import { arraySubtract, flattenObject, reorganizeHeaders, stringifyObject } from "../../utils/mod.ts"
 
-export const ignoreHeaders = ["changelog.histories", "transitions"]
-const extraHeaders = ["expand", "id", "self", "key", "Changelog Histories", "Transitions", "Transitions Count"] as const
+export const permanentlyIgnoredHeaders = ["changelog.histories", "transitions"]
+const extraHeaders = [
+  "expand",
+  "id",
+  "self",
+  "key",
+  "Component Names",
+  "Changelog Histories",
+  "Transitions",
+  "Transitions Count",
+] as const
 
 export async function* jiraSearchDataIssuesAsCsv(
   iter: GetJiraSearchDataYielderReturnType["yieldJiraSearchIssues"],
@@ -32,7 +41,7 @@ export async function* jiraSearchDataIssuesAsCsv(
       "Transitions Count": issue.changelog?.histories?.length.toString() || "",
       "fields.description": description || "",
     }
-    for (const el of ignoreHeaders) {
+    for (const el of permanentlyIgnoredHeaders) {
       delete (issueRow as Record<string, string>)[el]
     }
     yield issueRow
@@ -50,7 +59,7 @@ export function jiraSearchDataHeaders(opts: Partial<{
 
   const allHeaders = arraySubtract(
     Array.from(new Set([...extraHeaders, ...fieldKeys.map((el) => `fields.${el}`)]).values()),
-    ignoreHeaders,
+    permanentlyIgnoredHeaders,
   )
 
   return reorganizeHeaders(allHeaders, {
