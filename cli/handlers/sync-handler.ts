@@ -86,6 +86,13 @@ export async function fullJiraSync(
     }
   })
 
+  if (syncNewerThan) {
+    const deleted = await jira.pruneSearchIssues(syncNewerThan)
+    if (deleted.prunedCount > 0) {
+      write(`Pruned ${deleted.prunedCount} search issues`, { _stdOutLike })
+    }
+  }
+
   write(
     "Legend: s=search",
     { _stdOutLike },

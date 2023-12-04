@@ -132,6 +132,14 @@ export class AloeDBSyncingJiraClient extends AloeDBReadonlyJiraClient implements
     return Promise.resolve({ syncedAt: result.syncInfo.createdAt })
   }
 
+  async pruneSearchIssues(newerThan: Epoch): Promise<{ prunedCount: number }> {
+    const deleted = await this.db.searchIssues.deleteMany((doc) =>
+      new Date(doc.issue.fields?.updated).getTime() < newerThan
+    )
+    await this.db.searchIssues.save()
+    return { prunedCount: deleted.length }
+  }
+
   private async internalFetch<T>(
     opts: {
       iteratorFn: (context: Context) => AsyncGenerator<T>

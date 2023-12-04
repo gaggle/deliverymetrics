@@ -34,4 +34,6 @@ export interface JiraClient extends ReadonlyJiraClient {
       signal?: AbortSignal
     }>,
   ): Promise<{ syncedAt: Epoch }>
+
+  pruneSearchIssues(newerThan: Epoch): Promise<{ prunedCount: number }>
 }
