@@ -20,7 +20,7 @@ export async function* fetchGithubStatsCodeFrequency(
   for await (
     const { data } of _internals.fetchGithubApiExhaustively(req, githubStatsCodeFrequencyRestApiSpec.schema, {
       retryStrategy: "github-backoff",
-      maxRetries: 10,
+      maxRetries: 20,
       signal,
     })
   ) {

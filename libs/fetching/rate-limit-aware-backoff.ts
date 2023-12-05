@@ -44,8 +44,8 @@ export function githubBackoff(opts: BackoffOpts): ReturnType<typeof rateLimitAwa
   if (opts.response?.status === 202) {
     const delay = calculateExponentialBackoff(opts.attemptNumber, {
       factor: 1.5,
-      minTimeout: 1000,
-      maxTimeout: 20000,
+      minTimeout: 1_000,
+      maxTimeout: 240_000,
       randomize: true,
     })
 

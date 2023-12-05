@@ -20,7 +20,7 @@ export async function* fetchGithubStatsParticipation(
   for await (
     const { data } of _internals.fetchGithubApiExhaustively(req, githubStatsParticipationRestApiSpec.schema, {
       retryStrategy: "github-backoff",
-      maxRetries: 10,
+      maxRetries: 20,
       signal,
     })
   ) {
