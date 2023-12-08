@@ -37,7 +37,7 @@ Deno.test("fetchJiraSearchIssues", async (t) => {
             assertEquals(request.method, "POST")
             assertEquals(await request.json(), {
               expand: ["body", "changelog", "history", "names", "transitions"],
-              jql: "project in (PRD) ORDER BY updated desc",
+              jql: "project in (PRD) ORDER BY updated DESC",
             })
             assertEquals(
               Object.fromEntries(request.headers),

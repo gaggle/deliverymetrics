@@ -18,7 +18,7 @@ export async function* fetchJiraSearchIssues(
     signal?: AbortSignal
   },
 ): AsyncGenerator<{ issue: JiraSearchIssue; names: JiraSearchNames }> {
-  const jql = `project in (${projectKeys.join(", ")}) ORDER BY updated desc`
+  const jql = `project in (${projectKeys.join(", ")}) ORDER BY updated DESC`
   for await (
     const { data } of _internals.fetchJiraApiExhaustively(
       (startAt) => jiraSearchRestApiSpec.getReq(host, user, token, jql, { startAt }),
