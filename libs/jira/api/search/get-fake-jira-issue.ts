@@ -2,7 +2,14 @@ import { deepMerge } from "std:deep-merge"
 
 import { DeepPartial } from "../../../../utils/types.ts"
 
-import { DBJiraSearchIssue, DBJiraSearchNames, JiraSearchIssue, JiraSearchNames } from "./jira-search-schema.ts"
+import {
+  DBJiraSearchIssue,
+  DBJiraSearchNames,
+  JiraSearchIssue,
+  JiraSearchIssueChangelogHistory,
+  JiraSearchIssueChangelogHistoryItem,
+  JiraSearchNames,
+} from "./jira-search-schema.ts"
 
 export function getFakeJiraIssue(
   partial: DeepPartial<JiraSearchIssue> = {},
@@ -68,30 +75,11 @@ export function getFakeJiraIssue(
       "maxResults": partial.changelog?.histories?.length || 16,
       "total": partial.changelog?.histories?.length || 16,
       "histories": [
-        {
+        getFakeJiraIssueChangelogHistory({
           "id": "28256596",
-          "author": {
-            "self": "https://atlassian.net/rest/api/2/user?accountId=123a1aabb123ab0123a1a111",
-            "accountId": "123a1aabb123ab0123a1a111",
-            "emailAddress": "example@atlassian.com",
-            "avatarUrls": {
-              "48x48":
-                "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/48",
-              "24x24":
-                "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/24",
-              "16x16":
-                "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/16",
-              "32x32":
-                "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/32",
-            },
-            "displayName": "Mr. Example",
-            "active": true,
-            "timeZone": "Europe/London",
-            "accountType": "atlassian",
-          },
           "created": "2023-07-10T16:00:34.199+0100",
           "items": [
-            {
+            getFakeJiraIssueChangelogHistoryItem({
               "field": "resolution",
               "fieldtype": "jira",
               "fieldId": "resolution",
@@ -99,42 +87,23 @@ export function getFakeJiraIssue(
               "fromString": null,
               "to": "10000",
               "toString": "Done",
-            },
-            {
+            }),
+            getFakeJiraIssueChangelogHistoryItem({
               "field": "status",
               "fieldtype": "jira",
               "fieldId": "status",
               "from": "25813",
               "fromString": "Review in Prod",
-              "to": "24512",
+              "to": "3",
               "toString": "Finished",
-            },
+            }),
           ],
-        },
-        {
+        }),
+        getFakeJiraIssueChangelogHistory({
           "id": "28234111",
-          "author": {
-            "self": "https://atlassian.net/rest/api/2/user?accountId=123a1aabb123ab0123a1a111",
-            "accountId": "123a1aabb123ab0123a1a111",
-            "emailAddress": "example@atlassian.com",
-            "avatarUrls": {
-              "48x48":
-                "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/48",
-              "24x24":
-                "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/24",
-              "16x16":
-                "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/16",
-              "32x32":
-                "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/32",
-            },
-            "displayName": "Mr. Example",
-            "active": true,
-            "timeZone": "Europe/London",
-            "accountType": "atlassian",
-          },
           "created": "2023-07-10T09:10:09.462+0100",
           "items": [
-            {
+            getFakeJiraIssueChangelogHistoryItem({
               "field": "description",
               "fieldtype": "jira",
               "fieldId": "description",
@@ -142,33 +111,14 @@ export function getFakeJiraIssue(
               "fromString": "h1. Title\n\nThis is a description",
               "to": null,
               "toString": "h3. Title\n\nThis is a description",
-            },
+            }),
           ],
-        },
-        {
+        }),
+        getFakeJiraIssueChangelogHistory({
           "id": "28234095",
-          "author": {
-            "self": "https://atlassian.net/rest/api/2/user?accountId=123a1aabb123ab0123a1a111",
-            "accountId": "123a1aabb123ab0123a1a111",
-            "emailAddress": "example@atlassian.com",
-            "avatarUrls": {
-              "48x48":
-                "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/48",
-              "24x24":
-                "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/24",
-              "16x16":
-                "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/16",
-              "32x32":
-                "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/32",
-            },
-            "displayName": "Mr. Example",
-            "active": true,
-            "timeZone": "Europe/London",
-            "accountType": "atlassian",
-          },
           "created": "2023-07-10T09:09:55.816+0100",
           "items": [
-            {
+            getFakeJiraIssueChangelogHistoryItem({
               "field": "summary",
               "fieldtype": "jira",
               "fieldId": "summary",
@@ -176,9 +126,9 @@ export function getFakeJiraIssue(
               "fromString": "Emissions Workbench look and feel",
               "to": null,
               "toString": "Create Emissions Workbench look and feel",
-            },
+            }),
           ],
-        },
+        }),
       ],
     },
     "fields": {
@@ -379,6 +329,71 @@ export function getFakeJiraIssue(
     delete partial.fields
   }
   return deepMerge(base, partial as JiraSearchIssue)
+}
+
+export function getFakeJiraIssueChangelogHistory(
+  partial: DeepPartial<JiraSearchIssueChangelogHistory> = {},
+): JiraSearchIssueChangelogHistory {
+  const base: JiraSearchIssueChangelogHistory = {
+    "id": "28256596",
+    "author": {
+      "self": "https://atlassian.net/rest/api/2/user?accountId=123a1aabb123ab0123a1a111",
+      "accountId": "123a1aabb123ab0123a1a111",
+      "emailAddress": "example@atlassian.com",
+      "avatarUrls": {
+        "48x48":
+          "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/48",
+        "24x24":
+          "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/24",
+        "16x16":
+          "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/16",
+        "32x32":
+          "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/123a1aabb123ab0123a1a111/75fa9dbe-709b-4b6e-9cea-101f92312337/32",
+      },
+      "displayName": "Mr. Example",
+      "active": true,
+      "timeZone": "Europe/London",
+      "accountType": "atlassian",
+    },
+    "created": "2023-07-10T16:00:34.199+0100",
+    "items": partial.items || [
+      getFakeJiraIssueChangelogHistoryItem({
+        "field": "resolution",
+        "fieldtype": "jira",
+        "fieldId": "resolution",
+        "from": null,
+        "fromString": null,
+        "to": "10000",
+        "toString": "Done",
+      }),
+      getFakeJiraIssueChangelogHistoryItem({
+        "field": "status",
+        "fieldtype": "jira",
+        "fieldId": "status",
+        "from": "25813",
+        "fromString": "Review in Prod",
+        "to": "24512",
+        "toString": "Finished",
+      }),
+    ],
+  }
+  delete partial.items
+  return deepMerge(base, partial as JiraSearchIssueChangelogHistory)
+}
+
+export function getFakeJiraIssueChangelogHistoryItem(
+  partial: Partial<JiraSearchIssueChangelogHistoryItem> = {},
+): JiraSearchIssueChangelogHistoryItem {
+  const base: JiraSearchIssueChangelogHistoryItem = {
+    "field": "field",
+    "fieldtype": "jira",
+    "fieldId": "field",
+    "from": null,
+    "fromString": null,
+    "to": null,
+    "toString": null,
+  }
+  return { ...base, ...partial as JiraSearchIssueChangelogHistoryItem }
 }
 
 export function getFakeDbJiraSearchIssue(
