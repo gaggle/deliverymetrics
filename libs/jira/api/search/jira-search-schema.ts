@@ -2,7 +2,7 @@ import { z } from "zod"
 
 import { jiraPaginationFieldsSchema } from "../../jira-pagination-fields-schema.ts"
 
-const jiraSearchIssueChangelogHistoryItemSchema = z.object({
+export const jiraSearchIssueChangelogHistoryItemSchema = z.object({
   field: z.string().optional(),
   fieldtype: z.string().optional(),
   fieldId: z.string().optional(),
@@ -16,7 +16,9 @@ const jiraSearchIssueChangelogHistoryItemSchema = z.object({
   // It causes the type to be a union of the Zod type + the built-in method's type (string | ()=>string).
 })
 
-const jiraSearchIssueChangelogHistorySchema = z
+export type JiraSearchIssueChangelogHistoryItem = z.infer<typeof jiraSearchIssueChangelogHistoryItemSchema>
+
+export const jiraSearchIssueChangelogHistorySchema = z
   .object({
     id: z.string().optional(),
     author: z
@@ -57,7 +59,9 @@ const jiraSearchIssueChangelogHistorySchema = z
       .optional(),
   })
 
-const jiraSearchIssueTransitionSchema = z
+export type JiraSearchIssueChangelogHistory = z.infer<typeof jiraSearchIssueChangelogHistorySchema>
+
+export const jiraSearchIssueTransitionSchema = z
   .object({
     id: z.string().optional(),
     name: z.string().optional(),
@@ -95,6 +99,8 @@ const jiraSearchIssueTransitionSchema = z
       .optional(),
     expand: z.string().optional(),
   })
+
+export type JiraSearchIssueTransition = z.infer<typeof jiraSearchIssueTransitionSchema>
 
 export const jiraSearchIssueSchema = z
   .object({
