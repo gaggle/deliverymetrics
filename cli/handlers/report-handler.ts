@@ -407,6 +407,7 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
               "Key": el["key"],
               "Summary": el["fields.Summary"],
               "Status": el["fields.Status.name"],
+              "Components": el["Component Names"],
             }
           }, jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues)),
           {
@@ -417,6 +418,7 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
               "Key",
               "Summary",
               "Status",
+              "Components",
             ],
           },
         )
