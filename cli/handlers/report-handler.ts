@@ -4,7 +4,6 @@ import { join } from "std:path"
 
 import { GithubActionWorkflow } from "../../libs/github/api/action-workflows/mod.ts"
 import { BoundGithubPullCommit } from "../../libs/github/api/pull-commits/mod.ts"
-import { ExtractedStateTransition, extractStateTransitions, JiraSearchIssue } from "../../libs/jira/api/search/mod.ts"
 import { sortPullCommitsByKey } from "../../libs/github/github-utils/mod.ts"
 import { getGithubClient } from "../../libs/github/mod.ts"
 import { getJiraClient } from "../../libs/jira/mod.ts"
@@ -13,6 +12,7 @@ import {
   yieldActionData,
   yieldCommitData,
   yieldContinuousIntegrationHistogram,
+  yieldJiraTransitionData,
   yieldPullRequestData,
   yieldPullRequestHistogram,
   yieldReleaseData,
@@ -27,7 +27,6 @@ import type { ActionRunData } from "../../libs/metrics/types.ts"
 import {
   AbortError,
   arrayToAsyncGenerator,
-  assertUnreachable,
   asyncToArray,
   inspectIter,
   mapIter,
@@ -64,6 +63,8 @@ import {
   githubStatsPunchCardHeaders,
   jiraSearchDataHeaders,
   jiraSearchDataIssuesAsCsv,
+  jiraTransitionDataAsCsv,
+  jiraTransitionDataHeaders,
   pullRequestHistogramAsCsv,
   pullRequestHistogramHeaders,
 } from "../csv/mod.ts"
@@ -437,40 +438,8 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
 
         await writeCSVToFile(
           join(opts.outputDir, "jira-transitions-data.csv"),
-          mapIter(
-            (el) => {
-              let type: string
-              switch (el.type) {
-                case "status-change":
-                  type = "Transition"
-                  break
-                case "resolved":
-                  type = "Resolved"
-                  break
-                default:
-                  assertUnreachable(el.type)
-              }
-              return ({
-                By: `${el.displayName} (${el.emailAddress})`,
-                Created: new Date(el.created).toISOString(),
-                From: el.fromString || "",
-                Key: el.key || "",
-                To: el.toString || "",
-                Type: type,
-              })
-            },
-            yieldReversedTransitionsWithKeys(yieldJiraSearchIssues),
-          ),
-          {
-            header: [
-              "Key",
-              "Type",
-              "From",
-              "To",
-              "Created",
-              "By",
-            ],
-          },
+          jiraTransitionDataAsCsv(yieldJiraTransitionData(yieldJiraSearchIssues)),
+          { header: jiraTransitionDataHeaders.map((el) => el) },
         )
       })
     }
@@ -507,14 +476,4 @@ export const _internals = {
 
 export function YYYYMMDD(date: string): string {
   return new Date(date).toISOString().split("T")[0]
-}
-
-async function* yieldReversedTransitionsWithKeys(
-  yieldJiraSearchIssues: AsyncGenerator<JiraSearchIssue>,
-): AsyncGenerator<ExtractedStateTransition & { key: JiraSearchIssue["key"] }> {
-  for await (const jiraSearchIssue of yieldJiraSearchIssues) {
-    for (const stateTransition of (await asyncToArray(extractStateTransitions(jiraSearchIssue))).reverse()) {
-      yield { ...stateTransition, key: jiraSearchIssue.key }
-    }
-  }
 }
