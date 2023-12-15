@@ -1,13 +1,14 @@
 import { assertEquals } from "dev:asserts"
 
-import { asyncSingle, asyncToArray } from "../../../../utils/mod.ts"
+import { asyncSingle, asyncToArray } from "../../utils/mod.ts"
 
-import { extractStateTransitions } from "./extract-state-transitions.ts"
 import {
   getFakeJiraIssue,
   getFakeJiraIssueChangelogHistory,
   getFakeJiraIssueChangelogHistoryItem,
-} from "./get-fake-jira-issue.ts"
+} from "../jira/api/search/get-fake-jira-issue.ts"
+
+import { extractStateTransitions } from "./jira-transition-data.ts"
 
 Deno.test("extractStateTransitions", async (t) => {
   await t.step("extracts status transition", async () => {
@@ -66,7 +67,7 @@ Deno.test("extractStateTransitions", async (t) => {
     })
   })
 
-  await t.step("identifies only state transitions amongst other histories", async () => {
+  await t.step("identifies state transitions amongst other histories", async () => {
     const jiraIssue = getFakeJiraIssue({
       changelog: {
         histories: [
@@ -100,6 +101,29 @@ Deno.test("extractStateTransitions", async (t) => {
 
     const result = await asyncSingle(extractStateTransitions(jiraIssue))
     assertEquals(result.emailAddress, "foo")
+  })
+
+  await t.step("identifies transitions of Key", async () => {
+    const jiraIssue = getFakeJiraIssue({
+      changelog: {
+        histories: [
+          getFakeJiraIssueChangelogHistory({
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                "field": "Key",
+                "fieldtype": "jira",
+                "from": null,
+                "fromString": "NRG-119",
+                "to": null,
+                "toString": "NRGT-400",
+              }),
+            ],
+          }),
+        ],
+      },
+    })
+
+    await asyncSingle(extractStateTransitions(jiraIssue))
   })
 
   await t.step("extracts resolution transition", async () => {
@@ -174,5 +198,44 @@ Deno.test("extractStateTransitions", async (t) => {
         toString: "Finished",
       },
     ])
+  })
+
+  await t.step("ignores no-op transitions (e.g. from and to the same status)", async () => {
+    const jiraIssue = getFakeJiraIssue({
+      changelog: {
+        histories: [
+          getFakeJiraIssueChangelogHistory({
+            created: "1980-01-01T00:00:00.000+0000",
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "status",
+                fieldId: "status",
+                from: "11202",
+                fromString: "Backlog",
+                to: "25814",
+                toString: "Refining",
+              }),
+            ],
+          }),
+          getFakeJiraIssueChangelogHistory({
+            created: "2000-01-01T00:00:00.000+0000",
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "status",
+                fieldId: "status",
+                from: "25814",
+                fromString: "Refining",
+                to: "25814",
+                toString: "Refining",
+              }),
+            ],
+          }),
+        ],
+      },
+    })
+
+    const result = await asyncSingle(extractStateTransitions(jiraIssue))
+
+    assertEquals(result.created, new Date("1980-01-01T00:00:00.000+0000").getTime())
   })
 })
