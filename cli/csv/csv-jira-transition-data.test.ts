@@ -36,6 +36,7 @@ Deno.test("jiraTransitionDataAsCsv", async (t) => {
     assertEquals(result, {
       By: "Mr. Example (example@atlassian.com)",
       Created: "1970-01-01T00:00:00.000Z",
+      "Duration (in days)": "",
       From: "Review",
       Key: "PRD-1",
       Status: "",
