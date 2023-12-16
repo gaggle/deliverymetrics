@@ -2,6 +2,7 @@ import { assertEquals, AssertionError, assertRejects, assertThrows } from "dev:a
 import { assertSpyCallArgs, assertSpyCalls, spy, stub } from "dev:mock"
 
 import { CannedResponses, extractCallArgsFromStub, waitFor, withStubs } from "./dev-utils.ts"
+import { toHours, toMins } from "./date-utils.ts";
 
 Deno.test("CannedResponses", async (t) => {
   await t.step("given a list of responses", async (t) => {
@@ -135,5 +136,17 @@ Deno.test("extractCallArgsFromStub", async (t) => {
       AssertionError,
       "stub called with 1 args but was expected to be called with 2 args",
     )
+  })
+})
+
+Deno.test("toHours", async (t) => {
+  await t.step("converts", ()=> {
+    assertEquals(toHours(3600000), 1)
+  })
+})
+
+Deno.test("toMins", async (t) => {
+  await t.step("converts", ()=> {
+    assertEquals(toMins(60_000), 1)
   })
 })

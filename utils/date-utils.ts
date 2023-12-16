@@ -53,6 +53,11 @@ export function toDays(duration: number): number {
   //                           hour min  sec  ms;
 }
 
+export function toHours(duration: number): number {
+  return Math.ceil(duration / (60 * 60 * 1000))
+  //                           min  sec  ms;
+}
+
 export function toMins(duration: number): number {
   return duration / 1000 / 60
 }
