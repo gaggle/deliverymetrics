@@ -1,6 +1,6 @@
 import { assertEquals } from "dev:asserts"
 
-import { asyncSingle, asyncToArray } from "../../utils/mod.ts"
+import { arrayToAsyncGenerator, asyncSingle, asyncToArray } from "../../utils/mod.ts"
 
 import {
   getFakeJiraIssue,
@@ -8,7 +8,53 @@ import {
   getFakeJiraIssueChangelogHistoryItem,
 } from "../jira/api/search/get-fake-jira-issue.ts"
 
-import { extractStateTransitions } from "./jira-transition-data.ts"
+import { extractStateTransitions, yieldJiraTransitionData } from "./jira-transition-data.ts"
+
+Deno.test("yieldJiraTransitionData", async (t) => {
+  await t.step("yields correct JiraTransitionData for each issue", async () => {
+    const fakeJiraIssue = getFakeJiraIssue({
+      changelog: {
+        histories: [
+          getFakeJiraIssueChangelogHistory({
+            id: "33850575",
+            created: "1980-01-02T00:00:00.000+0000",
+            author: {
+              accountId: "123a1aabb123ab0123a1a111",
+              emailAddress: "example@atlassian.com",
+              displayName: "Mr. Example",
+              timeZone: "Europe/London",
+            },
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "status",
+                fieldId: "status",
+                from: "11204",
+                fromString: "Review",
+                to: "27290",
+                toString: "Finished",
+              }),
+            ],
+          }),
+        ],
+      },
+    })
+    const fakeYieldJiraSearchIssues = arrayToAsyncGenerator([fakeJiraIssue])
+
+    const { issue, ...rest } = await asyncSingle(yieldJiraTransitionData(fakeYieldJiraSearchIssues))
+
+    assertEquals(issue, fakeJiraIssue)
+    assertEquals(rest, {
+      created: 315619200000,
+      displayName: "Mr. Example",
+      emailAddress: "example@atlassian.com",
+      from: "11204",
+      fromString: "Review",
+      to: "27290",
+      toString: "Finished",
+      type: "status-change",
+    })
+  })
+})
 
 Deno.test("extractStateTransitions", async (t) => {
   await t.step("extracts status transition", async () => {
