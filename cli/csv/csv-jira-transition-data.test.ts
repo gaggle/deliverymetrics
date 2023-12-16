@@ -39,7 +39,6 @@ Deno.test("jiraTransitionDataAsCsv", async (t) => {
       "Duration (in days)": "",
       From: "Review",
       Key: "PRD-1",
-      Status: "",
       Summary: "",
       To: "Finished",
       Type: "status-change",
