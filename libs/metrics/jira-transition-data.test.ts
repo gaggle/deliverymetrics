@@ -260,6 +260,94 @@ Deno.test("extractStateTransitions", async (t) => {
     ])
   })
 
+  await t.step(`applies duration per "field-chain"`, async () => {
+    const author = {
+      emailAddress: "example@atlassian.com",
+      displayName: "Mr. Example",
+    }
+    const jiraIssue = getFakeJiraIssue({
+      changelog: {
+        histories: [
+          getFakeJiraIssueChangelogHistory({
+            created: "1980-01-30T04:00:00.000+0000",
+            author,
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "status",
+                fieldId: "status",
+                from: "27290",
+                fromString: "Finished",
+                to: "90210",
+                toString: "Finished",
+              }),
+            ],
+          }),
+          getFakeJiraIssueChangelogHistory({
+            created: "1980-01-20T06:00:00.000+0000",
+            author,
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "resolution",
+                fieldId: "resolution",
+                to: "10000",
+                toString: "Done",
+              }),
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "status",
+                fieldId: "status",
+                from: "11204",
+                fromString: "Review",
+                to: "27290",
+                toString: "Finished",
+              }),
+            ],
+          }),
+          getFakeJiraIssueChangelogHistory({
+            created: "1980-01-10T08:00:00.000+0000",
+            author,
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "status",
+                fieldId: "status",
+                from: "3",
+                fromString: "In Progress",
+                to: "11204",
+                toString: "Review",
+              }),
+            ],
+          }),
+        ],
+      },
+    })
+
+    const result = await asyncToArray(extractStateTransitions(jiraIssue))
+
+    assertEquals(result.map((el) => pick(el, "created", "duration", "toString", "type")), [
+      {
+        created: new Date("1980-01-10T08:00:00.000+0000").getTime(),
+        toString: "Review",
+        type: "status-change",
+      },
+      {
+        created: new Date("1980-01-20T06:00:00.000+0000").getTime(),
+        toString: "Done",
+        type: "resolved",
+      },
+      {
+        created: new Date("1980-01-20T06:00:00.000+0000").getTime(),
+        duration: fromHours(238),
+        toString: "Finished",
+        type: "status-change",
+      },
+      {
+        created: new Date("1980-01-30T04:00:00.000+0000").getTime(),
+        duration: fromHours(238),
+        toString: "Finished",
+        type: "status-change",
+      },
+    ])
+  })
+
   await t.step("identifies state transitions amongst other histories", async () => {
     const jiraIssue = getFakeJiraIssue({
       changelog: {

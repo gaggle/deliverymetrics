@@ -34,19 +34,19 @@ export type ExtractedStateTransition = {
 export async function* extractStateTransitions(
   jiraSearchIssue: JiraSearchIssue,
 ): AsyncGenerator<ExtractedStateTransition> {
-  const histories = jiraSearchIssue.changelog?.histories || []
-  const historiesFromOldestToNewest = histories.toReversed()
+  const historiesFromOldestToNewest = jiraSearchIssue.changelog?.histories?.toReversed() || []
 
-  let prevCreated: number | null = null
+  const prevByField: Record<string, number> = {}
 
   for (const history of historiesFromOldestToNewest) {
     for (const historyItem of history.items || []) {
       const transitionType = getTransitionType(historyItem)
-
       if (!transitionType) continue
+      const field = historyItem.field
 
       const created = new Date(history.created!).getTime()
-      const duration = prevCreated == null ? undefined : created - prevCreated
+      const prevCreated = field ? prevByField[field] : undefined
+      const duration = prevCreated === undefined ? undefined : created - prevCreated
 
       yield {
         created: created,
@@ -59,7 +59,8 @@ export async function* extractStateTransitions(
         type: transitionType,
         ...(duration !== undefined && { duration }),
       }
-      prevCreated = created
+
+      if (field) prevByField[field] = created
     }
   }
 }
