@@ -1,4 +1,3 @@
-import { asyncToArray } from "../../utils/mod.ts"
 import { Epoch } from "../../utils/types.ts"
 
 import { JiraSearchIssue, JiraSearchIssueChangelogHistoryItem } from "../jira/api/search/mod.ts"
@@ -9,7 +8,7 @@ export async function* yieldJiraTransitionData(
   yieldJiraSearchIssues: AsyncGenerator<JiraSearchIssue>,
 ): AsyncGenerator<JiraTransitionData> {
   for await (const jiraSearchIssue of yieldJiraSearchIssues) {
-    for (const stateTransition of (await asyncToArray(extractStateTransitions(jiraSearchIssue))).reverse()) {
+    for await (const stateTransition of extractStateTransitions(jiraSearchIssue)) {
       yield { ...stateTransition, issue: jiraSearchIssue }
     }
   }
@@ -18,6 +17,7 @@ export async function* yieldJiraTransitionData(
 export type ExtractedStateTransition = {
   type: string
   created: Epoch
+  duration?: number
   displayName?: string
   emailAddress?: string
   from: string | null
@@ -34,22 +34,32 @@ export type ExtractedStateTransition = {
 export async function* extractStateTransitions(
   jiraSearchIssue: JiraSearchIssue,
 ): AsyncGenerator<ExtractedStateTransition> {
-  for (const history of jiraSearchIssue.changelog?.histories || []) {
+  const histories = jiraSearchIssue.changelog?.histories || []
+  const historiesFromOldestToNewest = histories.toReversed()
+
+  let prevCreated: number | null = null
+
+  for (const history of historiesFromOldestToNewest) {
     for (const historyItem of history.items || []) {
       const transitionType = getTransitionType(historyItem)
 
       if (!transitionType) continue
 
+      const created = new Date(history.created!).getTime()
+      const duration = prevCreated == null ? undefined : created - prevCreated
+
       yield {
-        type: transitionType,
-        created: new Date(history.created!).getTime(),
+        created: created,
         displayName: history.author!.displayName,
         emailAddress: history.author!.emailAddress,
         from: historyItem.from || null,
         fromString: historyItem.fromString || null,
         to: historyItem.to || null,
         toString: historyItem.toString || null,
+        type: transitionType,
+        ...(duration !== undefined && { duration }),
       }
+      prevCreated = created
     }
   }
 }

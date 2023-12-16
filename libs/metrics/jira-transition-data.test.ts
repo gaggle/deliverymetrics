@@ -1,6 +1,6 @@
 import { assertEquals } from "dev:asserts"
 
-import { arrayToAsyncGenerator, asyncSingle, asyncToArray } from "../../utils/mod.ts"
+import { arrayToAsyncGenerator, asyncSingle, asyncToArray, fromHours, pick } from "../../utils/mod.ts"
 
 import {
   getFakeJiraIssue,
@@ -113,6 +113,153 @@ Deno.test("extractStateTransitions", async (t) => {
     })
   })
 
+  await t.step("yields transitions from oldest to newest", async () => {
+    const jiraIssue = getFakeJiraIssue({
+      changelog: {
+        histories: [
+          getFakeJiraIssueChangelogHistory({
+            created: "1980-01-20T06:00:00.000+0000",
+            author: {
+              emailAddress: "example@atlassian.com",
+              displayName: "Mr. Example",
+            },
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "status",
+                fieldId: "status",
+                from: "11204",
+                fromString: "Review",
+                to: "27290",
+                toString: "Finished",
+              }),
+            ],
+          }),
+          getFakeJiraIssueChangelogHistory({
+            created: "1980-01-10T08:00:00.000+0000",
+            author: {
+              emailAddress: "example@atlassian.com",
+              displayName: "Mr. Example",
+            },
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "status",
+                fieldId: "status",
+                from: "3",
+                fromString: "In Progress",
+                to: "11204",
+                toString: "Review",
+              }),
+            ],
+          }),
+          getFakeJiraIssueChangelogHistory({
+            created: "1980-01-02T10:00:00.000+0000",
+            author: {
+              emailAddress: "example@atlassian.com",
+              displayName: "Mr. Example",
+            },
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "status",
+                fieldId: "status",
+                from: "10600",
+                fromString: "Backlog",
+                to: "3",
+                toString: "In Progress",
+              }),
+            ],
+          }),
+        ],
+      },
+    })
+
+    const result = await asyncToArray(extractStateTransitions(jiraIssue))
+
+    assertEquals(result.map((el) => pick(el, "created")), [
+      { created: new Date("1980-01-02T10:00:00.000+0000").getTime() },
+      { created: new Date("1980-01-10T08:00:00.000+0000").getTime() },
+      { created: new Date("1980-01-20T06:00:00.000+0000").getTime() },
+    ])
+  })
+
+  await t.step("calculates duration between transitions", async () => {
+    const jiraIssue = getFakeJiraIssue({
+      changelog: {
+        histories: [
+          getFakeJiraIssueChangelogHistory({
+            created: "1980-01-20T06:00:00.000+0000",
+            author: {
+              emailAddress: "example@atlassian.com",
+              displayName: "Mr. Example",
+            },
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "status",
+                fieldId: "status",
+                from: "11204",
+                fromString: "Review",
+                to: "27290",
+                toString: "Finished",
+              }),
+            ],
+          }),
+          getFakeJiraIssueChangelogHistory({
+            created: "1980-01-10T08:00:00.000+0000",
+            author: {
+              emailAddress: "example@atlassian.com",
+              displayName: "Mr. Example",
+            },
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "status",
+                fieldId: "status",
+                from: "3",
+                fromString: "In Progress",
+                to: "11204",
+                toString: "Review",
+              }),
+            ],
+          }),
+          getFakeJiraIssueChangelogHistory({
+            created: "1980-01-02T10:00:00.000+0000",
+            author: {
+              emailAddress: "example@atlassian.com",
+              displayName: "Mr. Example",
+            },
+            items: [
+              getFakeJiraIssueChangelogHistoryItem({
+                field: "status",
+                fieldId: "status",
+                from: "10600",
+                fromString: "Backlog",
+                to: "3",
+                toString: "In Progress",
+              }),
+            ],
+          }),
+        ],
+      },
+    })
+
+    const result = await asyncToArray(extractStateTransitions(jiraIssue))
+
+    assertEquals(result.map((el) => pick(el, "created", "duration", "toString")), [
+      {
+        created: new Date("1980-01-02T10:00:00.000+0000").getTime(),
+        toString: "In Progress",
+      },
+      {
+        created: new Date("1980-01-10T08:00:00.000+0000").getTime(),
+        duration: fromHours(190),
+        toString: "Review",
+      },
+      {
+        created: new Date("1980-01-20T06:00:00.000+0000").getTime(),
+        duration: fromHours(238),
+        toString: "Finished",
+      },
+    ])
+  })
+
   await t.step("identifies state transitions amongst other histories", async () => {
     const jiraIssue = getFakeJiraIssue({
       changelog: {
@@ -222,28 +369,7 @@ Deno.test("extractStateTransitions", async (t) => {
 
     const result = await asyncToArray(extractStateTransitions(jiraIssue))
 
-    assertEquals(result, [
-      {
-        type: "resolved",
-        created: new Date("1980-01-02T00:00:00.000+0000").getTime(),
-        displayName: "Mr. Example",
-        emailAddress: "example@atlassian.com",
-        from: null,
-        fromString: null,
-        to: "10000",
-        toString: "Done",
-      },
-      {
-        type: "status-change",
-        created: new Date("1980-01-02T00:00:00.000+0000").getTime(),
-        displayName: "Mr. Example",
-        emailAddress: "example@atlassian.com",
-        from: "11204",
-        fromString: "Review",
-        to: "27290",
-        toString: "Finished",
-      },
-    ])
+    assertEquals(result.map((el) => el.type), ["resolved", "status-change"])
   })
 
   await t.step("ignores no-op transitions (e.g. from and to the same status)", async () => {
