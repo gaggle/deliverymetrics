@@ -609,8 +609,11 @@ export function filterObject<Val, Key extends string | number | symbol>(
   return result
 }
 
-export function pick<T extends Record<K, unknown>, K extends keyof T>(obj: T, ...keys: K[]) {
-  return Object.fromEntries(keys.filter((key) => key in obj).map((key) => [key, obj[key]])) as Pick<T, K>
+export function pick<T extends object, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
+  return keys.reduce((result, key) => {
+    if (key in obj) result[key] = obj[key]
+    return result
+  }, {} as Pick<T, K>)
 }
 
 export function omit<T extends Record<K, unknown>, K extends keyof T>(obj: T, ...keys: K[]) {

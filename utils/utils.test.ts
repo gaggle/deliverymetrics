@@ -759,9 +759,15 @@ Deno.test("filterObject", async (t) => {
 
 Deno.test("pick", async (t) => {
   await t.step("picks", () => {
-    const actual = pick({ foo: "bar", ham: "spam" }, "foo")
+    const obj = { foo: "bar", ham: "spam" }
 
-    assertEquals(actual, { foo: "bar" })
+    assertEquals(pick(obj, "foo"), { foo: "bar" })
+  })
+
+  await t.step("can pick optionals too", () => {
+    const obj: { foo: string; ham?: string } = { foo: "bar", ham: "spam" }
+
+    assertEquals(pick(obj, "ham"), { ham: "spam" })
   })
 })
 
