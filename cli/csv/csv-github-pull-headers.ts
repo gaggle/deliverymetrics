@@ -1,7 +1,7 @@
 import { githubPullSchema } from "../../libs/github/api/pulls/mod.ts"
 import { yieldPullRequestData } from "../../libs/metrics/mod.ts"
 
-import { extractZodSchemaKeys, flattenObject, stringifyObject, toDays } from "../../utils/mod.ts"
+import { extractZodSchemaKeys, flattenObject, stringifyObject, toDaysRounded } from "../../utils/mod.ts"
 
 const extraHeaders = [
   "Lead Time (in days)",
@@ -35,8 +35,8 @@ export async function* githubPullsAsCsv(iter: ReturnType<typeof yieldPullRequest
       "Label Names": el.pull.labels
         .map((el) => el.name)
         .join("; "),
-      "Lead Time (in days)": el.leadTime ? toDays(el.leadTime).toPrecision(2) : "",
-      "Time to Merge (in days)": el.timeToMerge ? toDays(el.timeToMerge).toPrecision(2) : "",
+      "Lead Time (in days)": el.leadTime ? toDaysRounded(el.leadTime).toPrecision(2) : "",
+      "Time to Merge (in days)": el.timeToMerge ? toDaysRounded(el.timeToMerge).toPrecision(2) : "",
       "Was Cancelled?": Boolean(el.pull.closed_at && el.pull.merged_at === null).toString(),
       ...stringifyObject(flattenObject(el.pull), { stringifyUndefined: true }),
     }

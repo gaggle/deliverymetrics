@@ -48,12 +48,17 @@ export function nextDayStart(...args: ConstructorParameters<typeof Date>): Date 
   return d
 }
 
-export function toDays(duration: number): number {
+export function toDaysRounded(duration: number): number {
   return Math.ceil(duration / (24 * 60 * 60 * 1000))
   //                           hour min  sec  ms;
 }
 
 export function toHours(duration: number): number {
+  return duration / (60 * 60 * 1000)
+  //                 min  sec  ms;
+}
+
+export function toHoursRounded(duration: number): number {
   return Math.ceil(duration / (60 * 60 * 1000))
   //                           min  sec  ms;
 }

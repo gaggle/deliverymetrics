@@ -1,6 +1,6 @@
 import { yieldPullRequestHistogram } from "../../libs/metrics/mod.ts"
 
-import { toDays } from "../../utils/mod.ts"
+import { toDaysRounded } from "../../utils/mod.ts"
 
 export const pullRequestHistogramHeaders = [
   "Period Start",
@@ -20,8 +20,8 @@ export async function* pullRequestHistogramAsCsv(
     yield {
       "Period Start": el.start.toISOString(),
       "Period End": el.end.toISOString(),
-      "Lead Time (in days)": toDays(el.leadTime).toPrecision(2),
-      "Time to Merge (in days)": el.timeToMerge ? toDays(el.timeToMerge).toPrecision(2) : "",
+      "Lead Time (in days)": toDaysRounded(el.leadTime).toPrecision(2),
+      "Time to Merge (in days)": el.timeToMerge ? toDaysRounded(el.timeToMerge).toPrecision(2) : "",
       "# of PRs Merged": el.mergedPRs.length.toString(),
       "Merged PRs": el.mergedPRs.join("; "),
     }
