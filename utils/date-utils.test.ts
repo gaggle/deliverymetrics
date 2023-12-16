@@ -1,6 +1,6 @@
 import { assertEquals } from "dev:asserts"
 
-import { monthEnd, toMins } from "./date-utils.ts"
+import { formatDuration, monthEnd, toMins } from "./date-utils.ts"
 
 Deno.test("monthEnd", async (t) => {
   for (
@@ -27,6 +27,41 @@ Deno.test("toMins", async (t) => {
   ) {
     await t.step(`turns ${input} to ${expected} minutes`, () => {
       assertEquals(toMins(input), expected)
+    })
+  }
+})
+
+Deno.test("formatDuration", async (t) => {
+  for (
+    const [input, expected] of [
+      [30_000, "30s"],
+      [60_000, "1m"],
+      [90_000, "1m30s"],
+      [3_600_000, "1h"],
+      [86_400_000, "1d"],
+      [86_400_000 + 60_000, "1d1m"],
+      [86_400_000 + 60_000 + 1_000, "1d1m1s"],
+    ] as [number, string][]
+  ) {
+    await t.step(`format ${input}ms to '${expected}' with seconds`, () => {
+      assertEquals(formatDuration(input, { includeSeconds: true }), expected)
+    })
+  }
+
+  for (
+    const [input, expected] of [
+      [30_000, "0m"],
+      [60_000, "1m"],
+      [90_000, "1m"],
+      [3_600_000, "1h"],
+      [86_400_000, "1d"],
+      [86_400_000 + 60_000, "1d1m"],
+      [86_400_000 + 60_000 + 1_000, "1d1m"],
+      [86_400_000 * 2, "2d"],
+    ] as [number, string][]
+  ) {
+    await t.step(`format ${input}ms to '${expected}'`, () => {
+      assertEquals(formatDuration(input), expected)
     })
   }
 })

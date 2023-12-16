@@ -77,3 +77,32 @@ export function daysBetween(then: Date, now: Date): number {
   return msBetweenDates / (24 * 60 * 60 * 1000)
   //                       hour min  sec  ms
 }
+
+export function formatDuration(milliseconds: number, opts?: { includeSeconds?: boolean }): string {
+  const { includeSeconds = false } = opts || {}
+
+  const seconds = Math.floor(milliseconds / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  const days = Math.floor(hours / 24)
+
+  const remainingHours = hours % 24
+  const remainingMinutes = minutes % 60
+  const remainingSeconds = seconds % 60
+
+  let formattedDuration = ""
+  if (days > 0) {
+    formattedDuration += `${days}d`
+  }
+  if (remainingHours > 0) {
+    formattedDuration += `${remainingHours}h`
+  }
+  if (remainingMinutes > 0) {
+    formattedDuration += `${remainingMinutes}m`
+  }
+  if (includeSeconds && remainingSeconds > 0) {
+    formattedDuration += `${remainingSeconds}s`
+  }
+
+  return formattedDuration || "0m" // Return '0m' if duration is less than a minute
+}
