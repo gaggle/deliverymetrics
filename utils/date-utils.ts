@@ -58,6 +58,11 @@ export function toHours(duration: number): number {
   //                 min  sec  ms;
 }
 
+export function fromHours(duration: number): number {
+  return duration * 60 * 60 * 1000
+  //                min  sec  ms;
+}
+
 export function toHoursRounded(duration: number): number {
   return Math.ceil(duration / (60 * 60 * 1000))
   //                           min  sec  ms;

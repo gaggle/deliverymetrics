@@ -2,7 +2,7 @@ import { assertEquals, AssertionError, assertRejects, assertThrows } from "dev:a
 import { assertSpyCallArgs, assertSpyCalls, spy, stub } from "dev:mock"
 
 import { CannedResponses, extractCallArgsFromStub, waitFor, withStubs } from "./dev-utils.ts"
-import { toHours, toHoursRounded, toMins } from "./date-utils.ts";
+import { fromHours, toHours, toHoursRounded, toMins } from "./date-utils.ts";
 
 Deno.test("CannedResponses", async (t) => {
   await t.step("given a list of responses", async (t) => {
@@ -145,6 +145,15 @@ Deno.test("toHours", async (t) => {
     assertEquals(toHours(3_600_000), 1)
     assertEquals(toHours(5_400_000), 1.5)
     assertEquals(toHours(7_200_000), 2)
+  })
+})
+
+Deno.test("fromHours", async (t) => {
+  await t.step("converts", ()=> {
+    assertEquals(fromHours(0), 0)
+    assertEquals(fromHours(1), 3_600_000)
+    assertEquals(fromHours(1.5), 5_400_000)
+    assertEquals(fromHours(2), 7_200_000)
   })
 })
 
