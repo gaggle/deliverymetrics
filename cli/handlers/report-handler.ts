@@ -461,9 +461,7 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
       await writeCSVToFile(
         join(opts.outputDir, "jira-search-data.csv"),
         jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues, { maxDescriptionLength: 10 }),
-        {
-          header: filteredHeaders,
-        },
+        { header: filteredHeaders },
       )
     })
   }
