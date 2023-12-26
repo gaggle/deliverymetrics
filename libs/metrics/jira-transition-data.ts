@@ -2,18 +2,6 @@ import { Epoch } from "../../utils/types.ts"
 
 import { JiraSearchIssue, JiraSearchIssueChangelogHistoryItem } from "../jira/api/search/mod.ts"
 
-export type JiraTransitionData = ExtractedStateTransition & { issue: JiraSearchIssue }
-
-export async function* yieldJiraTransitionData(
-  yieldJiraSearchIssues: AsyncGenerator<JiraSearchIssue>,
-): AsyncGenerator<JiraTransitionData> {
-  for await (const jiraSearchIssue of yieldJiraSearchIssues) {
-    for await (const stateTransition of extractStateTransitions(jiraSearchIssue)) {
-      yield { ...stateTransition, issue: jiraSearchIssue }
-    }
-  }
-}
-
 export type ExtractedStateTransition = {
   type: string
   created: Epoch
@@ -29,6 +17,16 @@ export type ExtractedStateTransition = {
   // but actually Typescript gets confused over the `toString` field-name
   // because it conflicts with built-in toString method.
   // It causes the type to include the built-in method's type (string | ()=>string).
+}
+
+export async function* yieldJiraTransitionData(
+  yieldJiraSearchIssues: AsyncGenerator<JiraSearchIssue>,
+): AsyncGenerator<ExtractedStateTransition> {
+  for await (const jiraSearchIssue of yieldJiraSearchIssues) {
+    for await (const stateTransition of extractStateTransitions(jiraSearchIssue)) {
+      yield stateTransition
+    }
+  }
 }
 
 export async function* extractStateTransitions(
@@ -69,8 +67,8 @@ function getTransitionType(
   item: JiraSearchIssueChangelogHistoryItem,
 ): string | undefined {
   if (item.from && item.to && item.from === item.to) return undefined
-  if (item.field === "Key") return "key-change"
-  if (item.fieldId === "resolution") return "resolved"
-  if (item.fieldId === "status") return "status-change"
+  if (item.field === "Key") return "Key-field"
+  if (item.fieldId === "resolution") return "resolution-fieldId"
+  if (item.fieldId === "status") return "status-fieldId"
   return
 }

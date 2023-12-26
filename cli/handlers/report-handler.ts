@@ -8,11 +8,12 @@ import { sortPullCommitsByKey } from "../../libs/github/github-utils/mod.ts"
 import { getGithubClient } from "../../libs/github/mod.ts"
 import { getJiraClient } from "../../libs/jira/mod.ts"
 import {
+  extractStateTransitions,
   getJiraSearchDataYielder,
+  GetJiraSearchDataYielderReturnType,
   yieldActionData,
   yieldCommitData,
   yieldContinuousIntegrationHistogram,
-  yieldJiraTransitionData,
   yieldPullRequestData,
   yieldPullRequestHistogram,
   yieldReleaseData,
@@ -63,11 +64,12 @@ import {
   githubStatsPunchCardHeaders,
   jiraSearchDataHeaders,
   jiraSearchDataIssuesAsCsv,
-  jiraTransitionDataAsCsv,
   jiraTransitionDataHeaders,
+  jiraTransitionDatasAsCsv,
   pullRequestHistogramAsCsv,
   pullRequestHistogramHeaders,
 } from "../csv/mod.ts"
+import { jiraSearchDataIssueAsCsv } from "../csv/csv-jira-search-data.ts"
 
 import { dot, formatGithubClientStatus } from "./formatting.ts"
 
@@ -428,18 +430,42 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
 
     yield async () => {
       await timeCtx("jira-transitions-data", async () => {
-        const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
+        const { fieldKeys, yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
           includeStatuses: jira.devLeadTimeStatuses,
           includeTypes: jira.devLeadTimeTypes,
           maxDays: opts.dataTimeframe,
           signal: opts.signal,
           sortBy: { key: completedDateHeader, type: "date" },
         })
+        const filteredHeaders = [
+          ...jiraTransitionDataHeaders.map((el) => el),
+          ...jiraSearchDataHeaders({
+            fieldKeys,
+            excludeHeaders: jira.ignoreHeaders,
+            headersOrder: jira.headerOrder,
+            includeHeaders: jira.headerOrder,
+          }),
+        ] as const
+
+        async function* transformer(
+          jiraSearchDataYielder: GetJiraSearchDataYielderReturnType["yieldJiraSearchIssues"],
+        ) {
+          for await (const jiraSearchIssue of jiraSearchDataYielder) {
+            const issueAsCSV = jiraSearchDataIssueAsCsv(jiraSearchIssue, { maxDescriptionLength: 10 })
+            for (
+              const transitionCSV of await asyncToArray(
+                jiraTransitionDatasAsCsv(extractStateTransitions(jiraSearchIssue)),
+              )
+            ) {
+              yield { ...transitionCSV, ...issueAsCSV }
+            }
+          }
+        }
 
         await writeCSVToFile(
           join(opts.outputDir, "jira-transitions-data.csv"),
-          jiraTransitionDataAsCsv(yieldJiraTransitionData(yieldJiraSearchIssues)),
-          { header: jiraTransitionDataHeaders.map((el) => el) },
+          transformer(yieldJiraSearchIssues),
+          { header: filteredHeaders.map((el) => el) },
         )
       })
     }

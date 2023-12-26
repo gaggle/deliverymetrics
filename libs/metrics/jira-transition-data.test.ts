@@ -40,10 +40,9 @@ Deno.test("yieldJiraTransitionData", async (t) => {
     })
     const fakeYieldJiraSearchIssues = arrayToAsyncGenerator([fakeJiraIssue])
 
-    const { issue, ...rest } = await asyncSingle(yieldJiraTransitionData(fakeYieldJiraSearchIssues))
+    const issue = await asyncSingle(yieldJiraTransitionData(fakeYieldJiraSearchIssues))
 
-    assertEquals(issue, fakeJiraIssue)
-    assertEquals(rest, {
+    assertEquals(issue, {
       created: 315619200000,
       displayName: "Mr. Example",
       emailAddress: "example@atlassian.com",
@@ -51,7 +50,7 @@ Deno.test("yieldJiraTransitionData", async (t) => {
       fromString: "Review",
       to: "27290",
       toString: "Finished",
-      type: "status-change",
+      type: "status-fieldId",
     })
   })
 })
@@ -102,7 +101,7 @@ Deno.test("extractStateTransitions", async (t) => {
     const result = await asyncSingle(extractStateTransitions(jiraIssue))
 
     assertEquals(result, {
-      type: "status-change",
+      type: "status-fieldId",
       created: new Date("1980-01-02T00:00:00.000+0000").getTime(),
       displayName: "Mr. Example",
       emailAddress: "example@atlassian.com",
@@ -326,24 +325,24 @@ Deno.test("extractStateTransitions", async (t) => {
       {
         created: new Date("1980-01-10T08:00:00.000+0000").getTime(),
         toString: "Review",
-        type: "status-change",
+        type: "status-fieldId",
       },
       {
         created: new Date("1980-01-20T06:00:00.000+0000").getTime(),
         toString: "Done",
-        type: "resolved",
+        type: "resolution-fieldId",
       },
       {
         created: new Date("1980-01-20T06:00:00.000+0000").getTime(),
         duration: fromHours(238),
         toString: "Finished",
-        type: "status-change",
+        type: "status-fieldId",
       },
       {
         created: new Date("1980-01-30T04:00:00.000+0000").getTime(),
         duration: fromHours(238),
         toString: "Finished",
-        type: "status-change",
+        type: "status-fieldId",
       },
     ])
   })
@@ -457,7 +456,7 @@ Deno.test("extractStateTransitions", async (t) => {
 
     const result = await asyncToArray(extractStateTransitions(jiraIssue))
 
-    assertEquals(result.map((el) => el.type), ["resolved", "status-change"])
+    assertEquals(result.map((el) => el.type), ["resolution-fieldId", "status-fieldId"])
   })
 
   await t.step("ignores no-op transitions (e.g. from and to the same status)", async () => {
