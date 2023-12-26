@@ -1,12 +1,14 @@
 import { ExtractedStateTransition, yieldJiraTransitionData } from "../../libs/metrics/jira-transition-data.ts"
 
-import { formatDuration } from "../../utils/date-utils.ts"
+import { formatDuration, toDaysRounded } from "../../utils/date-utils.ts"
 
 export const jiraTransitionDataHeaders = [
   "Type",
   "From",
   "To",
   "Duration (in days)",
+  "Duration (in ms)",
+  "Duration",
   "Created",
   "By",
 ] as const
@@ -22,12 +24,14 @@ export async function* jiraTransitionDatasAsCsv(
 export function jiraTransitionDataAsCsv(
   jiraTransition: ExtractedStateTransition,
 ): Record<typeof jiraTransitionDataHeaders[number], string> {
-  const durationInDays = jiraTransition.duration === undefined ? "" : formatDuration(jiraTransition.duration)
+  const durationString = jiraTransition.duration === undefined ? "" : formatDuration(jiraTransition.duration)
   return {
     Type: jiraTransition.type,
     From: jiraTransition.fromString || "",
     To: jiraTransition.toString || "",
-    "Duration (in days)": durationInDays,
+    "Duration (in days)": jiraTransition.duration ? toDaysRounded(jiraTransition.duration).toString() : "",
+    "Duration (in ms)": jiraTransition.duration?.toString() || "",
+    "Duration": durationString,
     Created: new Date(jiraTransition.created).toISOString(),
     By: `${jiraTransition.displayName} (${jiraTransition.emailAddress})`,
   }

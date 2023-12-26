@@ -49,8 +49,19 @@ export function nextDayStart(...args: ConstructorParameters<typeof Date>): Date 
 }
 
 export function toDaysRounded(duration: number): number {
-  return Math.ceil(duration / (24 * 60 * 60 * 1000))
-  //                           hour min  sec  ms;
+  const durationInHours = duration / (60 * 60 * 1000)
+  const fractionalDays = durationInHours / 24
+
+  // Determine rounding threshold
+  const roundingThreshold = Math.ceil(fractionalDays) - 0.95
+
+  if (fractionalDays >= roundingThreshold) {
+    // Match or exceed threshold: round up to the nearest whole day
+    return Math.ceil(fractionalDays)
+  } else {
+    // Round down to the nearest whole day
+    return Math.floor(fractionalDays)
+  }
 }
 
 export function toHours(duration: number): number {

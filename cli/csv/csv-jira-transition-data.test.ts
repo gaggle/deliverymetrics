@@ -27,6 +27,8 @@ Deno.test("jiraTransitionDatasAsCsv", async (t) => {
       By: "Mr. Example (example@atlassian.com)",
       Created: "1970-01-01T00:00:00.000Z",
       "Duration (in days)": "",
+      "Duration (in ms)": "",
+      "Duration": "",
       From: "Review",
       To: "Finished",
       Type: "status-fieldId",
