@@ -6,6 +6,10 @@ export type ExtractedStateTransition = {
   type: string
   created: Epoch
   duration?: number
+  // ↑ This holds the time interval in milliseconds between successive transitions
+  //   Note: Duration is calculated *between transitions of the same field*,
+  //   so the same field changing forms "transition chains".
+  //   If there was no previous transition of the same field the duration is undefined.
   displayName?: string
   emailAddress?: string
   from: string | null
@@ -14,9 +18,9 @@ export type ExtractedStateTransition = {
   // deno-lint-ignore no-explicit-any
   toString: any | string | null
   // ↑ This is supposed to be `string | null`,
-  // but actually Typescript gets confused over the `toString` field-name
-  // because it conflicts with built-in toString method.
-  // It causes the type to include the built-in method's type (string | ()=>string).
+  //   but actually Typescript gets confused over the `toString` field-name
+  //   because it conflicts with built-in toString method.
+  //   It causes the type to include the built-in method's type (string | ()=>string).
 }
 
 export async function* yieldJiraTransitionData(
