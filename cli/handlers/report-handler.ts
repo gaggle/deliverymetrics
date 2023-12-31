@@ -431,8 +431,6 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
     yield async () => {
       await timeCtx("jira-transitions-data", async () => {
         const { fieldKeys, yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
-          includeStatuses: jira.devLeadTimeStatuses,
-          includeTypes: jira.devLeadTimeTypes,
           maxDays: opts.dataTimeframe,
           signal: opts.signal,
           sortBy: { key: completedDateHeader, type: "date" },
