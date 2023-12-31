@@ -129,8 +129,17 @@ export function main(args: Array<string>) {
           type: "string",
           coerce: (fp: string) => loadConfiguration(fp, ["dm.json", "dm.jsonc"]),
         })
+        inst.option("skip-github", { describe: "Skip GitHub reporting", type: "boolean", default: false })
+        inst.option("skip-jira", { describe: "Skip Jira reporting", type: "boolean", default: false })
       },
-      async (argv: YargsArguments & { config: ReturnType<typeof loadConfiguration>; cache: string }) => {
+      async (
+        argv: YargsArguments & {
+          config: ReturnType<typeof loadConfiguration>
+          cache: string
+          skipGithub: boolean
+          skipJira: boolean
+        },
+      ) => {
         const configReport = argv.config.report
 
         if (!configReport) {
@@ -138,8 +147,8 @@ export function main(args: Array<string>) {
           Deno.exit(1)
         }
 
-        const githubSync = argv.config.sync.github
-        const jiraSync = argv.config.sync.jira
+        const githubSync = argv.skipGithub ? undefined : argv.config.sync.github
+        const jiraSync = argv.skipJira ? undefined : argv.config.sync.jira
 
         const { signal } = interceptSigint()
 
