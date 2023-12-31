@@ -1,4 +1,4 @@
 dependencies:
   deno.land: =1.38.3
 env:
-  VERSION: 0.4.4
+  VERSION: 0.4.5
