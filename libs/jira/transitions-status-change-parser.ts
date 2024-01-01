@@ -1,4 +1,4 @@
-import { toISOStringWithoutMs } from "../../utils/mod.ts"
+import { formatDuration, toDaysRounded, toISOStringWithoutMs } from "../../utils/mod.ts"
 import { Epoch } from "../../utils/types.ts"
 
 import { ExtractedStateTransition } from "../metrics/jira-transition-data.ts"
@@ -21,23 +21,19 @@ export function transitionsStatusChangeParser(
 
   const logTransition = (state: string, transition: ExtractedStateTransition) => {
     eventLog.push(
-      `Transitioned to ${state} state at ${
-        toISOStringWithoutMs(transition.created)
-      } with status '${transition.toString}'`,
+      `Transitioned to ${state} state ${getDurationString(transition)} with status '${transition.toString}'`,
     )
   }
   const logCantGoBack = (state: string, transition: ExtractedStateTransition, pastState: string) => {
     eventLog.push(
-      `Ignored transition to ${state} state at ${
-        toISOStringWithoutMs(transition.created)
+      `Ignored transition to ${state} state ${
+        getDurationString(transition)
       }, as state has already been ${pastState} (status changed to '${transition.toString}')`,
     )
   }
   const logStateStill = (state: string, transition: ExtractedStateTransition) => {
     eventLog.push(
-      `State still ${state} at ${
-        toISOStringWithoutMs(transition.created)
-      } (status changed to '${transition.toString}')`,
+      `State still ${state} ${getDurationString(transition)} (status changed to '${transition.toString}')`,
     )
   }
 
@@ -71,4 +67,15 @@ export function transitionsStatusChangeParser(
   }
 
   return { ...result, eventLog }
+}
+
+function getDurationString(transition: ExtractedStateTransition) {
+  if (transition.duration) {
+    const durationStr = formatDuration(transition.duration)
+    return toDaysRounded(transition.duration) < 2
+      ? `${durationStr} later`
+      : `at ${toISOStringWithoutMs(transition.created)} (after ${durationStr})`
+  } else {
+    return `at ${toISOStringWithoutMs(transition.created)}`
+  }
 }
