@@ -1,3 +1,4 @@
+import { toISOStringWithoutMs } from "../../utils/mod.ts"
 import { Epoch } from "../../utils/types.ts"
 
 import { ExtractedStateTransition } from "../metrics/jira-transition-data.ts"
@@ -19,15 +20,25 @@ export function transitionsStatusChangeParser(
   } as const
 
   const logTransition = (state: string, transition: ExtractedStateTransition) => {
-    eventLog.push(`Transitioned to ${state} state at ${transition.created} with status '${transition.toString}'`)
+    eventLog.push(
+      `Transitioned to ${state} state at ${
+        toISOStringWithoutMs(transition.created)
+      } with status '${transition.toString}'`,
+    )
   }
   const logCantGoBack = (state: string, transition: ExtractedStateTransition, pastState: string) => {
     eventLog.push(
-      `Ignored transition to ${state} state at ${transition.created}, as state has already been ${pastState} (status changed to '${transition.toString}')`,
+      `Ignored transition to ${state} state at ${
+        toISOStringWithoutMs(transition.created)
+      }, as state has already been ${pastState} (status changed to '${transition.toString}')`,
     )
   }
   const logStateStill = (state: string, transition: ExtractedStateTransition) => {
-    eventLog.push(`State still ${state} at ${transition.created} (status changed to '${transition.toString}')`)
+    eventLog.push(
+      `State still ${state} at ${
+        toISOStringWithoutMs(transition.created)
+      } (status changed to '${transition.toString}')`,
+    )
   }
 
   const handleTransition = (

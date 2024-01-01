@@ -78,57 +78,57 @@ for (
       name: "moving between planned states",
       data: [
         getStatusTransition({ created: 0, fromString: "Backlog", toString: "To Do" }),
-        getStatusTransition({ created: 2000, fromString: "To Do", toString: "Backlog", duration: 2000 }),
+        getStatusTransition({ created: 30000000, fromString: "To Do", toString: "Backlog", duration: 30000000 }),
       ],
       expected: [
-        "Transitioned to planned state at 0 with status 'To Do'",
-        "State still planned at 2000 (status changed to 'Backlog')",
+        "Transitioned to planned state at 1970-01-01T00:00:00Z with status 'To Do'",
+        "State still planned at 1970-01-01T08:20:00Z (status changed to 'Backlog')",
       ],
     },
     {
       name: "moving between inProgress states",
       data: [
         getStatusTransition({ created: 0, fromString: "In Progress", toString: "Review" }),
-        getStatusTransition({ created: 2000, fromString: "Review", toString: "In Progress", duration: 2000 }),
+        getStatusTransition({ created: 60000000, fromString: "Review", toString: "In Progress", duration: 60000000 }),
       ],
       expected: [
-        "Transitioned to inProgress state at 0 with status 'Review'",
-        "State still inProgress at 2000 (status changed to 'In Progress')",
+        "Transitioned to inProgress state at 1970-01-01T00:00:00Z with status 'Review'",
+        "State still inProgress at 1970-01-01T16:40:00Z (status changed to 'In Progress')",
       ],
     },
     {
       name: "moving between completed states",
       data: [
         getStatusTransition({ created: 0, fromString: "Done", toString: "Finished" }),
-        getStatusTransition({ created: 2000, fromString: "Finished", toString: "Closed", duration: 2000 }),
-        getStatusTransition({ created: 4000, fromString: "Closed", toString: "Done", duration: 2000 }),
+        getStatusTransition({ created: 30000000, fromString: "Finished", toString: "Closed", duration: 30000000 }),
+        getStatusTransition({ created: 60000000, fromString: "Closed", toString: "Done", duration: 60000000 }),
       ],
       expected: [
-        "Transitioned to completed state at 0 with status 'Finished'",
-        "State still completed at 2000 (status changed to 'Closed')",
-        "State still completed at 4000 (status changed to 'Done')",
+        "Transitioned to completed state at 1970-01-01T00:00:00Z with status 'Finished'",
+        "State still completed at 1970-01-01T08:20:00Z (status changed to 'Closed')",
+        "State still completed at 1970-01-01T16:40:00Z (status changed to 'Done')",
       ],
     },
     {
       name: "moving back to backlog",
       data: [
         getStatusTransition({ created: 0, fromString: "Backlog", toString: "In Progress" }),
-        getStatusTransition({ created: 2000, fromString: "In Progress", toString: "Backlog", duration: 2000 }),
+        getStatusTransition({ created: 30000000, fromString: "In Progress", toString: "Backlog", duration: 30000000 }),
       ],
       expected: [
-        "Transitioned to inProgress state at 0 with status 'In Progress'",
-        "Ignored transition to planned state at 2000, as state has already been inProgress (status changed to 'Backlog')",
+        "Transitioned to inProgress state at 1970-01-01T00:00:00Z with status 'In Progress'",
+        "Ignored transition to planned state at 1970-01-01T08:20:00Z, as state has already been inProgress (status changed to 'Backlog')",
       ],
     },
     {
       name: "moving back to inProgress",
       data: [
         getStatusTransition({ created: 0, fromString: "In Progress", toString: "Finished" }),
-        getStatusTransition({ created: 2000, fromString: "Finished", toString: "In Progress", duration: 2000 }),
+        getStatusTransition({ created: 30000000, fromString: "Finished", toString: "In Progress", duration: 30000000 }),
       ],
       expected: [
-        "Transitioned to completed state at 0 with status 'Finished'",
-        "Ignored transition to inProgress state at 2000, as state has already been completed (status changed to 'In Progress')",
+        "Transitioned to completed state at 1970-01-01T00:00:00Z with status 'Finished'",
+        "Ignored transition to inProgress state at 1970-01-01T08:20:00Z, as state has already been completed (status changed to 'In Progress')",
       ],
     },
   ] as { name: string; data: ExtractedStateTransition[]; expected: string[] }[]
