@@ -6,7 +6,7 @@ import { GithubActionWorkflow } from "../../libs/github/api/action-workflows/mod
 import { BoundGithubPullCommit } from "../../libs/github/api/pull-commits/mod.ts"
 import { sortPullCommitsByKey } from "../../libs/github/github-utils/mod.ts"
 import { getGithubClient } from "../../libs/github/mod.ts"
-import { getJiraClient } from "../../libs/jira/mod.ts"
+import { getJiraClient, transitionsStatusChangeParser } from "../../libs/jira/mod.ts"
 import {
   extractStateTransitions,
   getJiraSearchDataYielder,
@@ -34,6 +34,7 @@ import {
   mergeAsyncGenerators,
   reorganizeHeaders,
   timeCtx,
+  toDaysRounded,
   writeCSVToFile,
 } from "../../utils/mod.ts"
 
@@ -392,7 +393,6 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
       await timeCtx("jira-focusedobjective-team-dashboard-data", async () => {
         const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
           includeStatuses: [
-            ...jira.devLeadPlannedStatuses || [],
             ...jira.devLeadInProgressStatuses || [],
             ...jira.devLeadCompletedStatuses || [],
           ],
@@ -402,23 +402,68 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
           sortBy: { key: completedDateHeader, type: "date" },
         })
 
+        async function* transformer(
+          jiraSearchDataYielder: GetJiraSearchDataYielderReturnType["yieldJiraSearchIssues"],
+        ) {
+          for await (const jiraSearchIssue of jiraSearchDataYielder) {
+            const issueAsCSV = jiraSearchDataIssueAsCsv(jiraSearchIssue, { maxDescriptionLength: 10 })
+
+            const explicitStartedField = startDateHeader && startDateHeader in issueAsCSV
+              ? issueAsCSV[startDateHeader]
+              : "null"
+            const explicitCompletedField = completedDateHeader && completedDateHeader in issueAsCSV
+              ? issueAsCSV[completedDateHeader]
+              : "null"
+            // ↑ These come out of the CSV function so are *always* strings,
+            //   but if empty might be stringified as "null" so this also falls back to null-string.
+            const explicitStartDate = explicitStartedField === "null" ? undefined : YYYYMMDD(explicitStartedField)
+            const explicitCompletedDate = explicitCompletedField === "null"
+              ? undefined
+              : YYYYMMDD(explicitCompletedField)
+
+            const transitions = await asyncToArray(extractStateTransitions(jiraSearchIssue))
+            const { inProgress, completed, eventLog } = transitionsStatusChangeParser(transitions, {
+              plannedStates: jira.devLeadPlannedStatuses || [],
+              inProgressStates: jira.devLeadInProgressStatuses || [],
+              completedStates: jira.devLeadCompletedStatuses || [],
+            })
+            const calculatedStartDate = inProgress ? YYYYMMDD(new Date(inProgress).toISOString()) : undefined
+            const calculatedCompletedDate = completed ? YYYYMMDD(new Date(completed).toISOString()) : undefined
+
+            const completedDate = explicitCompletedDate || calculatedCompletedDate
+            const startDate = explicitStartDate || calculatedStartDate
+
+            if (completedDate && !startDate) {
+              // This must have been moved directly into done. Does that mean it got completed, or never worked on?
+              continue
+            }
+
+            yield {
+              "Completed Date": completedDate || "null",
+              "Start Date": startDate || "null",
+              "Type": issueAsCSV["fields.Issue Type.name"],
+              "Key": issueAsCSV["key"],
+              "Summary": issueAsCSV["fields.Summary"],
+              "Status": issueAsCSV["fields.Status.name"],
+              "Components": issueAsCSV["Component Names"],
+              "Explicit Start Date": explicitStartDate || "null",
+              "Explicit Completed Date": explicitCompletedDate || "null",
+              "Calculated Start Date": calculatedStartDate || "null",
+              "Calculated Completed Date": calculatedCompletedDate || "null",
+              "Cycle Time": toDaysRounded(
+                new Date(completedDate || new Date()).getTime() - new Date(startDate!).getTime(),
+              ).toString(),
+              "Transitions": eventLog.join("; "),
+            }
+          }
+        }
+
         await writeCSVToFile(
           join(opts.outputDir, "jira-focusedobjective-team-dashboard-data.csv"),
-          mapIter((el) => {
-            const completed = el[completedDateHeader]
-            const started = el[startDateHeader]
-            // ↑ These come out of the CSV function so are *always* strings,
-            // but if empty might be stringified as "null"
-            return {
-              "Completed Date": completed === "null" ? "null" : YYYYMMDD(completed),
-              "Start Date": started === "null" ? "null" : YYYYMMDD(started),
-              "Type": el["fields.Issue Type.name"],
-              "Key": el["key"],
-              "Summary": el["fields.Summary"],
-              "Status": el["fields.Status.name"],
-              "Components": el["Component Names"],
-            }
-          }, jiraSearchDataIssuesAsCsv(yieldJiraSearchIssues)),
+          await sortAsyncGenerator(
+            transformer(yieldJiraSearchIssues),
+            (a, b) => a["Completed Date"] === "null" ? 1 : b["Completed Date"] === "null" ? -1 : 0,
+          ),
           {
             header: [
               "Completed Date",
@@ -428,6 +473,12 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
               "Summary",
               "Status",
               "Components",
+              "Explicit Start Date",
+              "Calculated Start Date",
+              "Explicit Completed Date",
+              "Calculated Completed Date",
+              "Cycle Time",
+              "Transitions",
             ],
           },
         )
@@ -503,5 +554,18 @@ export const _internals = {
 }
 
 export function YYYYMMDD(date: string): string {
-  return new Date(date).toISOString().split("T")[0]
+  const d = new Date(date)
+  const year = d.getFullYear()
+  const month = d.getMonth() + 1
+  const day = d.getDate()
+  return `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
+}
+
+async function sortAsyncGenerator<T>(
+  iter: AsyncGenerator<T>,
+  compareFn: (a: T, b: T) => number,
+): Promise<AsyncGenerator<T, unknown, unknown>> {
+  const array = await asyncToArray(iter)
+  array.sort(compareFn)
+  return arrayToAsyncGenerator(array)
 }
