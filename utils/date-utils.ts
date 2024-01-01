@@ -117,3 +117,7 @@ export function formatDuration(milliseconds: number, opts?: { includeSeconds?: b
 
   return formattedDuration || "0m" // Return '0m' if duration is less than a minute
 }
+
+export function toISOStringWithoutMs(...args: ConstructorParameters<typeof Date>) {
+  return new Date(...args).toISOString().split(".")[0] + "Z"
+}

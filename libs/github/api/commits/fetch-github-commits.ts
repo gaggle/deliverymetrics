@@ -1,3 +1,4 @@
+import { toISOStringWithoutMs } from "../../../../utils/mod.ts"
 import { Epoch } from "../../../../utils/types.ts"
 
 import { createGithubRequest } from "../../github-utils/mod.ts"
@@ -26,10 +27,6 @@ export async function* fetchGithubCommits(
       yield el
     }
   }
-}
-
-function toISOStringWithoutMs(...args: ConstructorParameters<typeof Date>) {
-  return new Date(...args).toISOString().split(".")[0] + "Z"
 }
 
 export const _internals = {
