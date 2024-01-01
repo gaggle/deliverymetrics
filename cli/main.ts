@@ -190,7 +190,9 @@ export function main(args: Array<string>) {
           reportSpec.jira = {
             apiUser: jiraSync.api_user,
             completedDateHeader: jiraReport?.completed_date_header,
-            devLeadTimeStatuses: jiraReport?.dev_lead_time_statuses,
+            devLeadPlannedStatuses: jiraReport?.dev_lead_planned_statuses,
+            devLeadInProgressStatuses: jiraReport?.dev_lead_in_progress_statuses,
+            devLeadCompletedStatuses: jiraReport?.dev_lead_completed_statuses,
             devLeadTimeTypes: jiraReport?.dev_lead_time_types,
             headerOrder: parseRegexLikeStringArray(jiraReport?.header_order || []),
             host: jiraSync.host,

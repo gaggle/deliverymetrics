@@ -107,7 +107,9 @@ type ReportSpecGitHub = {
 type ReportSpecJira = {
   apiUser: string
   completedDateHeader?: string
-  devLeadTimeStatuses?: string[]
+  devLeadPlannedStatuses?: string[]
+  devLeadInProgressStatuses?: string[]
+  devLeadCompletedStatuses?: string[]
   devLeadTimeTypes?: string[]
   headerOrder?: Array<string | RegExp>
   host: string
@@ -389,7 +391,11 @@ async function* queueJiraReportJobs(jira: ReportSpecJira, opts: {
     yield async () => {
       await timeCtx("jira-focusedobjective-team-dashboard-data", async () => {
         const { yieldJiraSearchIssues } = await getJiraSearchDataYielder(jc, {
-          includeStatuses: jira.devLeadTimeStatuses,
+          includeStatuses: [
+            ...jira.devLeadPlannedStatuses || [],
+            ...jira.devLeadInProgressStatuses || [],
+            ...jira.devLeadCompletedStatuses || [],
+          ],
           includeTypes: jira.devLeadTimeTypes,
           maxDays: opts.dataTimeframe,
           signal: opts.signal,

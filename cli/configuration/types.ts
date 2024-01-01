@@ -65,7 +65,9 @@ const configReportSchema = z.object({
   jira: z.object({
     completed_date_header: z.string().optional(),
     start_date_header: z.string().optional(),
-    dev_lead_time_statuses: z.array(z.string()).optional(),
+    dev_lead_planned_statuses: z.array(z.string()).optional(),
+    dev_lead_in_progress_statuses: z.array(z.string()).optional(),
+    dev_lead_completed_statuses: z.array(z.string()).optional(),
     dev_lead_time_types: z.array(z.string()).optional(),
     header_order: z.array(z.string()).optional(),
     ignore_headers: z.array(z.string()).optional(),

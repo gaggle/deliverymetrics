@@ -141,7 +141,19 @@
                 "start_date_header": {
                   "type": "string"
                 },
-                "dev_lead_time_statuses": {
+                "dev_lead_planned_statuses": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "dev_lead_in_progress_statuses": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "dev_lead_completed_statuses": {
                   "type": "array",
                   "items": {
                     "type": "string"
