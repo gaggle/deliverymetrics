@@ -25,8 +25,18 @@ Deno.test("takes the first completion into account", () => {
 Deno.test("discards a move back to backlog after it's already been in progress", () => {
   const transitions = [
     getStatusTransition({ created: 0, fromString: "Backlog", toString: "In Progress" }),
-    getStatusTransition({ created: 1000, fromString: "In Progress", toString: "Review", duration: 1000 }),
-    getStatusTransition({ created: 2000, fromString: "In Progress", toString: "Backlog", duration: 1000 }),
+    getStatusTransition({
+      created: 1000 * 60 * 5,
+      fromString: "In Progress",
+      toString: "Review",
+      duration: 1000 * 60 * 5,
+    }),
+    getStatusTransition({
+      created: 1000 * 60 * 10,
+      fromString: "In Progress",
+      toString: "Backlog",
+      duration: 1000 * 60 * 5,
+    }),
   ]
 
   const result = transitionsStatusChangeParser(transitions, {
@@ -37,6 +47,24 @@ Deno.test("discards a move back to backlog after it's already been in progress",
 
   assertObjectMatch(result, { inProgress: 0 })
 })
+
+// Deno.test("discards a 'false start' that's moved back immediately", () => {
+//   const m5 = 1000 * 60 * 5
+//   const transitions = [
+//     getStatusTransition({ created: 0, fromString: "To Do", toString: "In Progress" }),
+//     getStatusTransition({ created: m5 - 1, fromString: "In Progress", toString: "To Do", duration: m5 - 1 }),
+//     getStatusTransition({ created: m5, fromString: "To Do", toString: "In Progress", duration: m5 }),
+//     getStatusTransition({ created: m5 + 1, fromString: "In Progress", toString: "To Do", duration: m5 + 1 }),
+//   ]
+//
+//   const result = transitionsStatusChangeParser(transitions, {
+//     plannedStates: ["Backlog", "To Do"],
+//     inProgressStates: ["In Progress", "Review"],
+//     completedStates: ["Done", "Finished", "Closed"],
+//   })
+//
+//   assertObjectMatch(result, { inProgress: m5 })
+// })
 
 Deno.test("only analyzes status-fieldId transitions", () => {
   const base = { "displayName": "Mr. Example", "emailAddress": "example@atlassian.com" }
@@ -129,6 +157,36 @@ for (
       expected: [
         "Transitioned to completed state at 1970-01-01T00:00:00Z with status 'Finished'",
         "Ignored transition to inProgress state 8h20m later, as state has already been completed (status changed to 'In Progress')",
+      ],
+    },
+    {
+      name: "moving back to To Do very quickly",
+      data: [
+        getStatusTransition({ created: 0, fromString: "To Do", toString: "In Progress" }),
+        getStatusTransition({
+          created: 1000 * 60 * 5 - 1,
+          fromString: "In Progress",
+          toString: "To Do",
+          duration: 1000 * 60 * 5 - 1,
+        }),
+        getStatusTransition({
+          created: 1000 * 60 * 5,
+          fromString: "To Do",
+          toString: "In Progress",
+          duration: 1000 * 60 * 5,
+        }),
+        getStatusTransition({
+          created: 1000 * 60 * 10,
+          fromString: "In Progress",
+          toString: "To Do",
+          duration: 1000 * 60 * 10,
+        }),
+      ],
+      expected: [
+        "Transitioned to inProgress state at 1970-01-01T00:00:00Z with status 'In Progress'",
+        "Reverted back to planned state 4m later (status changed to 'To Do' within threshold)",
+        "Transitioned to inProgress state 5m later with status 'In Progress'",
+        "Ignored transition to planned state 10m later, as state has already been inProgress (status changed to 'To Do')",
       ],
     },
   ] as { name: string; data: ExtractedStateTransition[]; expected: string[] }[]

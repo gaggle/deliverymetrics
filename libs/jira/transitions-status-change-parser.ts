@@ -24,6 +24,13 @@ export function transitionsStatusChangeParser(
       `Transitioned to ${state} state ${getDurationString(transition)} with status '${transition.toString}'`,
     )
   }
+  const logRevert = (state: string, transition: ExtractedStateTransition, _pastState: string) => {
+    eventLog.push(
+      `Reverted back to ${state} state ${
+        getDurationString(transition)
+      } (status changed to '${transition.toString}' within threshold)`,
+    )
+  }
   const logCantGoBack = (state: string, transition: ExtractedStateTransition, pastState: string) => {
     eventLog.push(
       `Ignored transition to ${state} state ${
@@ -42,15 +49,22 @@ export function transitionsStatusChangeParser(
     transition: ExtractedStateTransition,
   ) => {
     const existingResult = result[stateLabel]
-    const forbiddenTransitionResult = forbiddenStateTransitions[stateLabel].find((state) => result[state] !== undefined)
+    const forbiddenTransitionLabel = forbiddenStateTransitions[stateLabel].find((state) => result[state] !== undefined)
 
-    if (existingResult === undefined && forbiddenTransitionResult === undefined) {
+    if (existingResult === undefined && forbiddenTransitionLabel === undefined) {
       result[stateLabel] = transition.created
       logTransition(stateLabel, transition)
     } else if (existingResult !== undefined) {
       logStateStill(stateLabel, transition)
-    } else if (forbiddenTransitionResult !== undefined) {
-      logCantGoBack(stateLabel, transition, forbiddenTransitionResult)
+    } else if (forbiddenTransitionLabel !== undefined) {
+      const forbiddenTransitionResult = result[forbiddenTransitionLabel]
+      const duration = transition.created - forbiddenTransitionResult!
+      if (duration < 1000 * 60 * 5) {
+        result[forbiddenTransitionLabel] = undefined
+        logRevert(stateLabel, transition, forbiddenTransitionLabel)
+      } else {
+        logCantGoBack(stateLabel, transition, forbiddenTransitionLabel)
+      }
     } else {
       throw new Error("unreachable")
     }
