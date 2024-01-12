@@ -99,7 +99,8 @@ export async function fetchWithRetry(
     debug(`backoff function from error returned '${backoffDelay}' delay with reason: ${reason}`)
     if (backoffDelay === undefined || isAttemptLimitReached()) {
       await progress({ type: "done", retry: attemptNumber, retries, error })
-      throw error
+      debug(`wrapping error in FetchError: ${error}`)
+      throw new FetchError(error, request, response)
     }
     await progress({ type: "retrying", retry: attemptNumber, retries, reason, delay: backoffDelay })
     await sleep(backoffDelay, { signal })
