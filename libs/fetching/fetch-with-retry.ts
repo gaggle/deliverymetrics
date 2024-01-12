@@ -1,7 +1,7 @@
+import { debug } from "std:log"
 import { z } from "zod"
 
-import { AbortError } from "../../utils/mod.ts"
-import { filterUndefined, parseWithZodSchemaFromRequest, sleep } from "../../utils/mod.ts"
+import { AbortError, FetchError, filterUndefined, parseWithZodSchemaFromRequest, sleep } from "../../utils/mod.ts"
 
 import { githubBackoff, rateLimitAwareBackoff } from "./rate-limit-aware-backoff.ts"
 
@@ -69,13 +69,16 @@ export async function fetchWithRetry(
   const isAttemptLimitReached = () => attemptNumber >= retries
 
   const processResponse = async (response: Response, data: unknown): Promise<void> => {
+    debug(`processing response from ${response.url}`)
     const { delay: backoffDelay, reason } = backoffFn({
       attemptNumber,
       response,
     })
+    debug(`backoff function from response returned '${backoffDelay}' delay with reason: ${reason}`)
     if (backoffDelay === undefined || isAttemptLimitReached()) {
       await progress({ type: "done", retry: attemptNumber, retries, response })
       returnResponse = { response, data }
+      debug(`returning ${returnResponse.response.url}`)
       return
     }
 
@@ -87,11 +90,13 @@ export async function fetchWithRetry(
   }
 
   const processError = async (error: Error, response?: Response): Promise<void> => {
+    debug(response ? `processing error from ${response.url}: ${error}` : `processing error: ${error}`)
     const { delay: backoffDelay, reason } = backoffFn({
       attemptNumber,
       error,
       response,
     })
+    debug(`backoff function from error returned '${backoffDelay}' delay with reason: ${reason}`)
     if (backoffDelay === undefined || isAttemptLimitReached()) {
       await progress({ type: "done", retry: attemptNumber, retries, error })
       throw error
@@ -111,21 +116,26 @@ export async function fetchWithRetry(
       attemptNumber++
       await progress({ type: "fetching", retry: attemptNumber, retries, request })
       const requestBody = await request.clone().text()
+      debug(`fetching ${request.url} (attempt ${attemptNumber})`)
       response = await _fetch(request, { signal })
 
       const isJson = response.headers.get("Content-Type")?.includes("application/json") || false
       let data: unknown
       if (isJson) {
         data = await response.clone().json()
+        debug(`${request.url} is JSON`)
       } else {
         data = await response.clone().text()
+        debug(`${request.url} is not JSON`)
       }
       if (schema) {
         parseWithZodSchemaFromRequest({ data, schema, request, requestBody, response })
+        debug(`${request.url} passes schema validation`)
       }
       await progress({ type: "fetched", retry: attemptNumber, retries, response })
       await processResponse(response, data)
     } catch (error) {
+      debug(`error during request: ${error}`)
       await progress({ type: "error", retry: attemptNumber, retries, error })
       if (signal?.aborted) {
         throw new AbortError(error)
