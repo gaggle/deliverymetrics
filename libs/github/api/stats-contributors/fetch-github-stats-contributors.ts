@@ -1,3 +1,7 @@
+import { warning } from "std:log"
+
+import { FetchError } from "../../../../utils/errors.ts"
+
 import { createGithubRequest } from "../../github-utils/mod.ts"
 
 import { fetchGithubApiExhaustively } from "../fetch-github-api-exhaustively.ts"
@@ -16,17 +20,26 @@ export async function* fetchGithubStatsContributors(
     token,
     url: githubStatsContributorRestApiSpec.getUrl(owner, repo),
   })
-
-  for await (
-    const { data } of _internals.fetchGithubApiExhaustively(req, githubStatsContributorRestApiSpec.schema, {
-      retryStrategy: "github-backoff",
-      maxRetries: 20,
-      signal,
-    })
-  ) {
-    for (const el of data) {
-      yield el
+  try {
+    for await (
+      const { data } of _internals.fetchGithubApiExhaustively(req, githubStatsContributorRestApiSpec.schema, {
+        retryStrategy: "github-backoff",
+        maxRetries: 20,
+        signal,
+      })
+    ) {
+      for (const el of data) {
+        yield el
+      }
     }
+  } catch (err) {
+    if (err instanceof FetchError) {
+      if (err.response?.status === 422) {
+        warning(`Giving up ${err.response.url} due to ${err.response.status}`)
+        return
+      }
+    }
+    throw err
   }
 }
 
