@@ -96,4 +96,10 @@ Deno.test("githubBackoff", async (t) => {
     assertEquals(typeof actual.delay, "number")
     assertEquals(actual.reason, "202 response")
   })
+
+  await t.step("gives up on 422", async () => {
+    const actual = await githubBackoff({ attemptNumber: 0, response: new Response("💥", { status: 422 }) })
+    assertEquals(actual.delay, undefined)
+    assertEquals(actual.reason, "unprocessable-entity")
+  })
 })

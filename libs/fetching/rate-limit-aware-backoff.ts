@@ -8,7 +8,7 @@ type BackoffOpts =
 
 export function rateLimitAwareBackoff(
   { attemptNumber, error, response }: BackoffOpts,
-): { delay?: number; reason?: string | "rate-limited" } {
+): { delay?: number; reason?: string | "rate-limited" | "unprocessable-entity" } {
   if (response?.ok) {
     return { reason: "ok response" }
   }
@@ -30,7 +30,7 @@ export function rateLimitAwareBackoff(
 }
 
 /**
- * Backoff strategy that retries 202 responses
+ * Backoff strategy that retries 202 responses, and gives up on 422 responses
  *
  * Computing repository statistics is an expensive operation,
  * so we try to return cached data whenever possible.
@@ -53,6 +53,12 @@ export function githubBackoff(opts: BackoffOpts): ReturnType<typeof rateLimitAwa
       `githubBackoff got status code ${opts.response?.status}, attempt ${opts.attemptNumber}, delaying ${delay}`,
     )
     return { delay, reason: "202 response" }
+  }
+  if (opts.response?.status === 422) {
+    debug(
+      `giving up request due to status code ${opts.response?.status} from ${opts.response.url}: ${opts.error}`,
+    )
+    return { delay: undefined, reason: "unprocessable-entity" }
   }
   return rateLimitAwareBackoff(opts)
 }
