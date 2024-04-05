@@ -646,7 +646,7 @@ export const githubPullSchema = z.object({
     .union([
       z
         .object({
-          enabled_by: githubUserSchema,
+          enabled_by: z.union([githubUserSchema, z.null()]),
           merge_method: z
             .enum(["merge", "squash", "rebase"])
             .describe("The merge method to use."),
